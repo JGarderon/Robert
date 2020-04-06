@@ -9,6 +9,8 @@ use std::thread::JoinHandle;
 use std::collections::HashMap; 
 use std::sync::Arc; 
 use std::sync::Mutex; 
+use std::sync::mpsc; 
+use std::sync::mpsc::{Sender, Receiver}; 
 
 // ---------------------------------------------------- 
 
@@ -65,7 +67,7 @@ enum Valeurs {
 impl Drop for Valeurs { 
     fn drop(&mut self) { 
     	if DEBUG { 
-        	println!( "! drop 'Valeurs' : {:?}", self); 
+        	println!( "! suppression 'Valeurs' : {:?}", self); 
     	}
     } 
 } 
@@ -73,7 +75,7 @@ impl Drop for Valeurs {
 impl Valeurs { 
 	fn alterer( &mut self, r#type: &str ) -> bool { 
 		match r#type { 
-			"boolean" => match self { 
+			"booléen" => match self { 
 				Valeurs::Boolean( _ ) => true, 
 				Valeurs::Entier( n ) => {
 					*self = Valeurs::Boolean( if *n > 0 { true } else { false } ); 
@@ -144,14 +146,14 @@ fn resoudre_stop( contexte: &mut Contexte, _arguments: &str ) -> Retour {
 	Retour::creer_str( true, "au revoir" ) 
 } 
 
-fn resoudre_clear( contexte: &mut Contexte, _arguments: &str ) -> Retour { 
+fn resoudre_vider( contexte: &mut Contexte, _arguments: &str ) -> Retour { 
 	let mut dico = contexte.dico.lock().unwrap(); 
 	let valeurs = &mut dico.liste; 
 	valeurs.clear(); 
 	Retour::creer_str( true, "base vidée" ) 
 } 
 
-fn resoudre_set( contexte: &mut Contexte, arguments: &str ) -> Retour { 
+fn resoudre_definir( contexte: &mut Contexte, arguments: &str ) -> Retour { 
 	if let Some( position ) = arguments.find( ' ' ) { 
 		let mut dico = contexte.dico.lock().unwrap(); 
 		let valeurs = &mut dico.liste; 
@@ -170,7 +172,7 @@ fn resoudre_set( contexte: &mut Contexte, arguments: &str ) -> Retour {
 	} 
 } 
 
-fn resoudre_get( contexte: &mut Contexte, arguments: &str ) -> Retour { 
+fn resoudre_obtenir( contexte: &mut Contexte, arguments: &str ) -> Retour { 
 	let dico = contexte.dico.lock().unwrap(); 
 	let valeurs = &dico.liste; 
 	if valeurs.contains_key( arguments.trim() ) { 
@@ -184,7 +186,7 @@ fn resoudre_get( contexte: &mut Contexte, arguments: &str ) -> Retour {
 	} 
 } 
 
-fn resoudre_del( contexte: &mut Contexte, arguments: &str ) -> Retour { 
+fn resoudre_supprimer( contexte: &mut Contexte, arguments: &str ) -> Retour { 
 	let mut dico = contexte.dico.lock().unwrap(); 
 	let valeurs = &mut dico.liste; 
 	if let Some( _ ) = valeurs.remove( arguments.trim() ) { 
@@ -194,7 +196,7 @@ fn resoudre_del( contexte: &mut Contexte, arguments: &str ) -> Retour {
 	} 
 } 
 
-fn resoudre_add( contexte: &mut Contexte, arguments: &str ) -> Retour { 
+fn resoudre_ajouter( contexte: &mut Contexte, arguments: &str ) -> Retour { 
 	if let Some( position ) = arguments.find( ' ' ) { 
 		let mut dico = contexte.dico.lock().unwrap(); 
 		let valeurs = &mut dico.liste; 
@@ -213,7 +215,7 @@ fn resoudre_add( contexte: &mut Contexte, arguments: &str ) -> Retour {
 	} 
 } 
 
-fn resoudre_all( contexte: &mut Contexte, arguments: &str ) -> Retour { 
+fn resoudre_lister( contexte: &mut Contexte, arguments: &str ) -> Retour { 
 	if arguments != "" { 
 		return Retour::creer_str( false, "aucun argument accepté pour cette fonction" ); 
 	} 
@@ -235,7 +237,7 @@ fn resoudre_all( contexte: &mut Contexte, arguments: &str ) -> Retour {
 	Retour::creer( true, format!( "stop ({})", valeurs.len() ) ) 
 } 
 
-fn resoudre_test( contexte: &mut Contexte, arguments: &str ) -> Retour {
+fn resoudre_tester( contexte: &mut Contexte, arguments: &str ) -> Retour {
 	let dico = contexte.dico.lock().unwrap(); 
 	let valeurs = &dico.liste; 
 	if valeurs.contains_key( arguments.trim() ) { 
@@ -245,7 +247,7 @@ fn resoudre_test( contexte: &mut Contexte, arguments: &str ) -> Retour {
 	} 
 } 
 
-fn resoudre_alt( contexte: &mut Contexte, arguments: &str ) -> Retour { 
+fn resoudre_alterer( contexte: &mut Contexte, arguments: &str ) -> Retour { 
 	if let Some( position ) = arguments.find( ' ' ) { 
 		let mut dico = contexte.dico.lock().unwrap(); 
 		let valeurs = &mut dico.liste; 
@@ -253,7 +255,7 @@ fn resoudre_alt( contexte: &mut Contexte, arguments: &str ) -> Retour {
 		let r#type: &str = &arguments[position+1..]; 
 		if cle != "" { 
 			return match r#type { 
-				"boolean" | "texte" | "entier" => { 
+				"booléen" | "texte" | "entier" => { 
 					if let Some( v ) = valeurs.get_mut( cle ) { 
 						if v.alterer( r#type ) { 
 							Retour::creer_str( true, "altération effectuée" ) 
@@ -274,7 +276,7 @@ fn resoudre_alt( contexte: &mut Contexte, arguments: &str ) -> Retour {
 	} 
 } 
 
-fn resoudre_incr( contexte: &mut Contexte, arguments: &str ) -> Retour { 
+fn resoudre_incrementer( contexte: &mut Contexte, arguments: &str ) -> Retour { 
 	let mut dico = contexte.dico.lock().unwrap(); 
 	let valeurs = &mut dico.liste; 
 	if let Some( v ) = valeurs.get_mut( arguments.trim() ) { 
@@ -290,7 +292,7 @@ fn resoudre_incr( contexte: &mut Contexte, arguments: &str ) -> Retour {
 	} 
 } 
 
-fn resoudre_decr( contexte: &mut Contexte, arguments: &str ) -> Retour { 
+fn resoudre_decrementer( contexte: &mut Contexte, arguments: &str ) -> Retour { 
 	let mut dico = contexte.dico.lock().unwrap(); 
 	let valeurs = &mut dico.liste; 
 	if let Some( v ) = valeurs.get_mut( arguments.trim() ) { 
@@ -306,7 +308,7 @@ fn resoudre_decr( contexte: &mut Contexte, arguments: &str ) -> Retour {
 	} 
 } 
 
-fn resoudre_stats( contexte: &mut Contexte, arguments: &str ) -> Retour { 
+fn resoudre_resumer( contexte: &mut Contexte, arguments: &str ) -> Retour { 
 	if arguments != "" { 
 		return Retour::creer_str( false, "aucun argument accepté pour cette fonction" ); 
 	} 
@@ -322,7 +324,7 @@ fn resoudre_stats( contexte: &mut Contexte, arguments: &str ) -> Retour {
 	) 
 } 
 
-fn resoudre_channel_create( contexte: &mut Contexte, arguments: &str ) -> Retour { 
+fn resoudre_canal_creer( contexte: &mut Contexte, arguments: &str ) -> Retour { 
 	let nom = arguments.trim(); 
 	if nom == "" { 
 		Retour::creer_str( false, "nom de canal obligatoire" ) 
@@ -337,7 +339,8 @@ fn resoudre_channel_create( contexte: &mut Contexte, arguments: &str ) -> Retour
 				arguments.to_string(), 
 				Arc::new( Mutex::new( Dictionnaire { 
 					nom: nom.to_string(), 
-					liste: HashMap::new() 
+					liste: HashMap::new(), 
+					souscripteurs: Vec::new() 
 				} ) ) as DictionnaireThread  
 			); 
 			Retour::creer_str( true, "canal créé" ) 
@@ -345,7 +348,7 @@ fn resoudre_channel_create( contexte: &mut Contexte, arguments: &str ) -> Retour
 	} 
 } 
 
-fn resoudre_channel_delete( contexte: &mut Contexte, arguments: &str ) -> Retour { 
+fn resoudre_canal_supprimer( contexte: &mut Contexte, arguments: &str ) -> Retour { 
 	let nom = arguments.trim(); 
 	if nom == "" { 
 		Retour::creer_str( false, "nom de canal obligatoire" ) 
@@ -355,8 +358,18 @@ fn resoudre_channel_delete( contexte: &mut Contexte, arguments: &str ) -> Retour
 		Retour::creer_str( false, "impossible de supprimer le canal \"défaut\"" ) 
 	} else { 
 		let mut dicos = contexte.dicos.lock().unwrap(); 
-		if dicos.liste.contains_key( arguments ) { 
-			if let Some(_) = dicos.liste.remove( arguments ) { 
+		if dicos.liste.contains_key( nom ) { 
+			{ 
+				let message = "canal supprimé".to_string(); 
+				let mut dico = dicos.liste[nom].lock().unwrap(); 
+				dico.souscripteurs.retain( 
+					| souscripteur | { 
+						souscripteur.send( message.clone() ).unwrap(); 
+						false 
+					} 
+				); 
+			} 
+			if let Some(_) = dicos.liste.remove( nom ) { 
 				Retour::creer_str( true, "canal supprimé" ) 
 			} else { 
 				Retour::creer_str( false, "impossible de supprimer le canal" ) 
@@ -367,7 +380,7 @@ fn resoudre_channel_delete( contexte: &mut Contexte, arguments: &str ) -> Retour
 	} 
 } 
 
-fn resoudre_channel_test( contexte: &mut Contexte, arguments: &str ) -> Retour { 
+fn resoudre_canal_tester( contexte: &mut Contexte, arguments: &str ) -> Retour { 
 	let nom = arguments.trim(); 
 	if nom == "" { 
 		Retour::creer_str( false, "nom de canal obligatoire" ) 
@@ -383,7 +396,7 @@ fn resoudre_channel_test( contexte: &mut Contexte, arguments: &str ) -> Retour {
 	} 
 } 
 
-fn resoudre_channel_all( contexte: &mut Contexte, arguments: &str ) -> Retour { 
+fn resoudre_canal_lister( contexte: &mut Contexte, arguments: &str ) -> Retour { 
 	if arguments != "" { 
 		return Retour::creer_str( false, "aucun argument autorisé pour cette fonction" ); 
 	}
@@ -392,7 +405,7 @@ fn resoudre_channel_all( contexte: &mut Contexte, arguments: &str ) -> Retour {
 		let dico = d.lock().unwrap(); 
 		if let Err(_) = contexte.stream.write( 
 			format!( 
-				"\tchannel \"{}\" ({:?})\n", 
+				"\tcanal \"{}\" ({:?})\n", 
 				nom, 
 				dico.liste.len() 
 			).as_bytes() 
@@ -405,7 +418,7 @@ fn resoudre_channel_all( contexte: &mut Contexte, arguments: &str ) -> Retour {
 	Retour::creer( true, format!( "stop ({})", dicos.liste.len() ) ) 
 } 
 
-fn resoudre_channel_change( contexte: &mut Contexte, arguments: &str ) -> Retour { 
+fn resoudre_canal_changer( contexte: &mut Contexte, arguments: &str ) -> Retour { 
 	let nom = arguments.trim(); 
 	if nom == "" { 
 		Retour::creer_str( false, "nom de canal obligatoire" ) 
@@ -422,38 +435,87 @@ fn resoudre_channel_change( contexte: &mut Contexte, arguments: &str ) -> Retour
 	} 
 } 
 
-fn resoudre_channel_capture( contexte: &mut Contexte, arguments: &str ) -> Retour { 
+fn resoudre_canal_capture( contexte: &mut Contexte, arguments: &str ) -> Retour { 
 	if arguments.trim() != "" { 
 		Retour::creer_str( false, "aucun argument autorisé" ) 
 	} else { 
 		contexte.dico = Arc::new( Mutex::new( Dictionnaire { 
 			nom: "".to_string(), 
-			liste: HashMap::new() 
+			liste: HashMap::new(), 
+			souscripteurs: Vec::new() 
 		} ) ) as DictionnaireThread; 
 		Retour::creer_str( true, "canal privé actif" ) 
 	} 
 } 
 
+fn resoudre_canal_souscrire( contexte: &mut Contexte, arguments: &str ) -> Retour { 
+	if arguments.trim() != "" { 
+		Retour::creer_str( false, "aucun argument autorisé" ) 
+	} else { 
+		let (expediteur, destinaire): ( Sender<String>, Receiver<String> ) = mpsc::channel(); 
+		{ 
+			let mut dico = contexte.dico.lock().unwrap(); 
+			dico.souscripteurs.push( expediteur ); 
+		} 
+		while let Ok( m ) = destinaire.recv() { 
+			if let Ok( _ ) = contexte.stream.write( 
+				format!( "\t>>> {}\n", m ).as_bytes() 
+			) { 
+				if let Ok( _ ) = contexte.stream.flush() { 
+				} else { 
+					break; 
+				} 
+			} else { 
+				break; 
+			}  
+		} 
+		Retour::creer_str( true, "diffusion terminée" ) 
+	} 
+} 
+
+fn resoudre_canal_emettre( contexte: &mut Contexte, arguments: &str ) -> Retour { 
+	let mut dico = contexte.dico.lock().unwrap(); 
+	let message = arguments.trim().to_string(); 
+	dico.souscripteurs.retain( 
+		| souscripteur | { 
+			if let Ok( _ ) = souscripteur.send( message.clone() ) { 
+				true 
+			} else { 
+				false 
+			} 
+		} 
+	); 
+	Retour::creer( 
+		true, 
+		format!( 
+			"diffusion émise aux souscripteurs ({})", 
+			dico.souscripteurs.len() 
+		) 
+	) 
+} 
+
 fn resoudre( contexte: &mut Contexte, appel: &str, arguments: &str ) -> Retour { 
 	(match appel { 
 			"stop" => resoudre_stop, 
-			"clear" => resoudre_clear, 
-			"set" => resoudre_set, 
-			"get" => resoudre_get, 
-			"del" => resoudre_del, 
-			"add" => resoudre_add, 
-			"all" => resoudre_all, 
-			"test" => resoudre_test, 
-			"alt" => resoudre_alt, 
-			"incr" => resoudre_incr, 
-			"decr" => resoudre_decr, 
-			"stats" => resoudre_stats, 
-			"channel:create" => resoudre_channel_create, 
-			"channel:capture" => resoudre_channel_capture, 
-			"channel:delete" => resoudre_channel_delete, 
-			"channel:test" => resoudre_channel_test, 
-			"channel:all" => resoudre_channel_all, 
-			"channel:change" => resoudre_channel_change, 
+			"vider" => resoudre_vider, 
+			"définir" => resoudre_definir, 
+			"obtenir" => resoudre_obtenir, 
+			"supp" => resoudre_supprimer, 
+			"ajouter" => resoudre_ajouter, 
+			"lister" => resoudre_lister, 
+			"tester" => resoudre_tester, 
+			"altérer" => resoudre_alterer, 
+			"incrémenter" => resoudre_incrementer, 
+			"décrémenter" => resoudre_decrementer, 
+			"resumer" => resoudre_resumer, 
+			"canal:créer" => resoudre_canal_creer, 
+			"canal:capturer" => resoudre_canal_capture, 
+			"canal:supprimer" => resoudre_canal_supprimer, 
+			"canal:tester" => resoudre_canal_tester, 
+			"canal:lister" => resoudre_canal_lister, 
+			"canal:changer" => resoudre_canal_changer, 
+			"canal:souscrire" => resoudre_canal_souscrire, 
+			"canal:émettre" => resoudre_canal_emettre, 
 			_ => return Retour::creer_str( false, "fonction inconnue" ) 
 		})( contexte, arguments ) 
 } 
@@ -574,13 +636,14 @@ fn handle_client( mut contexte: Contexte ) {
 #[derive(Debug)] 
 struct Dictionnaire { 
 	nom: String, 
-	liste: HashMap<String,Valeurs> 
+	liste: HashMap<String,Valeurs>, 
+	souscripteurs: Vec<Sender<String>>  
 } 
 
 impl Drop for Dictionnaire { 
     fn drop(&mut self) { 
     	if DEBUG { 
-        	println!( "! drop 'Dictionnaire' : {:?}", self ); 
+        	println!( "! suppression 'Dictionnaire' : {:?}", self ); 
     	}
     } 
 } 
@@ -602,7 +665,8 @@ fn main() -> std::io::Result<()> {
 		Mutex::new( 
 			Dictionnaire { 
 				nom: nom.clone(), 
-				liste: HashMap::new() 
+				liste: HashMap::new(), 
+				souscripteurs: Vec::new() 
 			} 
 		) 
 	) as DictionnaireThread; 
