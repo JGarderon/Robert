@@ -306,7 +306,7 @@ fn resoudre_decr( contexte: &mut Contexte, arguments: &str ) -> Retour {
 	} 
 } 
 
-fn resoudre_stat( contexte: &mut Contexte, arguments: &str ) -> Retour { 
+fn resoudre_stats( contexte: &mut Contexte, arguments: &str ) -> Retour { 
 	if arguments != "" { 
 		return Retour::creer_str( false, "aucun argument accepté pour cette fonction" ); 
 	} 
@@ -316,7 +316,7 @@ fn resoudre_stat( contexte: &mut Contexte, arguments: &str ) -> Retour {
 		true, 
 		format!( 
 			"canal \"{}\" ({})", 
-			contexte.dico_nom, 
+			dico.nom, 
 			valeurs.len() 
 		) 
 	) 
@@ -336,6 +336,7 @@ fn resoudre_channel_create( contexte: &mut Contexte, arguments: &str ) -> Retour
 			dicos.liste.insert( 
 				arguments.to_string(), 
 				Arc::new( Mutex::new( Dictionnaire { 
+					nom: nom.to_string(), 
 					liste: HashMap::new() 
 				} ) ) as DictionnaireThread  
 			); 
@@ -413,7 +414,6 @@ fn resoudre_channel_change( contexte: &mut Contexte, arguments: &str ) -> Retour
 	} else { 
 		let dicos = contexte.dicos.lock().unwrap(); 
 		if dicos.liste.contains_key( arguments ) { 
-			contexte.dico_nom = nom.to_string(); 
 			contexte.dico = dicos.liste[nom].clone(); 
 			Retour::creer_str( true, "canal modifié" ) 
 		} else { 
@@ -426,8 +426,8 @@ fn resoudre_channel_capture( contexte: &mut Contexte, arguments: &str ) -> Retou
 	if arguments.trim() != "" { 
 		Retour::creer_str( false, "aucun argument autorisé" ) 
 	} else { 
-		contexte.dico_nom = "".to_string(); 
 		contexte.dico = Arc::new( Mutex::new( Dictionnaire { 
+			nom: "".to_string(), 
 			liste: HashMap::new() 
 		} ) ) as DictionnaireThread; 
 		Retour::creer_str( true, "canal privé actif" ) 
@@ -447,7 +447,7 @@ fn resoudre( contexte: &mut Contexte, appel: &str, arguments: &str ) -> Retour {
 			"alt" => resoudre_alt, 
 			"incr" => resoudre_incr, 
 			"decr" => resoudre_decr, 
-			"stat" => resoudre_stat, 
+			"stats" => resoudre_stats, 
 			"channel:create" => resoudre_channel_create, 
 			"channel:capture" => resoudre_channel_capture, 
 			"channel:delete" => resoudre_channel_delete, 
@@ -463,7 +463,6 @@ fn resoudre( contexte: &mut Contexte, appel: &str, arguments: &str ) -> Retour {
 struct Contexte { 
 	poursuivre: bool, 
 	dico: DictionnaireThread, 
-	dico_nom: String, 
 	dicos: Arc<Mutex<Dictionnaires>>, 
 	resoudre: fn(&mut Contexte, &str, &str) -> Retour, 
 	stream: TcpStream 
@@ -574,13 +573,14 @@ fn handle_client( mut contexte: Contexte ) {
 
 #[derive(Debug)] 
 struct Dictionnaire { 
+	nom: String, 
 	liste: HashMap<String,Valeurs> 
 } 
 
 impl Drop for Dictionnaire { 
     fn drop(&mut self) { 
     	if DEBUG { 
-        	println!( "! drop 'Dictionnaire' : {:?}", self); 
+        	println!( "! drop 'Dictionnaire' : {:?}", self ); 
     	}
     } 
 } 
@@ -597,16 +597,18 @@ fn main() -> std::io::Result<()> {
 	let mut tmp = Dictionnaires { 
 		liste: HashMap::new() 
 	}; 
+	let nom = "défaut".to_string(); 
 	let dico_thread = Arc::new( 
 		Mutex::new( 
 			Dictionnaire { 
+				nom: nom.clone(), 
 				liste: HashMap::new() 
 			} 
 		) 
 	) as DictionnaireThread; 
 	tmp.liste.insert( 
-		"défaut".to_string(), 
-		 dico_thread.clone() 
+		nom, 
+		dico_thread.clone() 
 	); 
 	let dicos = Arc::new( 
 		Mutex::new( 
@@ -627,7 +629,6 @@ fn main() -> std::io::Result<()> {
     			let contexte = Contexte { 
     				poursuivre: true, 
     				dico: dico_thread.clone(), 
-    				dico_nom: "défaut".to_string(), 
     				dicos: dicos.clone(), 
     				resoudre: resoudre, 
     				stream: stream, 
