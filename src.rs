@@ -500,7 +500,7 @@ fn resoudre( contexte: &mut Contexte, appel: &str, arguments: &str ) -> Retour {
 			"vider" => resoudre_vider, 
 			"définir" => resoudre_definir, 
 			"obtenir" => resoudre_obtenir, 
-			"supp" => resoudre_supprimer, 
+			"supprimer" => resoudre_supprimer, 
 			"ajouter" => resoudre_ajouter, 
 			"lister" => resoudre_lister, 
 			"tester" => resoudre_tester, 
@@ -516,6 +516,7 @@ fn resoudre( contexte: &mut Contexte, appel: &str, arguments: &str ) -> Retour {
 			"canal:changer" => resoudre_canal_changer, 
 			"canal:souscrire" => resoudre_canal_souscrire, 
 			"canal:émettre" => resoudre_canal_emettre, 
+			// "chercher" => resoudre_chercher, -> https://doc.rust-lang.org/std/string/struct.String.html#method.contains  
 			_ => return Retour::creer_str( false, "fonction inconnue" ) 
 		})( contexte, arguments ) 
 } 
