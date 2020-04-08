@@ -1,4 +1,5 @@
 
+use std::iter::FromIterator; 
 use std::net::{TcpListener, TcpStream}; 
 use std::io::Read; 
 use std::io::Write; 
@@ -20,6 +21,69 @@ const DICO_NOM_DEFAUT: &'static str = "défaut";
 
 const TAILLE_LIGNE_MAX: usize = 1024; 
 const TAILLE_TEXTE_MAX: usize = TAILLE_LIGNE_MAX*5; 
+
+// ---------------------------------------------------- 
+
+#[derive(Debug)] 
+enum ArgumentsLocauxEtat { 
+    Suivant(usize, usize), 
+    Stop, 
+    Erreur(&'static str) 
+} 
+
+struct ArgumentsLocaux { 
+    source: Vec<char>, 
+    position: usize 
+} 
+
+impl ArgumentsLocaux { 
+    fn trim( &self, texte: &[char] ) -> Option<usize> { 
+        for (i, signe) in texte.iter().enumerate() { 
+            match signe { 
+                ' ' | '\t'| '\r' | '\n'  => (), 
+                _ => return Some( i ) 
+            } 
+        } 
+        None 
+    } 
+    fn suivant( &mut self ) -> ArgumentsLocauxEtat { 
+        let texte = &self.source[self.position..]; 
+        if texte.len() == 0 { 
+            return ArgumentsLocauxEtat::Stop; 
+        } 
+        let debut = match self.trim( texte ) { 
+            Some( i ) => i, 
+            None => return ArgumentsLocauxEtat::Stop 
+        }; 
+        let mut ouvert = false; 
+        for (i, signe) in texte[debut..].iter().enumerate() { 
+            match signe { 
+                ' ' if !ouvert => return ArgumentsLocauxEtat::Suivant( debut, debut+i ), 
+                '"' => { 
+                    ouvert = !ouvert; 
+                    if !ouvert { 
+                        return ArgumentsLocauxEtat::Suivant( debut+1, debut+i ); 
+                    } 
+                } 
+                _ => () 
+            } 
+        } 
+        if ouvert { 
+            ArgumentsLocauxEtat::Erreur( "guillemet non-fermé" ) 
+        } else { 
+            ArgumentsLocauxEtat::Suivant( debut, texte.len() ) 
+        } 
+    } 
+    fn extraire( &mut self ) -> Option<String> { 
+        if let ArgumentsLocauxEtat::Suivant( depart, stop ) = self.suivant() { 
+            let r = &self.source[self.position+depart..self.position+stop]; 
+            self.position += stop+1; 
+            Some( String::from_iter( r ) ) 
+        } else { 
+            None 
+        } 
+    } 
+} 
 
 // ---------------------------------------------------- 
 
@@ -175,42 +239,48 @@ impl Valeurs {
 
 // ---------------------------------------------------- 
 
-fn resoudre_stop( contexte: &mut Contexte, _arguments: &str ) -> Retour { 
+fn resoudre_stop( contexte: &mut Contexte, _arguments: ArgumentsLocaux ) -> Retour { 
 	contexte.poursuivre = false; 
 	Retour::creer_str( true, "au revoir" ) 
 } 
 
-fn resoudre_vider( contexte: &mut Contexte, _arguments: &str ) -> Retour { 
+fn resoudre_vider( contexte: &mut Contexte, _arguments: ArgumentsLocaux ) -> Retour { 
 	let mut dico = contexte.dico.lock().unwrap(); 
 	let valeurs = &mut dico.liste; 
 	valeurs.clear(); 
 	Retour::creer_str( true, "base vidée" ) 
 } 
 
-fn resoudre_definir( contexte: &mut Contexte, arguments: &str ) -> Retour { 
-	if let Some( position ) = arguments.find( ' ' ) { 
-		let mut dico = contexte.dico.lock().unwrap(); 
-		let valeurs = &mut dico.liste; 
-		let cle = arguments[0..position].trim(); 
-		if cle != "" { 
-			valeurs.insert( 
-				cle.to_string(), 
-				Valeurs::Texte( arguments[position..].trim().to_string() ) 
-			); 
-			Retour::creer_str( true, "ajouté" ) 
-		} else { 
-			Retour::creer_str( false, "une clé vide n'est pas une clé acceptable" ) 
-		} 
+fn resoudre_definir( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	let cle = if let Some( c ) = arguments.extraire() { 
+		c 
 	} else { 
-		Retour::creer_str( false, "séparateur clé/valeur non-respecté (espace simple)" ) 
-	} 
+		return Retour::creer_str( false, "une clé vide n'est pas une clé acceptable" ); 
+	}; 
+	let valeur = if let Some( v ) = arguments.extraire() { 
+		v 
+	} else { 
+		return Retour::creer_str( false, "aucune valeur fournie ou séparateur clé/valeur non-respecté (espace simple)" ); 
+	}; 
+	let mut dico = contexte.dico.lock().unwrap(); 
+	let valeurs = &mut dico.liste; 
+	valeurs.insert( 
+		cle, 
+		Valeurs::Texte( valeur ) 
+	); 
+	Retour::creer_str( true, "ajouté" ) 
 } 
 
-fn resoudre_obtenir( contexte: &mut Contexte, arguments: &str ) -> Retour { 
+fn resoudre_obtenir( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	let cle = if let Some( c ) = arguments.extraire() { 
+		c 
+	} else { 
+		return Retour::creer_str( false, "vous devez spécifier une clé existante" ); 
+	}; 
 	let dico = contexte.dico.lock().unwrap(); 
 	let valeurs = &dico.liste; 
-	if valeurs.contains_key( arguments.trim() ) { 
-		match &valeurs[arguments] { 
+	if valeurs.contains_key( &cle ) { 
+		match &valeurs[&cle] { 
 			Valeurs::Boolean( b ) => Retour::creer( true, format!( "(booléen) {}", b ) ), 
 			Valeurs::Texte( t ) => Retour::creer( true, format!( "(texte) \"{}\"", t ) ), 
 			Valeurs::Entier( n ) => Retour::creer( true, format!( "(entier) {}", n ) ), 
@@ -221,37 +291,23 @@ fn resoudre_obtenir( contexte: &mut Contexte, arguments: &str ) -> Retour {
 	} 
 } 
 
-fn resoudre_supprimer( contexte: &mut Contexte, arguments: &str ) -> Retour { 
+fn resoudre_supprimer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	let cle = if let Some( c ) = arguments.extraire() { 
+		c 
+	} else { 
+		return Retour::creer_str( false, "vous devez spécifier une clé existante" ); 
+	}; 
 	let mut dico = contexte.dico.lock().unwrap(); 
 	let valeurs = &mut dico.liste; 
-	if let Some( _ ) = valeurs.remove( arguments.trim() ) { 
+	if let Some( _ ) = valeurs.remove( &cle ) { 
 		Retour::creer_str( true, "clé supprimée" ) 
 	} else { 
 		Retour::creer_str( false, "clé inconnue" ) 
 	} 
 } 
 
-fn resoudre_ajouter( contexte: &mut Contexte, arguments: &str ) -> Retour { 
-	if let Some( position ) = arguments.find( ' ' ) { 
-		let mut dico = contexte.dico.lock().unwrap(); 
-		let valeurs = &mut dico.liste; 
-		let cle = arguments[0..position].trim(); 
-		if let Some( v ) = valeurs.get_mut( cle ) { 
-			if v.ajouter_texte( &arguments[position+1..] ) { 
-				Retour::creer_str( true, "valeur modifée" ) 
-			} else { 
-				Retour::creer_str( false, "ce format n'est pas supporté ou le texte est trop long" ) 
-			} 
-		} else { 
-			Retour::creer_str( false, "clé inconnue" ) 
-		} 
-	} else { 
-		Retour::creer_str( false, "séparateur clé/valeur non-respecté (espace simple)" ) 
-	} 
-} 
-
-fn resoudre_lister( contexte: &mut Contexte, arguments: &str ) -> Retour { 
-	if arguments != "" { 
+fn resoudre_lister( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	if let Some( _ ) = arguments.extraire() { 
 		return Retour::creer_str( false, "aucun argument accepté pour cette fonction" ); 
 	} 
 	let dico = contexte.dico.lock().unwrap(); 
@@ -272,306 +328,329 @@ fn resoudre_lister( contexte: &mut Contexte, arguments: &str ) -> Retour {
 	Retour::creer( true, format!( "stop ({})", valeurs.len() ) ) 
 } 
 
-fn resoudre_tester( contexte: &mut Contexte, arguments: &str ) -> Retour {
-	let dico = contexte.dico.lock().unwrap(); 
-	let valeurs = &dico.liste; 
-	if valeurs.contains_key( arguments.trim() ) { 
-		Retour::creer_str( true, "clé existante" ) 
-	} else { 
-		Retour::creer_str( true, "clé inexistante" ) 
-	} 
-} 
+// fn resoudre_ajouter( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour { 
+// 	if let Some( position ) = arguments.find( ' ' ) { 
+// 		let mut dico = contexte.dico.lock().unwrap(); 
+// 		let valeurs = &mut dico.liste; 
+// 		let cle = arguments[0..position].trim(); 
+// 		if let Some( v ) = valeurs.get_mut( cle ) { 
+// 			if v.ajouter_texte( &arguments[position+1..] ) { 
+// 				Retour::creer_str( true, "valeur modifée" ) 
+// 			} else { 
+// 				Retour::creer_str( false, "ce format n'est pas supporté ou le texte est trop long" ) 
+// 			} 
+// 		} else { 
+// 			Retour::creer_str( false, "clé inconnue" ) 
+// 		} 
+// 	} else { 
+// 		Retour::creer_str( false, "séparateur clé/valeur non-respecté (espace simple)" ) 
+// 	} 
+// } 
 
-fn resoudre_alterer( contexte: &mut Contexte, arguments: &str ) -> Retour { 
-	if let Some( position ) = arguments.find( ' ' ) { 
-		let mut dico = contexte.dico.lock().unwrap(); 
-		let valeurs = &mut dico.liste; 
-		let cle = arguments[0..position].trim(); 
-		let r#type: &str = &arguments[position+1..]; 
-		if cle != "" { 
-			return match r#type { 
-				"booléen" | "texte" | "entier" | "flottant" => { 
-					if let Some( v ) = valeurs.get_mut( cle ) { 
-						if v.alterer( r#type ) { 
-							Retour::creer_str( true, "altération effectuée" ) 
-						} else { 
-							Retour::creer_str( false, "altération impossible" ) 
-						} 
-					} else { 
-						Retour::creer_str( false, "clé inconnue" ) 
-					} 
-				} 
-				_ => Retour::creer_str( false, "altération de type inconnu" ) 
-			} 
-		} else { 
-			Retour::creer_str( false, "une clé vide n'est pas une clé acceptable" ) 
-		} 
-	} else { 
-		Retour::creer_str( false, "séparateur clé/valeur non-respecté (espace simple)" ) 
-	} 
-} 
+// fn resoudre_tester( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour {
+// 	let dico = contexte.dico.lock().unwrap(); 
+// 	let valeurs = &dico.liste; 
+// 	if valeurs.contains_key( arguments.trim() ) { 
+// 		Retour::creer_str( true, "clé existante" ) 
+// 	} else { 
+// 		Retour::creer_str( true, "clé inexistante" ) 
+// 	} 
+// } 
 
-fn resoudre_incrementer( contexte: &mut Contexte, arguments: &str ) -> Retour { 
-	let mut dico = contexte.dico.lock().unwrap(); 
-	let valeurs = &mut dico.liste; 
-	if let Some( v ) = valeurs.get_mut( arguments.trim() ) { 
-		match v { 
-			Valeurs::Entier( n ) => { 
-				// if arguments.trim() == "" { 
-					*n += 1; 
-					Retour::creer_str( true, "incrémentation (+1) effectuée" ) 
-				// } else if let Ok( m ) = arguments.trim().parse::<u32>() { 
-				// 	*n += m; 
-				// 	Retour::creer_str( true, "incrémentation arbitraire effectuée" ) 	
-				// } else { 
-				// 	Retour::creer_str( false, "incrémentation impossible, l'argument est invalide dans ce type" ) 
-				// } 
-			} 
-			Valeurs::Flottant( n ) => { 
-				// if arguments.trim() == "" { 
-					*n += 1f32; 
-					Retour::creer_str( true, "incrémentation (+1) effectuée" ) 
-				// } else if let Ok( m ) = arguments.trim().parse::<f32>() { 
-				// 	*n += m; 
-				// 	Retour::creer_str( true, "incrémentation arbitraire effectuée" ) 	
-				// } else { 
-				// 	Retour::creer_str( false, "incrémentation impossible, l'argument est invalide dans ce type" ) 
-				// } 
-			} 
-			_ => Retour::creer_str( false, "incrémentation impossible" ) 
-		} 
-	} else { 
-		Retour::creer_str( false, "clé inconnue" ) 
-	} 
-} 
+// fn resoudre_alterer( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour { 
+// 	if let Some( position ) = arguments.find( ' ' ) { 
+// 		let mut dico = contexte.dico.lock().unwrap(); 
+// 		let valeurs = &mut dico.liste; 
+// 		let cle = arguments[0..position].trim(); 
+// 		let r#type: &str = &arguments[position+1..]; 
+// 		if cle != "" { 
+// 			return match r#type { 
+// 				"booléen" | "texte" | "entier" | "flottant" => { 
+// 					if let Some( v ) = valeurs.get_mut( cle ) { 
+// 						if v.alterer( r#type ) { 
+// 							Retour::creer_str( true, "altération effectuée" ) 
+// 						} else { 
+// 							Retour::creer_str( false, "altération impossible" ) 
+// 						} 
+// 					} else { 
+// 						Retour::creer_str( false, "clé inconnue" ) 
+// 					} 
+// 				} 
+// 				_ => Retour::creer_str( false, "altération de type inconnu" ) 
+// 			} 
+// 		} else { 
+// 			Retour::creer_str( false, "une clé vide n'est pas une clé acceptable" ) 
+// 		} 
+// 	} else { 
+// 		Retour::creer_str( false, "séparateur clé/valeur non-respecté (espace simple)" ) 
+// 	} 
+// } 
 
-fn resoudre_decrementer( contexte: &mut Contexte, arguments: &str ) -> Retour { 
-	let mut dico = contexte.dico.lock().unwrap(); 
-	let valeurs = &mut dico.liste; 
-	if let Some( v ) = valeurs.get_mut( arguments.trim() ) { 
-		match v { 
-			Valeurs::Entier( n ) => { 
-				*n -= 1; 
-				Retour::creer_str( true, "incrémentation effectuée" ) 	
-			} 
-			_ => Retour::creer_str( false, "incrémentation impossible" ) 
-		} 
-	} else { 
-		Retour::creer_str( false, "clé inconnue" ) 
-	} 
-} 
+// fn resoudre_incrementer( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour { 
+// 	let mut dico = contexte.dico.lock().unwrap(); 
+// 	let valeurs = &mut dico.liste; 
+// 	if let Some( v ) = valeurs.get_mut( arguments.trim() ) { 
+// 		match v { 
+// 			Valeurs::Entier( n ) => { 
+// 				// if arguments.trim() == "" { 
+// 					*n += 1; 
+// 					Retour::creer_str( true, "incrémentation (+1) effectuée" ) 
+// 				// } else if let Ok( m ) = arguments.trim().parse::<u32>() { 
+// 				// 	*n += m; 
+// 				// 	Retour::creer_str( true, "incrémentation arbitraire effectuée" ) 	
+// 				// } else { 
+// 				// 	Retour::creer_str( false, "incrémentation impossible, l'argument est invalide dans ce type" ) 
+// 				// } 
+// 			} 
+// 			Valeurs::Flottant( n ) => { 
+// 				// if arguments.trim() == "" { 
+// 					*n += 1f32; 
+// 					Retour::creer_str( true, "incrémentation (+1) effectuée" ) 
+// 				// } else if let Ok( m ) = arguments.trim().parse::<f32>() { 
+// 				// 	*n += m; 
+// 				// 	Retour::creer_str( true, "incrémentation arbitraire effectuée" ) 	
+// 				// } else { 
+// 				// 	Retour::creer_str( false, "incrémentation impossible, l'argument est invalide dans ce type" ) 
+// 				// } 
+// 			} 
+// 			_ => Retour::creer_str( false, "incrémentation impossible" ) 
+// 		} 
+// 	} else { 
+// 		Retour::creer_str( false, "clé inconnue" ) 
+// 	} 
+// } 
 
-fn resoudre_resumer( contexte: &mut Contexte, arguments: &str ) -> Retour { 
-	if arguments != "" { 
-		return Retour::creer_str( false, "aucun argument accepté pour cette fonction" ); 
-	} 
-	let dico = contexte.dico.lock().unwrap(); 
-	let valeurs = &dico.liste; 
-	Retour::creer(  
-		true, 
-		format!( 
-			"canal \"{}\" ({})", 
-			dico.nom, 
-			valeurs.len() 
-		) 
-	) 
-} 
+// fn resoudre_decrementer( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour { 
+// 	let mut dico = contexte.dico.lock().unwrap(); 
+// 	let valeurs = &mut dico.liste; 
+// 	if let Some( v ) = valeurs.get_mut( arguments.trim() ) { 
+// 		match v { 
+// 			Valeurs::Entier( n ) => { 
+// 				*n -= 1; 
+// 				Retour::creer_str( true, "incrémentation effectuée" ) 	
+// 			} 
+// 			_ => Retour::creer_str( false, "incrémentation impossible" ) 
+// 		} 
+// 	} else { 
+// 		Retour::creer_str( false, "clé inconnue" ) 
+// 	} 
+// } 
 
-fn resoudre_canal_creer( contexte: &mut Contexte, arguments: &str ) -> Retour { 
-	let nom = arguments.trim(); 
-	if nom == "" { 
-		Retour::creer_str( false, "nom de canal obligatoire" ) 
-	} else if nom.len() > 32 { 
-		Retour::creer_str( false, "nom de canal trop long (max 32)" ) 
-	} else { 
-		let mut dicos = contexte.dicos.lock().unwrap(); 
-		if dicos.liste.contains_key( arguments ) { 
-			Retour::creer_str( false, "canal existant" ) 
-		} else { 
-			dicos.liste.insert( 
-				arguments.to_string(), 
-				Arc::new( Mutex::new( Dictionnaire { 
-					nom: nom.to_string(), 
-					liste: HashMap::new(), 
-					souscripteurs: Vec::new() 
-				} ) ) as DictionnaireThread  
-			); 
-			Retour::creer_str( true, "canal créé" ) 
-		} 
-	} 
-} 
+// fn resoudre_resumer( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour { 
+// 	if arguments != "" { 
+// 		return Retour::creer_str( false, "aucun argument accepté pour cette fonction" ); 
+// 	} 
+// 	let dico = contexte.dico.lock().unwrap(); 
+// 	let valeurs = &dico.liste; 
+// 	Retour::creer(  
+// 		true, 
+// 		format!( 
+// 			"canal \"{}\" ({})", 
+// 			dico.nom, 
+// 			valeurs.len() 
+// 		) 
+// 	) 
+// } 
 
-fn resoudre_canal_supprimer( contexte: &mut Contexte, arguments: &str ) -> Retour { 
-	let nom = arguments.trim(); 
-	if nom == "" { 
-		Retour::creer_str( false, "nom de canal obligatoire" ) 
-	} else if nom.len() > 32 { 
-		Retour::creer_str( false, "nom de canal trop long (max 32)" ) 
-	} else if nom == DICO_NOM_DEFAUT { 
-		Retour::creer_str( false, "impossible de supprimer le canal par défaut" ) 
-	} else { 
-		let mut dicos = contexte.dicos.lock().unwrap(); 
-		if dicos.liste.contains_key( nom ) { 
-			{ 
-				let message = "canal supprimé".to_string(); 
-				let mut dico = dicos.liste[nom].lock().unwrap(); 
-				dico.souscripteurs.retain( 
-					| souscripteur | { 
-						souscripteur.send( message.clone() ).unwrap(); 
-						false 
-					} 
-				); 
-			} 
-			if let Some(_) = dicos.liste.remove( nom ) { 
-				Retour::creer_str( true, "canal supprimé" ) 
-			} else { 
-				Retour::creer_str( false, "impossible de supprimer le canal" ) 
-			} 
-		} else { 
-			Retour::creer_str( false, "canal inexistant" ) 
-		} 
-	} 
-} 
+// fn resoudre_canal_creer( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour { 
+// 	let nom = arguments.trim(); 
+// 	if nom == "" { 
+// 		Retour::creer_str( false, "nom de canal obligatoire" ) 
+// 	} else if nom.len() > 32 { 
+// 		Retour::creer_str( false, "nom de canal trop long (max 32)" ) 
+// 	} else { 
+// 		let mut dicos = contexte.dicos.lock().unwrap(); 
+// 		if dicos.liste.contains_key( arguments ) { 
+// 			Retour::creer_str( false, "canal existant" ) 
+// 		} else { 
+// 			dicos.liste.insert( 
+// 				arguments.to_string(), 
+// 				Arc::new( Mutex::new( Dictionnaire { 
+// 					nom: nom.to_string(), 
+// 					liste: HashMap::new(), 
+// 					souscripteurs: Vec::new() 
+// 				} ) ) as DictionnaireThread  
+// 			); 
+// 			Retour::creer_str( true, "canal créé" ) 
+// 		} 
+// 	} 
+// } 
 
-fn resoudre_canal_tester( contexte: &mut Contexte, arguments: &str ) -> Retour { 
-	let nom = arguments.trim(); 
-	if nom == "" { 
-		Retour::creer_str( false, "nom de canal obligatoire" ) 
-	} else if nom.len() > 32 { 
-		Retour::creer_str( false, "nom de canal trop long (max 32)" ) 
-	} else { 
-		let dicos = contexte.dicos.lock().unwrap(); 
-		if dicos.liste.contains_key( arguments ) { 
-			Retour::creer_str( true, "canal existant" ) 
-		} else { 
-			Retour::creer_str( true, "canal inexistant" ) 
-		} 
-	} 
-} 
+// fn resoudre_canal_supprimer( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour { 
+// 	let nom = arguments.trim(); 
+// 	if nom == "" { 
+// 		Retour::creer_str( false, "nom de canal obligatoire" ) 
+// 	} else if nom.len() > 32 { 
+// 		Retour::creer_str( false, "nom de canal trop long (max 32)" ) 
+// 	} else if nom == DICO_NOM_DEFAUT { 
+// 		Retour::creer_str( false, "impossible de supprimer le canal par défaut" ) 
+// 	} else { 
+// 		let mut dicos = contexte.dicos.lock().unwrap(); 
+// 		if dicos.liste.contains_key( nom ) { 
+// 			{ 
+// 				let message = "canal supprimé".to_string(); 
+// 				let mut dico = dicos.liste[nom].lock().unwrap(); 
+// 				dico.souscripteurs.retain( 
+// 					| souscripteur | { 
+// 						souscripteur.send( message.clone() ).unwrap(); 
+// 						false 
+// 					} 
+// 				); 
+// 			} 
+// 			if let Some(_) = dicos.liste.remove( nom ) { 
+// 				Retour::creer_str( true, "canal supprimé" ) 
+// 			} else { 
+// 				Retour::creer_str( false, "impossible de supprimer le canal" ) 
+// 			} 
+// 		} else { 
+// 			Retour::creer_str( false, "canal inexistant" ) 
+// 		} 
+// 	} 
+// } 
 
-fn resoudre_canal_lister( contexte: &mut Contexte, arguments: &str ) -> Retour { 
-	if arguments != "" { 
-		return Retour::creer_str( false, "aucun argument autorisé pour cette fonction" ); 
-	}
-	let dicos = contexte.dicos.lock().unwrap(); 
-	for (nom, d) in dicos.liste.iter() { 
-		let dico = d.lock().unwrap(); 
-		if let Err(_) = contexte.stream.write( 
-			format!( 
-				"\tcanal \"{}\" ({:?})\n", 
-				nom, 
-				dico.liste.len() 
-			).as_bytes() 
-		) { 
-			contexte.stream.flush().unwrap(); 
-			return Retour::creer_str( false, "erreur lors de l'envoi" ); 
-		} 
-	} 
-	contexte.stream.flush().unwrap(); 
-	Retour::creer( true, format!( "stop ({})", dicos.liste.len() ) ) 
-} 
+// fn resoudre_canal_tester( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour { 
+// 	let nom = arguments.trim(); 
+// 	if nom == "" { 
+// 		Retour::creer_str( false, "nom de canal obligatoire" ) 
+// 	} else if nom.len() > 32 { 
+// 		Retour::creer_str( false, "nom de canal trop long (max 32)" ) 
+// 	} else { 
+// 		let dicos = contexte.dicos.lock().unwrap(); 
+// 		if dicos.liste.contains_key( arguments ) { 
+// 			Retour::creer_str( true, "canal existant" ) 
+// 		} else { 
+// 			Retour::creer_str( true, "canal inexistant" ) 
+// 		} 
+// 	} 
+// } 
 
-fn resoudre_canal_changer( contexte: &mut Contexte, arguments: &str ) -> Retour { 
-	let nom = arguments.trim(); 
-	if nom == "" { 
-		Retour::creer_str( false, "nom de canal obligatoire" ) 
-	} else if nom.len() > 32 { 
-		Retour::creer_str( false, "nom de canal trop long (max 32)" ) 
-	} else { 
-		let dicos = contexte.dicos.lock().unwrap(); 
-		if dicos.liste.contains_key( arguments ) { 
-			contexte.dico = dicos.liste[nom].clone(); 
-			Retour::creer_str( true, "canal modifié" ) 
-		} else { 
-			Retour::creer_str( false, "canal inexistant" ) 
-		} 
-	} 
-} 
+// fn resoudre_canal_lister( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour { 
+// 	if arguments != "" { 
+// 		return Retour::creer_str( false, "aucun argument autorisé pour cette fonction" ); 
+// 	}
+// 	let dicos = contexte.dicos.lock().unwrap(); 
+// 	for (nom, d) in dicos.liste.iter() { 
+// 		let dico = d.lock().unwrap(); 
+// 		if let Err(_) = contexte.stream.write( 
+// 			format!( 
+// 				"\tcanal \"{}\" ({:?})\n", 
+// 				nom, 
+// 				dico.liste.len() 
+// 			).as_bytes() 
+// 		) { 
+// 			contexte.stream.flush().unwrap(); 
+// 			return Retour::creer_str( false, "erreur lors de l'envoi" ); 
+// 		} 
+// 	} 
+// 	contexte.stream.flush().unwrap(); 
+// 	Retour::creer( true, format!( "stop ({})", dicos.liste.len() ) ) 
+// } 
 
-fn resoudre_canal_capture( contexte: &mut Contexte, arguments: &str ) -> Retour { 
-	if arguments.trim() != "" { 
-		Retour::creer_str( false, "aucun argument autorisé" ) 
-	} else { 
-		contexte.dico = Arc::new( Mutex::new( Dictionnaire { 
-			nom: "".to_string(), 
-			liste: HashMap::new(), 
-			souscripteurs: Vec::new() 
-		} ) ) as DictionnaireThread; 
-		Retour::creer_str( true, "canal privé actif" ) 
-	} 
-} 
+// fn resoudre_canal_changer( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour { 
+// 	let nom = arguments.trim(); 
+// 	if nom == "" { 
+// 		Retour::creer_str( false, "nom de canal obligatoire" ) 
+// 	} else if nom.len() > 32 { 
+// 		Retour::creer_str( false, "nom de canal trop long (max 32)" ) 
+// 	} else { 
+// 		let dicos = contexte.dicos.lock().unwrap(); 
+// 		if dicos.liste.contains_key( arguments ) { 
+// 			contexte.dico = dicos.liste[nom].clone(); 
+// 			Retour::creer_str( true, "canal modifié" ) 
+// 		} else { 
+// 			Retour::creer_str( false, "canal inexistant" ) 
+// 		} 
+// 	} 
+// } 
 
-fn resoudre_canal_souscrire( contexte: &mut Contexte, arguments: &str ) -> Retour { 
-	if arguments.trim() != "" { 
-		Retour::creer_str( false, "aucun argument autorisé" ) 
-	} else { 
-		let (expediteur, destinaire): ( Sender<String>, Receiver<String> ) = mpsc::channel(); 
-		{ 
-			let mut dico = contexte.dico.lock().unwrap(); 
-			dico.souscripteurs.push( expediteur ); 
-		} 
-		while let Ok( m ) = destinaire.recv() { 
-			if let Ok( _ ) = contexte.stream.write( 
-				format!( "\t>>> {}\n", m ).as_bytes() 
-			) { 
-				if let Ok( _ ) = contexte.stream.flush() { 
-				} else { 
-					break; 
-				} 
-			} else { 
-				break; 
-			}  
-		} 
-		Retour::creer_str( true, "diffusion terminée" ) 
-	} 
-} 
+// fn resoudre_canal_capture( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour { 
+// 	if arguments.trim() != "" { 
+// 		Retour::creer_str( false, "aucun argument autorisé" ) 
+// 	} else { 
+// 		contexte.dico = Arc::new( Mutex::new( Dictionnaire { 
+// 			nom: "".to_string(), 
+// 			liste: HashMap::new(), 
+// 			souscripteurs: Vec::new() 
+// 		} ) ) as DictionnaireThread; 
+// 		Retour::creer_str( true, "canal privé actif" ) 
+// 	} 
+// } 
 
-fn resoudre_canal_emettre( contexte: &mut Contexte, arguments: &str ) -> Retour { 
-	let mut dico = contexte.dico.lock().unwrap(); 
-	let message = arguments.trim().to_string(); 
-	dico.souscripteurs.retain( 
-		| souscripteur | { 
-			if let Ok( _ ) = souscripteur.send( message.clone() ) { 
-				true 
-			} else { 
-				false 
-			} 
-		} 
-	); 
-	Retour::creer( 
-		true, 
-		format!( 
-			"diffusion émise aux souscripteurs ({})", 
-			dico.souscripteurs.len() 
-		) 
-	) 
-} 
+// fn resoudre_canal_souscrire( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour { 
+// 	if arguments.trim() != "" { 
+// 		Retour::creer_str( false, "aucun argument autorisé" ) 
+// 	} else { 
+// 		let (expediteur, destinaire): ( Sender<String>, Receiver<String> ) = mpsc::channel(); 
+// 		{ 
+// 			let mut dico = contexte.dico.lock().unwrap(); 
+// 			dico.souscripteurs.push( expediteur ); 
+// 		} 
+// 		while let Ok( m ) = destinaire.recv() { 
+// 			if let Ok( _ ) = contexte.stream.write( 
+// 				format!( "\t>>> {}\n", m ).as_bytes() 
+// 			) { 
+// 				if let Ok( _ ) = contexte.stream.flush() { 
+// 				} else { 
+// 					break; 
+// 				} 
+// 			} else { 
+// 				break; 
+// 			}  
+// 		} 
+// 		Retour::creer_str( true, "diffusion terminée" ) 
+// 	} 
+// } 
+
+// fn resoudre_canal_emettre( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour { 
+// 	let mut dico = contexte.dico.lock().unwrap(); 
+// 	let message = arguments.trim().to_string(); 
+// 	dico.souscripteurs.retain( 
+// 		| souscripteur | { 
+// 			if let Ok( _ ) = souscripteur.send( message.clone() ) { 
+// 				true 
+// 			} else { 
+// 				false 
+// 			} 
+// 		} 
+// 	); 
+// 	Retour::creer( 
+// 		true, 
+// 		format!( 
+// 			"diffusion émise aux souscripteurs ({})", 
+// 			dico.souscripteurs.len() 
+// 		) 
+// 	) 
+// } 
 
 fn resoudre( contexte: &mut Contexte, appel: &str, arguments: &str ) -> Retour { 
+	let args = ArgumentsLocaux { 
+        source: arguments.chars().collect::<Vec<char>>(), 
+        position: 0 
+    }; 
 	(match appel { 
 			"stop" => resoudre_stop, 
 			"vider" => resoudre_vider, 
 			"définir" => resoudre_definir, 
 			"obtenir" => resoudre_obtenir, 
 			"supprimer" => resoudre_supprimer, 
-			"ajouter" => resoudre_ajouter, 
 			"lister" => resoudre_lister, 
-			"tester" => resoudre_tester, 
-			"altérer" => resoudre_alterer, 
-			"incrémenter" => resoudre_incrementer, 
-			"décrémenter" => resoudre_decrementer, 
-			"resumer" => resoudre_resumer, 
-			"canal:créer" => resoudre_canal_creer, 
-			"canal:capturer" => resoudre_canal_capture, 
-			"canal:supprimer" => resoudre_canal_supprimer, 
-			"canal:tester" => resoudre_canal_tester, 
-			"canal:lister" if DEBUG => resoudre_canal_lister, 
-			"canal:changer" => resoudre_canal_changer, 
-			"canal:souscrire" => resoudre_canal_souscrire, 
-			"canal:émettre" => resoudre_canal_emettre, 
+			// "ajouter" => resoudre_ajouter, 
+			// "tester" => resoudre_tester, 
+			// "altérer" => resoudre_alterer, 
+			// "incrémenter" => resoudre_incrementer, 
+			// "décrémenter" => resoudre_decrementer, 
+			// "resumer" => resoudre_resumer, 
+			// "canal:créer" => resoudre_canal_creer, 
+			// "canal:capturer" => resoudre_canal_capture, 
+			// "canal:supprimer" => resoudre_canal_supprimer, 
+			// "canal:tester" => resoudre_canal_tester, 
+			// "canal:lister" if DEBUG => resoudre_canal_lister, 
+			// "canal:changer" => resoudre_canal_changer, 
+			// "canal:souscrire" => resoudre_canal_souscrire, 
+			// "canal:émettre" => resoudre_canal_emettre, 
 			// "chercher" => resoudre_chercher, -> https://doc.rust-lang.org/std/string/struct.String.html#method.contains  
 			_ => return Retour::creer_str( false, "fonction inconnue" ) 
-		})( contexte, arguments ) 
+		})( contexte, args ) 
 } 
 
 // ---------------------------------------------------- 
