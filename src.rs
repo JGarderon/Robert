@@ -134,7 +134,7 @@ impl Retour {
 #[derive(Debug)] 
 enum Valeurs { 
 	Boolean(bool), 
-	Entier(u32), 
+	Reel(i32), 
 	Flottant(f32), 
 	Texte(String) 
 } 
@@ -152,8 +152,8 @@ impl Valeurs {
 		match r#type { 
 			"booléen" => match self { 
 				Valeurs::Boolean( _ ) => true, 
-				Valeurs::Entier( n ) => {
-					*self = Valeurs::Boolean( if *n > 0u32 { true } else { false } ); 
+				Valeurs::Reel( n ) => {
+					*self = Valeurs::Boolean( if *n > 0i32 { true } else { false } ); 
 					true 
 				} 
 				Valeurs::Flottant( n ) => { 
@@ -174,19 +174,19 @@ impl Valeurs {
 					} 
 				} 
 			} 
-			"entier" => match self { 
-				Valeurs::Entier( _ ) => true, 
+			"réel" => match self { 
+				Valeurs::Reel( _ ) => true, 
 				Valeurs::Boolean( b ) => { 
-					*self = Valeurs::Entier( if *b { 1 } else { 0 } ); 
+					*self = Valeurs::Reel( if *b { 1i32 } else { 0i32 } ); 
 					true 
 				} 
 				Valeurs::Flottant( n ) => { 
-					*self = Valeurs::Entier( n.round() as u32 ); 
+					*self = Valeurs::Reel( n.round() as i32 ); 
 					true 
 				} 
 				Valeurs::Texte( t ) => { 
-					if let Ok( n ) = t.parse::<u32>() { 
-						*self = Valeurs::Entier( n ); 
+					if let Ok( n ) = t.parse::<i32>() { 
+						*self = Valeurs::Reel( n ); 
 						true 
 					} else { 
 						false 
@@ -195,8 +195,8 @@ impl Valeurs {
 			} 
 			"flottant" => match self { 
 				Valeurs::Flottant( _ ) => true, 
-				Valeurs::Entier( n ) => { 
-					*self = Valeurs::Flottant( f32::from_bits( *n ) ); 
+				Valeurs::Reel( n ) => { 
+					*self = Valeurs::Flottant( *n as f32 ); 
 					true 
 				}, 
 				Valeurs::Boolean( b ) => { 
@@ -218,7 +218,7 @@ impl Valeurs {
 					*self = Valeurs::Texte( if *b { "vrai".to_string() } else { "faux".to_string() } ); 
 					true 
 				}, 
-				Valeurs::Entier( n ) => { 
+				Valeurs::Reel( n ) => { 
 					*self = Valeurs::Texte( n.to_string() ); 
 					true 
 				} 
@@ -276,9 +276,6 @@ fn resoudre_definir( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 	} else { 
 		return Retour::creer_str( false, "aucune valeur fournie ou séparateur clé/valeur non-respecté (espace simple)" ); 
 	}; 
-	if !arguments.est_stop() { 
-		return Retour::creer_str( false, "trop d'arguments fournis (maximum 2)" ); 
-	} 
 	let mut dico = contexte.dico.lock().unwrap(); 
 	let valeurs = &mut dico.liste; 
 	match arguments.extraire() { 
@@ -290,6 +287,9 @@ fn resoudre_definir( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 			Retour::creer_str( true, "paire clé/valeur ajoutée (type par défaut : texte)" ) 
 		} 
 		Some( t ) => { 
+			if !arguments.est_stop() { 
+				return Retour::creer_str( false, "trop d'arguments fournis (max. 2-3)" ); 
+			} 
 			let mut v = Valeurs::Texte( valeur ); 
 			if v.alterer( &t ) { 
 				valeurs.insert( 
@@ -325,7 +325,7 @@ fn resoudre_obtenir( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 		match &valeurs[&cle] { 
 			Valeurs::Boolean( b ) => Retour::creer( true, format!( "(booléen) {}", b ) ), 
 			Valeurs::Texte( t ) => Retour::creer( true, format!( "(texte) \"{}\"", t ) ), 
-			Valeurs::Entier( n ) => Retour::creer( true, format!( "(entier) {}", n ) ), 
+			Valeurs::Reel( n ) => Retour::creer( true, format!( "(réel) {}", n ) ), 
 			Valeurs::Flottant( n ) => Retour::creer( true, format!( "(flottant) {}", n ) ), 
 		} 
 	} else { 
@@ -463,6 +463,58 @@ fn resoudre_resumer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 		) 
 	) 
 } 
+
+// ### --- ### 
+
+fn resoudre_numerique_incrementer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	let cle = if let Some( c ) = arguments.extraire() { 
+		c 
+	} else { 
+		return Retour::creer_str( false, "vous devez spécifier une clé existante" ); 
+	}; 
+	let incr_option = arguments.extraire(); 
+	let mut dico = contexte.dico.lock().unwrap(); 
+	let valeurs = &mut dico.liste; 
+	if let Some( v ) = valeurs.get_mut( &cle ) { 
+		match v { 
+			Valeurs::Reel( n ) => { 
+				if let Some( m ) = incr_option { 
+					if let Ok( m ) = m.parse::<i32>() { 
+						if let Some( r ) = n.checked_add( m ) { 
+							*n = r; 
+							Retour::creer_str( true, "incrémentation arbitraire effectuée" ) 
+						} else { 
+							Retour::creer_str( true, "incrémentation arbitraire impossible" ) 
+						} 
+					} else { 
+						Retour::creer_str( false, "l'argument est invalide dans ce type" ) 
+					} 
+				} else { 
+					*n += 1i32; 
+					Retour::creer_str( true, "incrémentation par défaut (+1) effectuée" ) 
+				} 
+			} 
+			Valeurs::Flottant( n ) => { 
+				if let Some( m ) = incr_option { 
+					if let Ok( m ) = m.parse::<f32>() { 
+						*n += m; 
+						Retour::creer_str( true, "incrémentation arbitraire effectuée" ) 
+					} else { 
+						Retour::creer_str( false, "l'argument est invalide dans ce type" ) 
+					} 
+				} else { 
+					*n += 1.0f32; 
+					Retour::creer_str( true, "incrémentation par défaut (+1.0) effectuée" ) 
+				} 
+			} 
+			_ => Retour::creer_str( false, "incrémentation impossible, le type ne le supporte pas" ) 
+		} 
+	} else { 
+		Retour::creer_str( false, "clé inconnue" ) 
+	} 
+} 
+
+// ### --- ### 
 
 // fn resoudre_canal_creer( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour { 
 // 	let nom = arguments.trim(); 
@@ -634,56 +686,6 @@ fn resoudre_resumer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 // 	) 
 // } 
 
-// fn resoudre_incrementer( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour { 
-// 	let mut dico = contexte.dico.lock().unwrap(); 
-// 	let valeurs = &mut dico.liste; 
-// 	if let Some( v ) = valeurs.get_mut( arguments.trim() ) { 
-// 		match v { 
-// 			Valeurs::Entier( n ) => { 
-// 				// if arguments.trim() == "" { 
-// 					*n += 1; 
-// 					Retour::creer_str( true, "incrémentation (+1) effectuée" ) 
-// 				// } else if let Ok( m ) = arguments.trim().parse::<u32>() { 
-// 				// 	*n += m; 
-// 				// 	Retour::creer_str( true, "incrémentation arbitraire effectuée" ) 	
-// 				// } else { 
-// 				// 	Retour::creer_str( false, "incrémentation impossible, l'argument est invalide dans ce type" ) 
-// 				// } 
-// 			} 
-// 			Valeurs::Flottant( n ) => { 
-// 				// if arguments.trim() == "" { 
-// 					*n += 1f32; 
-// 					Retour::creer_str( true, "incrémentation (+1) effectuée" ) 
-// 				// } else if let Ok( m ) = arguments.trim().parse::<f32>() { 
-// 				// 	*n += m; 
-// 				// 	Retour::creer_str( true, "incrémentation arbitraire effectuée" ) 	
-// 				// } else { 
-// 				// 	Retour::creer_str( false, "incrémentation impossible, l'argument est invalide dans ce type" ) 
-// 				// } 
-// 			} 
-// 			_ => Retour::creer_str( false, "incrémentation impossible" ) 
-// 		} 
-// 	} else { 
-// 		Retour::creer_str( false, "clé inconnue" ) 
-// 	} 
-// } 
-
-// fn resoudre_decrementer( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour { 
-// 	let mut dico = contexte.dico.lock().unwrap(); 
-// 	let valeurs = &mut dico.liste; 
-// 	if let Some( v ) = valeurs.get_mut( arguments.trim() ) { 
-// 		match v { 
-// 			Valeurs::Entier( n ) => { 
-// 				*n -= 1; 
-// 				Retour::creer_str( true, "incrémentation effectuée" ) 	
-// 			} 
-// 			_ => Retour::creer_str( false, "incrémentation impossible" ) 
-// 		} 
-// 	} else { 
-// 		Retour::creer_str( false, "clé inconnue" ) 
-// 	} 
-// } 
-
 fn resoudre( contexte: &mut Contexte, appel: &str, arguments: &str ) -> Retour { 
 	(match appel { 
 			"stop" => resoudre_stop, 
@@ -696,6 +698,7 @@ fn resoudre( contexte: &mut Contexte, appel: &str, arguments: &str ) -> Retour {
 			"ajouter" => resoudre_ajouter, 
 			"altérer" => resoudre_alterer, 
 			"resumer" => resoudre_resumer, 
+			"numérique:incrémenter" => resoudre_numerique_incrementer, 
 			// "canal:créer" => resoudre_canal_creer, 
 			// "canal:capturer" => resoudre_canal_capture, 
 			// "canal:supprimer" => resoudre_canal_supprimer, 
@@ -704,8 +707,6 @@ fn resoudre( contexte: &mut Contexte, appel: &str, arguments: &str ) -> Retour {
 			// "canal:changer" => resoudre_canal_changer, 
 			// "canal:souscrire" => resoudre_canal_souscrire, 
 			// "canal:émettre" => resoudre_canal_emettre, 
-			// "incrémenter" => resoudre_incrementer, -> vers numérique: 
-			// "décrémenter" => resoudre_decrementer, -> vers numérique:  
 			// "chercher" => resoudre_chercher, -> https://doc.rust-lang.org/std/string/struct.String.html#method.contains  
 			_ => return Retour::creer_str( false, "fonction inconnue" ) 
 		})( 
@@ -758,7 +759,7 @@ fn extraire_ligne( iterateur: &mut Bytes<TcpStream> ) -> ExtractionLigne {
 				return ExtractionLigne::Erreur( 
 					Retour::creer_str( false, "ligne trop longue" ) 
 				); 
-			}
+			} 
 			_ => break 
 		} 
 		position += 1; 
