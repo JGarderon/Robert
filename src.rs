@@ -554,61 +554,65 @@ fn resoudre_numerique_maj( contexte: &mut Contexte, mut arguments: ArgumentsLoca
 
 // ### --- ### 
 
-// fn resoudre_canal_creer( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour { 
-// 	let nom = arguments.trim(); 
-// 	if nom == "" { 
-// 		Retour::creer_str( false, "nom de canal obligatoire" ) 
-// 	} else if nom.len() > 32 { 
-// 		Retour::creer_str( false, "nom de canal trop long (max 32)" ) 
-// 	} else { 
-// 		let mut dicos = contexte.dicos.lock().unwrap(); 
-// 		if dicos.liste.contains_key( arguments ) { 
-// 			Retour::creer_str( false, "canal existant" ) 
-// 		} else { 
-// 			dicos.liste.insert( 
-// 				arguments.to_string(), 
-// 				Arc::new( Mutex::new( Dictionnaire { 
-// 					nom: nom.to_string(), 
-// 					liste: HashMap::new(), 
-// 					souscripteurs: Vec::new() 
-// 				} ) ) as DictionnaireThread  
-// 			); 
-// 			Retour::creer_str( true, "canal créé" ) 
-// 		} 
-// 	} 
-// } 
+fn resoudre_canal_creer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	let nom = if let Some( n ) = arguments.extraire() { 
+		n 
+	} else { 
+		return Retour::creer_str( false, "nom de canal obligatoire" ); 
+	}; 
+	if nom.len() > 32 { 
+		Retour::creer_str( false, "nom de canal trop long (max 32)" ) 
+	} else { 
+		let mut dicos = contexte.dicos.lock().unwrap(); 
+		if dicos.liste.contains_key( &nom ) { 
+			Retour::creer_str( false, "canal existant" ) 
+		} else { 
+			dicos.liste.insert( 
+				nom.to_string(), 
+				Arc::new( Mutex::new( Dictionnaire { 
+					nom: nom, 
+					liste: HashMap::new(), 
+					souscripteurs: Vec::new() 
+				} ) ) as DictionnaireThread  
+			); 
+			Retour::creer_str( true, "canal créé" ) 
+		} 
+	} 
+} 
 
-// fn resoudre_canal_supprimer( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour { 
-// 	let nom = arguments.trim(); 
-// 	if nom == "" { 
-// 		Retour::creer_str( false, "nom de canal obligatoire" ) 
-// 	} else if nom.len() > 32 { 
-// 		Retour::creer_str( false, "nom de canal trop long (max 32)" ) 
-// 	} else if nom == DICO_NOM_DEFAUT { 
-// 		Retour::creer_str( false, "impossible de supprimer le canal par défaut" ) 
-// 	} else { 
-// 		let mut dicos = contexte.dicos.lock().unwrap(); 
-// 		if dicos.liste.contains_key( nom ) { 
-// 			{ 
-// 				let message = "canal supprimé".to_string(); 
-// 				let mut dico = dicos.liste[nom].lock().unwrap(); 
-// 				dico.souscripteurs.retain( 
-// 					| souscripteur | { 
-// 						souscripteur.send( message.clone() ).unwrap(); 
-// 						false 
-// 					} 
-// 				); 
-// 			} 
-// 			if let Some(_) = dicos.liste.remove( nom ) { 
-// 				Retour::creer_str( true, "canal supprimé" ) 
-// 			} else { 
-// 				Retour::creer_str( false, "impossible de supprimer le canal" ) 
-// 			} 
-// 		} else { 
-// 			Retour::creer_str( false, "canal inexistant" ) 
-// 		} 
-// 	} 
-// } 
+fn resoudre_canal_supprimer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	let nom = if let Some( n ) = arguments.extraire() { 
+		n 
+	} else { 
+		return Retour::creer_str( false, "nom de canal obligatoire" ); 
+	}; 
+	if nom.len() > 32 { 
+		Retour::creer_str( false, "nom de canal trop long (max 32)" ) 
+	} else if &nom == DICO_NOM_DEFAUT { 
+		Retour::creer_str( false, "impossible de supprimer le canal par défaut" ) 
+	} else { 
+		let mut dicos = contexte.dicos.lock().unwrap(); 
+		if dicos.liste.contains_key( &nom ) { 
+			{ 
+				let message = "canal supprimé".to_string(); 
+				let mut dico = dicos.liste[&nom].lock().unwrap(); 
+				dico.souscripteurs.retain( 
+					| souscripteur | { 
+						souscripteur.send( message.clone() ).unwrap(); 
+						false 
+					} 
+				); 
+			} 
+			if let Some(_) = dicos.liste.remove( &nom ) { 
+				Retour::creer_str( true, "canal supprimé" ) 
+			} else { 
+				Retour::creer_str( false, "impossible de supprimer le canal" ) 
+			} 
+		} else { 
+			Retour::creer_str( false, "canal inexistant" ) 
+		} 
+	} 
+} 
 
 fn resoudre_canal_tester( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	let nom = if let Some( n ) = arguments.extraire() { 
@@ -669,7 +673,7 @@ fn resoudre_canal_changer( contexte: &mut Contexte, mut arguments: ArgumentsLoca
 	} 
 } 
 
-fn resoudre_canal_capture( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+fn resoudre_canal_capturer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	if let Some( _ ) = arguments.extraire() { 
 		return Retour::creer_str( false, "aucun argument accepté pour cette fonction" ); 
 	} 
@@ -745,15 +749,15 @@ fn resoudre( contexte: &mut Contexte, appel: &str, arguments: &str ) -> Retour {
 			"numérique:màj" => resoudre_numerique_maj, 
 			
 			// actions sur les canaux 
-			// "canal:créer" => resoudre_canal_creer, 
-			// "canal:capturer" => resoudre_canal_capture, 
-			// "canal:supprimer" => resoudre_canal_supprimer, 
+			"canal:créer" => resoudre_canal_creer, 
+			"canal:capturer" => resoudre_canal_capturer, 
+			"canal:supprimer" => resoudre_canal_supprimer, 
 			"canal:tester" => resoudre_canal_tester, 
 			"canal:lister" if DEBUG => resoudre_canal_lister, 
 			"canal:changer" => resoudre_canal_changer, 
 			"canal:souscrire" => resoudre_canal_souscrire, 
 			"canal:émettre" => resoudre_canal_emettre, 
-			
+
 			// "chercher" => resoudre_chercher, -> https://doc.rust-lang.org/std/string/struct.String.html#method.contains  
 			_ => return Retour::creer_str( false, "fonction inconnue" ) 
 		})( 
