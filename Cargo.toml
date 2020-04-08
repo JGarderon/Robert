@@ -1,6 +1,6 @@
 [package]
 name = "projet-robert"
-version = "1.0.17"
+version = "1.0.18"
 authors = ["Julien Garderon <julien.garderon@gmail.com>"]
 edition = "2018"
 
