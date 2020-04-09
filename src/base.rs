@@ -66,7 +66,7 @@ pub fn creer_racine( nom_defaut: &str ) -> (DictionnaireThread, Arc<Mutex<Dictio
 #[derive(Debug)] 
 pub enum Valeurs { 
 	Boolean(bool), 
-	Reel(i32), 
+	Relatif(i32), 
 	Flottant(f32), 
 	Texte(String) 
 } 
@@ -84,7 +84,7 @@ impl Valeurs {
 		match r#type { 
 			"booléen" => match self { 
 				Valeurs::Boolean( _ ) => true, 
-				Valeurs::Reel( n ) => {
+				Valeurs::Relatif( n ) => {
 					*self = Valeurs::Boolean( if *n > 0i32 { true } else { false } ); 
 					true 
 				} 
@@ -107,18 +107,18 @@ impl Valeurs {
 				} 
 			} 
 			"réel" => match self { 
-				Valeurs::Reel( _ ) => true, 
+				Valeurs::Relatif( _ ) => true, 
 				Valeurs::Boolean( b ) => { 
-					*self = Valeurs::Reel( if *b { 1i32 } else { 0i32 } ); 
+					*self = Valeurs::Relatif( if *b { 1i32 } else { 0i32 } ); 
 					true 
 				} 
 				Valeurs::Flottant( n ) => { 
-					*self = Valeurs::Reel( n.round() as i32 ); 
+					*self = Valeurs::Relatif( n.round() as i32 ); 
 					true 
 				} 
 				Valeurs::Texte( t ) => { 
 					if let Ok( n ) = t.parse::<i32>() { 
-						*self = Valeurs::Reel( n ); 
+						*self = Valeurs::Relatif( n ); 
 						true 
 					} else { 
 						false 
@@ -127,7 +127,7 @@ impl Valeurs {
 			} 
 			"flottant" => match self { 
 				Valeurs::Flottant( _ ) => true, 
-				Valeurs::Reel( n ) => { 
+				Valeurs::Relatif( n ) => { 
 					*self = Valeurs::Flottant( *n as f32 ); 
 					true 
 				}, 
@@ -150,7 +150,7 @@ impl Valeurs {
 					*self = Valeurs::Texte( if *b { "vrai".to_string() } else { "faux".to_string() } ); 
 					true 
 				}, 
-				Valeurs::Reel( n ) => { 
+				Valeurs::Relatif( n ) => { 
 					*self = Valeurs::Texte( n.to_string() ); 
 					true 
 				} 

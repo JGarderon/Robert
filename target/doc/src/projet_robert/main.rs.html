@@ -139,8 +139,6 @@
 <span id="139">139</span>
 <span id="140">140</span>
 <span id="141">141</span>
-<span id="142">142</span>
-<span id="143">143</span>
 </pre><div class="example-wrap"><pre class="rust ">
 
 <span class="doccomment">//! Robert est un logiciel type &quot;Redis-Like&quot; : un système de gestion de données haute performance, stockée en RAM, qui n&#39;offre cependant comme son illustre grand frère, toutes les finesses d&#39;une base de données SQL classique. </span>
@@ -153,7 +151,7 @@
 <span class="doccomment">//! </span>
 <span class="doccomment">//! La philosophie de Robert est d&#39;offrir un logiciel appréhendable par le plus grand nombre, simple et rapide, qui ne soit pas un &quot;jouet&quot; de programmation sans être une usine à gaz que seuls une poignée de personnes est capable de développer et maintenir. Robert dans la lignée de la philosophie &quot;KISS&quot; de l&#39;univers Unix : _Keep It Simple, Stupid !_ Ainsi il ne vous fera jamais le café... </span>
 <span class="doccomment">//! </span>
-<span class="doccomment">//! Par l&#39;usage de Rust pour son développement, le logiciel est stable, sûr et son empreinte mémoire est très faible. Rust ne connaît (quasi-)pas les fuites de mémoire : Robert non plus. </span>
+<span class="doccomment">//! Par l&#39;usage de Rust pour son développement, le logiciel est stable, sûr et son empreinte mémoire est très faible. Rust ne connaît (quasi-)pas les fuites de mémoire : Robert non plus. Le projet souhaite aussi s&#39;assoir sur des ressources sûres, et éviter d&#39;utiliser des adjonctions de code extérieur insondable. Aussi Robert n&#39;a aucune autre dépendance à ce jour, que l&#39;usage des modules internes au langage. </span>
 <span class="doccomment">//! </span>
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::{<span class="ident">TcpListener</span>}; 
@@ -186,9 +184,8 @@
 <span class="kw">mod</span> <span class="ident">grammaire</span>; 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">grammaire</span>::{<span class="ident">ExtractionLigne</span>}; 
 
-<span class="doccomment">/// Fonction recevant un client et le traitant. Principalement une boucle qui reçoit sur texte dans un tampon, l&#39;examine rapidement avec les outils du module &quot;grammaire&quot;, et résoud de la requête. </span>
+<span class="doccomment">/// Fonction recevant un client et le traitant, par le biais d&#39;un objet &#39;Contexte&#39; déjà créé. Principalement une boucle qui reçoit sur texte dans un tampon, l&#39;examine rapidement avec les outils du module &quot;grammaire&quot;, et lancement la fonction de résolution de la requête. </span>
 <span class="kw">fn</span> <span class="ident">recevoir</span>( <span class="kw-2">mut</span> <span class="ident">contexte</span>: <span class="ident">Contexte</span> ) { 
-	<span class="kw">let</span> <span class="ident">fct_resolution</span> <span class="op">=</span> <span class="ident">contexte</span>.<span class="ident">resoudre</span>; 
 	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iterateur</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">contexte</span>.<span class="ident">stream</span>.<span class="ident">try_clone</span>() { 
 		<span class="prelude-val">Ok</span>( <span class="ident">s</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>, 
 		<span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> 
@@ -197,7 +194,7 @@
 		<span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">grammaire</span>::<span class="ident">extraire_ligne</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">iterateur</span> ) { 
 			<span class="ident">ExtractionLigne</span>::<span class="ident">Commande</span>( <span class="ident">s</span> ) <span class="op">=</span><span class="op">&gt;</span> { 
 				<span class="kw">let</span> <span class="ident">appel</span> <span class="op">=</span> <span class="ident">grammaire</span>::<span class="ident">extraction_commande</span>( <span class="ident">s</span>.<span class="ident">trim</span>() ); 
-				<span class="ident">fct_resolution</span>( 
+				<span class="ident">resolution</span>::<span class="ident">resoudre</span>( 
 					<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">contexte</span>, 
 					<span class="ident">appel</span>.<span class="number">0</span>, 
 					<span class="ident">appel</span>.<span class="number">1</span> 
@@ -252,7 +249,6 @@
 	    				<span class="ident">poursuivre</span>: <span class="bool-val">true</span>, 
 	    				<span class="ident">dico</span>: <span class="ident">dico_thread</span>.<span class="ident">clone</span>(), 
 	    				<span class="ident">dicos</span>: <span class="ident">dicos</span>.<span class="ident">clone</span>(), 
-	    				<span class="ident">resoudre</span>: <span class="ident">resolution</span>::<span class="ident">resoudre</span>, 
 	    				<span class="ident">stream</span>: <span class="ident">stream</span>, 
 	    			}; 
 	    			<span class="ident">fils</span>.<span class="ident">push</span>( 

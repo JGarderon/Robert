@@ -21,7 +21,7 @@ fn resoudre_incrementer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux
 	let valeurs = &mut dico.liste; 
 	if let Some( v ) = valeurs.get_mut( &cle ) { 
 		match v { 
-			Valeurs::Reel( n ) => { 
+			Valeurs::Relatif( n ) => { 
 				if let Some( m ) = incr_option { 
 					if let Ok( m ) = m.parse::<i32>() { 
 						if let Some( r ) = n.checked_add( m ) { 
@@ -73,7 +73,7 @@ fn resoudre_maj( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Re
 	let valeurs = &mut dico.liste; 
 	if let Some( v ) = valeurs.get_mut( &cle ) { 
 		match v { 
-			Valeurs::Reel( n ) => { 
+			Valeurs::Relatif( n ) => { 
 				if let Ok( m ) = valeur.parse::<i32>() { 
 					*n = m; 
 					Retour::creer_str( true, "màj effectuée" ) 

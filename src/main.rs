@@ -9,7 +9,7 @@
 //! 
 //! La philosophie de Robert est d'offrir un logiciel appréhendable par le plus grand nombre, simple et rapide, qui ne soit pas un "jouet" de programmation sans être une usine à gaz que seuls une poignée de personnes est capable de développer et maintenir. Robert dans la lignée de la philosophie "KISS" de l'univers Unix : _Keep It Simple, Stupid !_ Ainsi il ne vous fera jamais le café... 
 //! 
-//! Par l'usage de Rust pour son développement, le logiciel est stable, sûr et son empreinte mémoire est très faible. Rust ne connaît (quasi-)pas les fuites de mémoire : Robert non plus. 
+//! Par l'usage de Rust pour son développement, le logiciel est stable, sûr et son empreinte mémoire est très faible. Rust ne connaît (quasi-)pas les fuites de mémoire : Robert non plus. Le projet souhaite aussi s'assoir sur des ressources sûres, et éviter d'utiliser des adjonctions de code extérieur insondable. Aussi Robert n'a aucune autre dépendance à ce jour, que l'usage des modules internes au langage. 
 //! 
 
 use std::net::{TcpListener}; 
@@ -42,9 +42,8 @@ mod base;
 mod grammaire; 
 use crate::grammaire::{ExtractionLigne}; 
 
-/// Fonction recevant un client et le traitant. Principalement une boucle qui reçoit sur texte dans un tampon, l'examine rapidement avec les outils du module "grammaire", et résoud de la requête. 
+/// Fonction recevant un client et le traitant, par le biais d'un objet 'Contexte' déjà créé. Principalement une boucle qui reçoit sur texte dans un tampon, l'examine rapidement avec les outils du module "grammaire", et lancement la fonction de résolution de la requête. 
 fn recevoir( mut contexte: Contexte ) { 
-	let fct_resolution = contexte.resoudre; 
 	let mut iterateur = match contexte.stream.try_clone() { 
 		Ok( s ) => s, 
 		Err(_) => return 
@@ -53,7 +52,7 @@ fn recevoir( mut contexte: Contexte ) {
 		let r = match grammaire::extraire_ligne( &mut iterateur ) { 
 			ExtractionLigne::Commande( s ) => { 
 				let appel = grammaire::extraction_commande( s.trim() ); 
-				fct_resolution( 
+				resolution::resoudre( 
 					&mut contexte, 
 					appel.0, 
 					appel.1 
@@ -108,7 +107,6 @@ fn lancement_service( ipport: &str ) -> Result<(), &'static str> {
 	    				poursuivre: true, 
 	    				dico: dico_thread.clone(), 
 	    				dicos: dicos.clone(), 
-	    				resoudre: resolution::resoudre, 
 	    				stream: stream, 
 	    			}; 
 	    			fils.push( 

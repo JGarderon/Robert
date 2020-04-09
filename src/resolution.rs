@@ -19,6 +19,7 @@ mod resoudre_canal;
 
 // ---------------------------------------------------- 
 
+/// Un type spécifique au projet : le type 'Résolveur' est la signature d'une fonction de résolution, quelque soit le module de résolution. Elle prend deux paramêtres : le contexte du socket ainsi qu'un objet permettant de récupèrer à la demande les arguments dits 'locaux' (propre à une requête). La fonction renvoie un objet "retour". La définition de cette signature, soulage les signatures dans d'autres fonctions de résolution. 
 type Resolveur = fn ( &mut Contexte, ArgumentsLocaux ) -> Retour; 
 
 // ---------------------------------------------------- 
@@ -27,7 +28,6 @@ pub struct Contexte {
 	pub poursuivre: bool, 
 	pub dico: DictionnaireThread, 
 	pub dicos: Arc<Mutex<Dictionnaires>>, 
-	pub resoudre: fn(&mut Contexte, &str, &str) -> Retour, 
 	pub stream: TcpStream 
 } 
 
@@ -147,7 +147,7 @@ fn resoudre_obtenir( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 		match &valeurs[&cle] { 
 			Valeurs::Boolean( b ) => Retour::creer( true, format!( "(booléen) {}", b ) ), 
 			Valeurs::Texte( t ) => Retour::creer( true, format!( "(texte) \"{}\"", t ) ), 
-			Valeurs::Reel( n ) => Retour::creer( true, format!( "(réel) {}", n ) ), 
+			Valeurs::Relatif( n ) => Retour::creer( true, format!( "(réel) {}", n ) ), 
 			Valeurs::Flottant( n ) => Retour::creer( true, format!( "(flottant) {}", n ) ), 
 		} 
 	} else { 

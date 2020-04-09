@@ -128,7 +128,7 @@
 	<span class="kw">let</span> <span class="ident">valeurs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dico</span>.<span class="ident">liste</span>; 
 	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">v</span> ) <span class="op">=</span> <span class="ident">valeurs</span>.<span class="ident">get_mut</span>( <span class="kw-2">&amp;</span><span class="ident">cle</span> ) { 
 		<span class="kw">match</span> <span class="ident">v</span> { 
-			<span class="ident">Valeurs</span>::<span class="ident">Reel</span>( <span class="ident">n</span> ) <span class="op">=</span><span class="op">&gt;</span> { 
+			<span class="ident">Valeurs</span>::<span class="ident">Relatif</span>( <span class="ident">n</span> ) <span class="op">=</span><span class="op">&gt;</span> { 
 				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">m</span> ) <span class="op">=</span> <span class="ident">incr_option</span> { 
 					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>( <span class="ident">m</span> ) <span class="op">=</span> <span class="ident">m</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>() { 
 						<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">r</span> ) <span class="op">=</span> <span class="ident">n</span>.<span class="ident">checked_add</span>( <span class="ident">m</span> ) { 
@@ -180,7 +180,7 @@
 	<span class="kw">let</span> <span class="ident">valeurs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dico</span>.<span class="ident">liste</span>; 
 	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">v</span> ) <span class="op">=</span> <span class="ident">valeurs</span>.<span class="ident">get_mut</span>( <span class="kw-2">&amp;</span><span class="ident">cle</span> ) { 
 		<span class="kw">match</span> <span class="ident">v</span> { 
-			<span class="ident">Valeurs</span>::<span class="ident">Reel</span>( <span class="ident">n</span> ) <span class="op">=</span><span class="op">&gt;</span> { 
+			<span class="ident">Valeurs</span>::<span class="ident">Relatif</span>( <span class="ident">n</span> ) <span class="op">=</span><span class="op">&gt;</span> { 
 				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>( <span class="ident">m</span> ) <span class="op">=</span> <span class="ident">valeur</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>() { 
 					<span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="ident">m</span>; 
 					<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;màj effectuée&quot;</span> ) 
