@@ -1,5 +1,4 @@
 
-
 use crate::base::Valeurs; 
 use crate::resolution::Contexte; 
 use crate::grammaire::ArgumentsLocaux; 
@@ -103,5 +102,5 @@ pub fn resoudre( appel: &str ) -> Result<Resolveur,Retour> {
 		"maj" => Ok( resoudre_maj as Resolveur ), 
 		_ => Err( Retour::creer_str( false, "module numérique : fonction inconnue" ) ) 
 	} 
-}
+} 
 
