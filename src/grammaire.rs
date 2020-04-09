@@ -1,9 +1,10 @@
+//! Module 'grammaire' 
+//! Ce module permet la gestion de la partie grammaticale (syntaxique) et un partie sémantique des requêtes reçues. 
+
 
 use std::net::TcpStream; 
 use std::iter::FromIterator; 
 use std::io::Bytes; 
-
-// ---------------------------------------------------- 
 
 use crate::TAILLE_LIGNE_MAX; 
 
