@@ -15,6 +15,7 @@ use crate::base::Valeurs;
 
 mod resoudre_numerique; 
 mod resoudre_texte; 
+mod resoudre_canal; 
 
 // ---------------------------------------------------- 
 
@@ -293,6 +294,10 @@ pub fn resoudre( contexte: &mut Contexte, appel: &str, arguments: &str ) -> Reto
 				Err( r ) => return r 
 			}, 
 			"texte" => match resoudre_texte::resoudre( &appel[n+1..] ) { 
+				Ok( fct ) => fct, 
+				Err( r ) => return r 
+			}, 
+			"canal" => match resoudre_canal::resoudre( &appel[n+1..] ) { 
 				Ok( fct ) => fct, 
 				Err( r ) => return r 
 			}, 

@@ -1,9 +1,15 @@
 
 use std::io::Write; 
+use std::sync::mpsc::{Sender, Receiver}; 
+use std::sync::mpsc; 
+use std::sync::Arc; 
+use std::sync::Mutex; 
+use std::collections::HashMap; 
 
 // ---------------------------------------------------- 
 
-use crate::base::Valeurs; 
+use crate::base::DictionnaireThread; 
+use crate::base::Dictionnaire; 
 use crate::resolution::Contexte; 
 use crate::grammaire::ArgumentsLocaux; 
 
@@ -11,6 +17,11 @@ use crate::grammaire::ArgumentsLocaux;
 
 use crate::resolution::Resolveur; 
 use crate::resolution::Retour; 
+
+// ---------------------------------------------------- 
+
+use crate::DEBUG; 
+use crate::DICO_NOM_DEFAUT; 
 
 // ---------------------------------------------------- 
 
