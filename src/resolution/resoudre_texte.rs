@@ -14,8 +14,6 @@ use crate::resolution::Retour;
 
 // ---------------------------------------------------- 
 
-// ### --- ### 
-
 fn resoudre_contenir( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	let motif = if let Some( m ) = arguments.extraire() { 
 		m 

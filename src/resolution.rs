@@ -1,8 +1,5 @@
 
 use std::io::Write; 
-use std::sync::mpsc::{Sender, Receiver}; 
-use std::sync::mpsc; 
-use std::collections::HashMap; 
 use std::sync::Arc; 
 use std::sync::Mutex; 
 use std::net::TcpStream; 
@@ -12,13 +9,7 @@ use std::net::TcpStream;
 use crate::grammaire::ArgumentsLocaux; 
 use crate::base::DictionnaireThread; 
 use crate::base::Dictionnaires; 
-use crate::base::Dictionnaire; 
 use crate::base::Valeurs; 
-
-// ---------------------------------------------------- 
-
-use crate::DEBUG; 
-use crate::DICO_NOM_DEFAUT; 
 
 // ---------------------------------------------------- 
 
@@ -294,184 +285,6 @@ fn resoudre_resumer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 	) 
 } 
 
-// ### --- ### 
-
-fn resoudre_canal_creer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-	let nom = if let Some( n ) = arguments.extraire() { 
-		n 
-	} else { 
-		return Retour::creer_str( false, "nom de canal obligatoire" ); 
-	}; 
-	if nom.len() > 32 { 
-		Retour::creer_str( false, "nom de canal trop long (max 32)" ) 
-	} else { 
-		let mut dicos = contexte.dicos.lock().unwrap(); 
-		if dicos.liste.contains_key( &nom ) { 
-			Retour::creer_str( false, "canal existant" ) 
-		} else { 
-			dicos.liste.insert( 
-				nom.to_string(), 
-				Arc::new( Mutex::new( Dictionnaire { 
-					nom: nom, 
-					liste: HashMap::new(), 
-					souscripteurs: Vec::<Sender<String>>::new() 
-				} ) ) as DictionnaireThread  
-			); 
-			Retour::creer_str( true, "canal créé" ) 
-		} 
-	} 
-} 
-
-fn resoudre_canal_supprimer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-	let nom = if let Some( n ) = arguments.extraire() { 
-		n 
-	} else { 
-		return Retour::creer_str( false, "nom de canal obligatoire" ); 
-	}; 
-	if nom.len() > 32 { 
-		Retour::creer_str( false, "nom de canal trop long (max 32)" ) 
-	} else if &nom == DICO_NOM_DEFAUT { 
-		Retour::creer_str( false, "impossible de supprimer le canal par défaut" ) 
-	} else { 
-		let mut dicos = contexte.dicos.lock().unwrap(); 
-		if dicos.liste.contains_key( &nom ) { 
-			{ 
-				let message = "canal supprimé".to_string(); 
-				let mut dico = dicos.liste[&nom].lock().unwrap(); 
-				dico.souscripteurs.retain( 
-					| souscripteur | { 
-						souscripteur.send( message.clone() ).unwrap(); 
-						false 
-					} 
-				); 
-			} 
-			if let Some(_) = dicos.liste.remove( &nom ) { 
-				Retour::creer_str( true, "canal supprimé" ) 
-			} else { 
-				Retour::creer_str( false, "impossible de supprimer le canal" ) 
-			} 
-		} else { 
-			Retour::creer_str( false, "canal inexistant" ) 
-		} 
-	} 
-} 
-
-fn resoudre_canal_tester( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-	let nom = if let Some( n ) = arguments.extraire() { 
-		n 
-	} else { 
-		return Retour::creer_str( false, "nom de canal obligatoire" ); 
-	}; 
-	if nom.len() > 32 { 
-		Retour::creer_str( false, "nom de canal trop long (max 32)" ) 
-	} else { 
-		let dicos = contexte.dicos.lock().unwrap(); 
-		if dicos.liste.contains_key( &nom ) { 
-			Retour::creer_str( true, "canal existant" ) 
-		} else { 
-			Retour::creer_str( true, "canal inexistant" ) 
-		} 
-	} 
-} 
-
-fn resoudre_canal_lister( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-	if let Some( _ ) = arguments.extraire() { 
-		return Retour::creer_str( false, "aucun argument accepté pour cette fonction" ); 
-	} 
-	let dicos = contexte.dicos.lock().unwrap(); 
-	for (nom, d) in dicos.liste.iter() { 
-		let dico = d.lock().unwrap(); 
-		if let Err(_) = contexte.stream.write( 
-			format!( 
-				"\tcanal \"{}\" ({:?})\n", 
-				nom, 
-				dico.liste.len() 
-			).as_bytes() 
-		) { 
-			contexte.stream.flush().unwrap(); 
-			return Retour::creer_str( false, "erreur lors de l'envoi" ); 
-		} 
-	} 
-	contexte.stream.flush().unwrap(); 
-	Retour::creer( true, format!( "stop ({})", dicos.liste.len() ) ) 
-} 
-
-fn resoudre_canal_changer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-	let nom = if let Some( n ) = arguments.extraire() { 
-		n 
-	} else { 
-		return Retour::creer_str( false, "nom de canal obligatoire" ); 
-	}; 
-	if nom.len() > 32 { 
-		Retour::creer_str( false, "nom de canal trop long (max 32)" ) 
-	} else { 
-		let dicos = contexte.dicos.lock().unwrap(); 
-		if dicos.liste.contains_key( &nom ) { 
-			contexte.dico = dicos.liste[&nom].clone(); 
-			Retour::creer_str( true, "canal modifié" ) 
-		} else { 
-			Retour::creer_str( false, "canal inexistant" ) 
-		} 
-	} 
-} 
-
-fn resoudre_canal_capturer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-	if let Some( _ ) = arguments.extraire() { 
-		return Retour::creer_str( false, "aucun argument accepté pour cette fonction" ); 
-	} 
-	contexte.dico = Arc::new( Mutex::new( Dictionnaire { 
-		nom: "".to_string(), 
-		liste: HashMap::new(), 
-		souscripteurs: Vec::<Sender<String>>::new() 
-	} ) ) as DictionnaireThread; 
-	Retour::creer_str( true, "canal privé actif" ) 
-} 
-
-fn resoudre_canal_souscrire( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-	if let Some( _ ) = arguments.extraire() { 
-		return Retour::creer_str( false, "aucun argument accepté pour cette fonction" ); 
-	} 
-	let (expediteur, destinaire): ( Sender<String>, Receiver<String> ) = mpsc::channel(); 
-	{ 
-		let mut dico = contexte.dico.lock().unwrap(); 
-		dico.souscripteurs.push( expediteur ); 
-	} 
-	while let Ok( m ) = destinaire.recv() { 
-		if let Ok( _ ) = contexte.stream.write( 
-			format!( "\t>>> {}\n", m ).as_bytes() 
-		) { 
-			if let Ok( _ ) = contexte.stream.flush() { 
-			} else { 
-				break; 
-			} 
-		} else { 
-			break; 
-		}  
-	} 
-	Retour::creer_str( true, "diffusion terminée" ) 
-} 
-
-fn resoudre_canal_emettre( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour { 
-	let mut dico = contexte.dico.lock().unwrap(); 
-	let message = arguments.source.iter().collect::<String>(); 
-	dico.souscripteurs.retain( 
-		| souscripteur | { 
-			if let Ok( _ ) = souscripteur.send( message.clone() ) { 
-				true 
-			} else { 
-				false 
-			} 
-		} 
-	); 
-	Retour::creer( 
-		true, 
-		format!( 
-			"diffusion émise aux souscripteurs ({})", 
-			dico.souscripteurs.len() 
-		) 
-	) 
-} 
-
 pub fn resoudre( contexte: &mut Contexte, appel: &str, arguments: &str ) -> Retour { 
 	(if let Some( n ) = appel.find( ':' ) { 
 		match &appel[..n] { 
@@ -498,16 +311,6 @@ pub fn resoudre( contexte: &mut Contexte, appel: &str, arguments: &str ) -> Reto
 			"ajouter" => resoudre_ajouter as Resolveur, 
 			"altérer" => resoudre_alterer as Resolveur, 
 			"résumer" => resoudre_resumer as Resolveur, 
-			
-			// actions sur les canaux 
-			"canal:créer" => resoudre_canal_creer as Resolveur, 
-			"canal:capturer" => resoudre_canal_capturer as Resolveur, 
-			"canal:supprimer" => resoudre_canal_supprimer as Resolveur, 
-			"canal:tester" => resoudre_canal_tester as Resolveur as Resolveur, 
-			"canal:lister" if DEBUG => resoudre_canal_lister as Resolveur, 
-			"canal:changer" => resoudre_canal_changer as Resolveur, 
-			"canal:souscrire" => resoudre_canal_souscrire as Resolveur, 
-			"canal:émettre" => resoudre_canal_emettre as Resolveur, 
 
 			_ => return Retour::creer_str( false, "module général : fonction inconnue" ) 
 		} 
