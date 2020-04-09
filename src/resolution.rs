@@ -22,6 +22,14 @@ use crate::DICO_NOM_DEFAUT;
 
 // ---------------------------------------------------- 
 
+mod resoudre_numerique; 
+
+// ---------------------------------------------------- 
+
+type Resolveur = fn ( &mut Contexte, ArgumentsLocaux ) -> Retour; 
+
+// ---------------------------------------------------- 
+
 pub struct Contexte { 
 	pub poursuivre: bool, 
 	pub dico: DictionnaireThread, 
@@ -283,94 +291,6 @@ fn resoudre_resumer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 			valeurs.len() 
 		) 
 	) 
-} 
-
-// ### --- ### 
-
-fn resoudre_numerique_incrementer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-	let cle = if let Some( c ) = arguments.extraire() { 
-		c 
-	} else { 
-		return Retour::creer_str( false, "vous devez spécifier une clé existante" ); 
-	}; 
-	let incr_option = arguments.extraire(); 
-	let mut dico = contexte.dico.lock().unwrap(); 
-	let valeurs = &mut dico.liste; 
-	if let Some( v ) = valeurs.get_mut( &cle ) { 
-		match v { 
-			Valeurs::Reel( n ) => { 
-				if let Some( m ) = incr_option { 
-					if let Ok( m ) = m.parse::<i32>() { 
-						if let Some( r ) = n.checked_add( m ) { 
-							*n = r; 
-							Retour::creer_str( true, "incrémentation arbitraire effectuée" ) 
-						} else { 
-							Retour::creer_str( true, "incrémentation arbitraire impossible" ) 
-						} 
-					} else { 
-						Retour::creer_str( false, "l'argument est invalide dans ce type" ) 
-					} 
-				} else { 
-					*n += 1i32; 
-					Retour::creer_str( true, "incrémentation par défaut (+1) effectuée" ) 
-				} 
-			} 
-			Valeurs::Flottant( n ) => { 
-				if let Some( m ) = incr_option { 
-					if let Ok( m ) = m.parse::<f32>() { 
-						*n += m; 
-						Retour::creer_str( true, "incrémentation arbitraire effectuée" ) 
-					} else { 
-						Retour::creer_str( false, "l'argument est invalide dans ce type" ) 
-					} 
-				} else { 
-					*n += 1.0f32; 
-					Retour::creer_str( true, "incrémentation par défaut (+1.0) effectuée" ) 
-				} 
-			} 
-			_ => Retour::creer_str( false, "incrémentation impossible, le type ne le supporte pas" ) 
-		} 
-	} else { 
-		Retour::creer_str( false, "clé inconnue" ) 
-	} 
-} 
-
-fn resoudre_numerique_maj( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-	let cle = if let Some( c ) = arguments.extraire() { 
-		c 
-	} else { 
-		return Retour::creer_str( false, "vous devez spécifier une clé existante" ); 
-	}; 
-	let valeur = if let Some( v ) = arguments.extraire() { 
-		v 
-	} else { 
-		return Retour::creer_str( false, "vous devez spécifier une valeur" ); 
-	}; 
-	let mut dico = contexte.dico.lock().unwrap(); 
-	let valeurs = &mut dico.liste; 
-	if let Some( v ) = valeurs.get_mut( &cle ) { 
-		match v { 
-			Valeurs::Reel( n ) => { 
-				if let Ok( m ) = valeur.parse::<i32>() { 
-					*n = m; 
-					Retour::creer_str( true, "màj effectuée" ) 
-				} else { 
-					Retour::creer_str( false, "l'argument est invalide dans ce type" ) 
-				} 
-			} 
-			Valeurs::Flottant( n ) => { 
-				if let Ok( m ) = valeur.parse::<f32>() { 
-					*n = m; 
-					Retour::creer_str( true, "màj effectuée" ) 
-				} else { 
-					Retour::creer_str( false, "l'argument est invalide dans ce type" ) 
-				} 
-			} 
-			_ => Retour::creer_str( false, "màj numérique impossible, le type ne le supporte pas" ) 
-		} 
-	} else { 
-		Retour::creer_str( false, "clé inconnue" ) 
-	} 
 } 
 
 // ### --- ### 
@@ -685,45 +605,52 @@ fn resoudre_canal_emettre( contexte: &mut Contexte, arguments: ArgumentsLocaux )
 } 
 
 pub fn resoudre( contexte: &mut Contexte, appel: &str, arguments: &str ) -> Retour { 
-	(match appel { 
+	(if let Some( n ) = appel.find( ':' ) { 
+		match &appel[..n] { 
+			"numérique" => match resoudre_numerique::resoudre( &appel[n+1..] ) { 
+				Ok( fct ) => fct, 
+				Err( r ) => return r 
+			}, 
+			_ => return Retour::creer_str( false, "module inconnu" ) 
+		}
+	} else { 
+		match appel { 
 			// actions génériques 
-			"stop" => resoudre_stop, 
-			"vider" => resoudre_vider, 
-			"définir" => resoudre_definir, 
-			"obtenir" => resoudre_obtenir, 
-			"supprimer" => resoudre_supprimer, 
-			"lister" => resoudre_lister, 
-			"tester" => resoudre_tester, 
-			"ajouter" => resoudre_ajouter, 
-			"altérer" => resoudre_alterer, 
-			"résumer" => resoudre_resumer, 
+			"stop" => resoudre_stop as Resolveur, 
+			"vider" => resoudre_vider as Resolveur, 
+			"définir" => resoudre_definir as Resolveur, 
+			"obtenir" => resoudre_obtenir as Resolveur, 
+			"supprimer" => resoudre_supprimer as Resolveur, 
+			"lister" => resoudre_lister as Resolveur, 
+			"tester" => resoudre_tester as Resolveur, 
+			"ajouter" => resoudre_ajouter as Resolveur, 
+			"altérer" => resoudre_alterer as Resolveur, 
+			"résumer" => resoudre_resumer as Resolveur, 
 
-			// actions sur les valeurs numériques 
-			"numérique:incrémenter" => resoudre_numerique_incrementer, 
-			"numérique:màj" => resoudre_numerique_maj, 
 
 			// actions sur les valeurs textuelles 
-			"texte:contenir" => resoudre_texte_contenir, 
-			"texte:débuter" => resoudre_texte_debuter, 
-			"texte:terminer" => resoudre_texte_terminer, 
+			"texte:contenir" => resoudre_texte_contenir as Resolveur, 
+			"texte:débuter" => resoudre_texte_debuter as Resolveur, 
+			"texte:terminer" => resoudre_texte_terminer as Resolveur as Resolveur, 
 			"texte:remplacerun" => resoudre_texte_remplacer_un, 
 			
 			// actions sur les canaux 
-			"canal:créer" => resoudre_canal_creer, 
-			"canal:capturer" => resoudre_canal_capturer, 
-			"canal:supprimer" => resoudre_canal_supprimer, 
-			"canal:tester" => resoudre_canal_tester, 
-			"canal:lister" if DEBUG => resoudre_canal_lister, 
-			"canal:changer" => resoudre_canal_changer, 
-			"canal:souscrire" => resoudre_canal_souscrire, 
-			"canal:émettre" => resoudre_canal_emettre, 
+			"canal:créer" => resoudre_canal_creer as Resolveur, 
+			"canal:capturer" => resoudre_canal_capturer as Resolveur, 
+			"canal:supprimer" => resoudre_canal_supprimer as Resolveur, 
+			"canal:tester" => resoudre_canal_tester as Resolveur as Resolveur, 
+			"canal:lister" if DEBUG => resoudre_canal_lister as Resolveur, 
+			"canal:changer" => resoudre_canal_changer as Resolveur, 
+			"canal:souscrire" => resoudre_canal_souscrire as Resolveur, 
+			"canal:émettre" => resoudre_canal_emettre as Resolveur, 
 
-			_ => return Retour::creer_str( false, "fonction inconnue" ) 
-		})( 
-			contexte, 
-			ArgumentsLocaux { 
-		        source: arguments.chars().collect::<Vec<char>>(), 
-		        position: 0 
-		    } 
-		) 
+			_ => return Retour::creer_str( false, "module général : fonction inconnue" ) 
+		} 
+	})( 
+		contexte, 
+		ArgumentsLocaux { 
+	        source: arguments.chars().collect::<Vec<char>>(), 
+	        position: 0 
+	    } 
+	) 
 } 
