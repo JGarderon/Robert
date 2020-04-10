@@ -93,19 +93,19 @@ fn resoudre_vider( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> 
 } 
 
 fn resoudre_definir( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-	let cle = if let Some( c ) = arguments.extraire() { 
-		c 
-	} else { 
-		return Retour::creer_str( false, "une clé vide n'est pas une clé acceptable" ); 
-	}; 
-	let valeur = if let Some( v ) = arguments.extraire() { 
-		v 
-	} else { 
-		return Retour::creer_str( false, "aucune valeur fournie ou séparateur clé/valeur non-respecté (espace simple)" ); 
-	}; 
 	let mut dico = contexte.dico.lock().unwrap(); 
 	let valeurs = &mut dico.liste; 
 	if valeurs.len() < NBRE_MAX_VALEURS { 
+		let cle = if let Some( c ) = arguments.extraire() { 
+			c 
+		} else { 
+			return Retour::creer_str( false, "une clé vide n'est pas une clé acceptable" ); 
+		}; 
+		let valeur = if let Some( v ) = arguments.extraire() { 
+			v 
+		} else { 
+			return Retour::creer_str( false, "aucune valeur fournie ou séparateur clé/valeur non-respecté (espace simple)" ); 
+		}; 
 		match arguments.extraire() { 
 			None => { 
 				valeurs.insert( 

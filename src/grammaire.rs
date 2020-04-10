@@ -38,6 +38,9 @@ impl ArgumentsLocaux {
         None 
     } 
     pub fn suivant( &mut self ) -> ArgumentsLocauxEtat { 
+        if self.position >= self.source.len() { 
+            return ArgumentsLocauxEtat::Stop; 
+        } 
         let texte = &self.source[self.position..]; 
         if texte.len() == 0 { 
             return ArgumentsLocauxEtat::Stop; 
@@ -68,7 +71,7 @@ impl ArgumentsLocaux {
     pub fn extraire( &mut self ) -> Option<String> { 
         if let ArgumentsLocauxEtat::Suivant( depart, stop ) = self.suivant() { 
             let r = &self.source[self.position+depart..self.position+stop]; 
-            self.position += stop; 
+            self.position += stop+1; 
             Some( String::from_iter( r ) ) 
         } else { 
             None 

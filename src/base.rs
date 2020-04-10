@@ -108,7 +108,7 @@ impl Valeurs {
 					} 
 				} 
 			} 
-			"réel" => match self { 
+			"relatif" => match self { 
 				Valeurs::Objet( _ ) => false, 
 				Valeurs::Relatif( _ ) => true, 
 				Valeurs::Boolean( b ) => { 
