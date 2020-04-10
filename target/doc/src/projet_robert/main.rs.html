@@ -139,6 +139,15 @@
 <span id="139">139</span>
 <span id="140">140</span>
 <span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
 </pre><div class="example-wrap"><pre class="rust ">
 
 <span class="doccomment">//! Robert est un logiciel type &quot;Redis-Like&quot; : un système de gestion de données haute performance, stockée en RAM, qui n&#39;offre cependant comme son illustre grand frère, toutes les finesses d&#39;une base de données SQL classique. </span>
@@ -173,6 +182,15 @@
 
 <span class="doccomment">/// Taille maximale admissible pour le texte contenu dans les dictionnaires. </span>
 <span class="kw">const</span> <span class="ident">TAILLE_TEXTE_MAX</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">TAILLE_LIGNE_MAX</span><span class="kw-2">*</span><span class="number">5</span>; 
+
+<span class="doccomment">///Nbre maximum admissible de valeurs pour chaque objet. </span>
+<span class="kw">const</span> <span class="ident">NBRE_MAX_OBJETS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">250</span>; 
+
+<span class="doccomment">///Nbre maximum admissible de valeurs pour chaque canal (dictionnaire). </span>
+<span class="kw">const</span> <span class="ident">NBRE_MAX_VALEURS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">500</span>; 
+
+<span class="doccomment">///Nbre maximum admissible de canaux dans le processus en cours. </span>
+<span class="kw">const</span> <span class="ident">NBRE_MAX_CANAUX</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">8</span>; 
 
 <span class="comment">// --- --- --- --- --- --- --- --- --- </span>
 

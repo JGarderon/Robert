@@ -32,6 +32,15 @@ const TAILLE_LIGNE_MAX: usize = 1024;
 /// Taille maximale admissible pour le texte contenu dans les dictionnaires. 
 const TAILLE_TEXTE_MAX: usize = TAILLE_LIGNE_MAX*5; 
 
+///Nbre maximum admissible de valeurs pour chaque objet. 
+const NBRE_MAX_OBJETS: usize = 250; 
+
+///Nbre maximum admissible de valeurs pour chaque canal (dictionnaire). 
+const NBRE_MAX_VALEURS: usize = 500; 
+
+///Nbre maximum admissible de canaux dans le processus en cours. 
+const NBRE_MAX_CANAUX: usize = 8; 
+
 // --- --- --- --- --- --- --- --- --- 
 
 mod resolution; 

@@ -46,20 +46,20 @@ impl ArgumentsLocaux {
             Some( i ) => i, 
             None => return ArgumentsLocauxEtat::Stop 
         }; 
-        let mut ouvert = false; 
+        let mut guillemet_ouvert = false; 
         for (i, signe) in texte[debut..].iter().enumerate() { 
             match signe { 
-                ' ' if !ouvert => return ArgumentsLocauxEtat::Suivant( debut, debut+i ), 
+                ' ' if !guillemet_ouvert => return ArgumentsLocauxEtat::Suivant( debut, debut+i ), 
                 '"' => { 
-                    ouvert = !ouvert; 
-                    if !ouvert { 
+                    guillemet_ouvert = !guillemet_ouvert; 
+                    if !guillemet_ouvert { 
                         return ArgumentsLocauxEtat::Suivant( debut+1, debut+i ); 
                     } 
                 } 
                 _ => () 
             } 
         } 
-        if ouvert { 
+        if guillemet_ouvert { 
             ArgumentsLocauxEtat::Erreur( "guillemet non-fermé" ) 
         } else { 
             ArgumentsLocauxEtat::Suivant( debut, texte.len() ) 

@@ -22,6 +22,7 @@ use crate::resolution::Retour;
 
 use crate::DEBUG; 
 use crate::DICO_NOM_DEFAUT; 
+use crate::NBRE_MAX_CANAUX; 
 
 // ---------------------------------------------------- 
 
@@ -35,18 +36,22 @@ fn resoudre_creer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> 
 		Retour::creer_str( false, "nom de canal trop long (max 32)" ) 
 	} else { 
 		let mut dicos = contexte.dicos.lock().unwrap(); 
-		if dicos.liste.contains_key( &nom ) { 
-			Retour::creer_str( false, "canal existant" ) 
+		if dicos.liste.len() < NBRE_MAX_CANAUX { 
+			if dicos.liste.contains_key( &nom ) { 
+				Retour::creer_str( false, "canal existant" ) 
+			} else { 
+				dicos.liste.insert( 
+					nom.to_string(), 
+					Arc::new( Mutex::new( Dictionnaire { 
+						nom: nom, 
+						liste: HashMap::new(), 
+						souscripteurs: Vec::<Sender<String>>::new() 
+					} ) ) as DictionnaireThread  
+				); 
+				Retour::creer_str( true, "canal créé" ) 
+			}  
 		} else { 
-			dicos.liste.insert( 
-				nom.to_string(), 
-				Arc::new( Mutex::new( Dictionnaire { 
-					nom: nom, 
-					liste: HashMap::new(), 
-					souscripteurs: Vec::<Sender<String>>::new() 
-				} ) ) as DictionnaireThread  
-			); 
-			Retour::creer_str( true, "canal créé" ) 
+			Retour::creer_str( false, "nbre max. de canaux atteint" ) 
 		} 
 	} 
 } 

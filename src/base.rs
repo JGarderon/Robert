@@ -68,7 +68,8 @@ pub enum Valeurs {
 	Boolean(bool), 
 	Relatif(i32), 
 	Flottant(f32), 
-	Texte(String) 
+	Texte(String), 
+	Objet(HashMap<String,Valeurs>) 
 } 
 
 impl Drop for Valeurs { 
@@ -83,6 +84,7 @@ impl Valeurs {
 	pub fn alterer( &mut self, r#type: &str ) -> bool { 
 		match r#type { 
 			"booléen" => match self { 
+				Valeurs::Objet( _ ) => false, 
 				Valeurs::Boolean( _ ) => true, 
 				Valeurs::Relatif( n ) => {
 					*self = Valeurs::Boolean( if *n > 0i32 { true } else { false } ); 
@@ -107,6 +109,7 @@ impl Valeurs {
 				} 
 			} 
 			"réel" => match self { 
+				Valeurs::Objet( _ ) => false, 
 				Valeurs::Relatif( _ ) => true, 
 				Valeurs::Boolean( b ) => { 
 					*self = Valeurs::Relatif( if *b { 1i32 } else { 0i32 } ); 
@@ -126,6 +129,7 @@ impl Valeurs {
 				} 
 			} 
 			"flottant" => match self { 
+				Valeurs::Objet( _ ) => false, 
 				Valeurs::Flottant( _ ) => true, 
 				Valeurs::Relatif( n ) => { 
 					*self = Valeurs::Flottant( *n as f32 ); 
@@ -145,6 +149,7 @@ impl Valeurs {
 				} 
 			} 
 			"texte" => match self { 
+				Valeurs::Objet( _ ) => false, 
 				Valeurs::Texte( _ ) => true, 
 				Valeurs::Boolean( b ) => { 
 					*self = Valeurs::Texte( if *b { "vrai".to_string() } else { "faux".to_string() } ); 

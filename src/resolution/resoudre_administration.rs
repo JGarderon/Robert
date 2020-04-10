@@ -25,7 +25,8 @@ impl Mesure for Valeurs {
 			Valeurs::Boolean( b ) => mem::size_of_val( b ), 
 			Valeurs::Relatif( n ) => mem::size_of_val( n ), 
 			Valeurs::Flottant( f ) => mem::size_of_val( f ), 
-			Valeurs::Texte( t ) => mem::size_of_val( t )+t.as_bytes().len() 
+			Valeurs::Texte( t ) => mem::size_of_val( t )+t.as_bytes().len(), 
+			_ => 0 
 		} 
 	} 
 } 

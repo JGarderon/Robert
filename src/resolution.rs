@@ -20,6 +20,10 @@ mod resoudre_administration;
 
 // ---------------------------------------------------- 
 
+use crate::NBRE_MAX_VALEURS; 
+
+// ---------------------------------------------------- 
+
 /// Un type spécifique au projet : le type 'Résolveur' est la signature d'une fonction de résolution, quelque soit le module de résolution. Elle prend deux paramêtres : le contexte du socket ainsi qu'un objet permettant de récupèrer à la demande les arguments dits 'locaux' (propre à une requête). La fonction renvoie un objet "retour". La définition de cette signature, soulage les signatures dans d'autres fonctions de résolution. 
 type Resolveur = fn ( &mut Contexte, ArgumentsLocaux ) -> Retour; 
 
@@ -66,7 +70,7 @@ impl Retour {
 			message: RetourType::Statique( m )
 		} 
 	} 
-}
+} 
 
 // ---------------------------------------------------- 
 
@@ -101,35 +105,45 @@ fn resoudre_definir( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 	}; 
 	let mut dico = contexte.dico.lock().unwrap(); 
 	let valeurs = &mut dico.liste; 
-	match arguments.extraire() { 
-		None => { 
-			valeurs.insert( 
-				cle, 
-				Valeurs::Texte( valeur ) 
-			); 
-			Retour::creer_str( true, "paire clé/valeur ajoutée (type par défaut : texte)" ) 
-		} 
-		Some( t ) => { 
-			if !arguments.est_stop() { 
-				return Retour::creer_str( false, "trop d'arguments fournis (max. 2-3)" ); 
-			} 
-			let mut v = Valeurs::Texte( valeur ); 
-			if v.alterer( &t ) { 
+	if valeurs.len() < NBRE_MAX_VALEURS { 
+		match arguments.extraire() { 
+			None => { 
 				valeurs.insert( 
 					cle, 
-					v 
-				);  
-				Retour::creer( true, format!( 
-					"paire clé/valeur ajoutée (type {})", 
-					&t
-				) ) 
-			} else { 
-				Retour::creer( false, format!( 
-					"le type '{}' n'est pas un type conforme", 
-					&t
-				) ) 
+					Valeurs::Texte( valeur ) 
+				); 
+				Retour::creer_str( true, "paire clé/valeur ajoutée (type par défaut : texte)" ) 
+			} 
+			Some( t ) => { 
+				if !arguments.est_stop() { 
+					return Retour::creer_str( false, "trop d'arguments fournis (max. 2-3)" ); 
+				} 
+				if &t == "objet" { 
+					Retour::creer( false, format!("non-encore implémenté ; {:?}", (cle, valeur))) 
+				} else { 
+					let mut v = Valeurs::Texte( valeur ); 
+					if v.alterer( &t ) { 
+						valeurs.insert( 
+							cle, 
+							v 
+						);  
+						Retour::creer( true, format!( 
+							"paire clé/valeur ajoutée (type {})", 
+							&t
+						) ) 
+					} else { 
+						Retour::creer( false, format!( 
+							"le type '{}' n'est pas un type conforme", 
+							&t
+						) ) 
+					} 
+				} 
+
+				
 			} 
 		} 
+	} else { 
+		Retour::creer_str( false, "nbre max. de valeurs atteint" ) 
 	} 
 } 
 
@@ -144,12 +158,17 @@ fn resoudre_obtenir( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 	} 
 	let dico = contexte.dico.lock().unwrap(); 
 	let valeurs = &dico.liste; 
+
+
+
+
 	if valeurs.contains_key( &cle ) { 
 		match &valeurs[&cle] { 
 			Valeurs::Boolean( b ) => Retour::creer( true, format!( "(booléen) {}", b ) ), 
 			Valeurs::Texte( t ) => Retour::creer( true, format!( "(texte) \"{}\"", t ) ), 
 			Valeurs::Relatif( n ) => Retour::creer( true, format!( "(réel) {}", n ) ), 
 			Valeurs::Flottant( n ) => Retour::creer( true, format!( "(flottant) {}", n ) ), 
+			Valeurs::Objet( o ) => Retour::creer( true, format!( "(objet ; non-encore implémenté) {:?}", o ) ), 
 		} 
 	} else { 
 		Retour::creer_str( false, "clé inconnue" ) 
