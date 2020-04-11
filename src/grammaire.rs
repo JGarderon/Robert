@@ -1,5 +1,21 @@
-//! Module 'grammaire' 
+//! # Module grammatical 
+//! 
 //! Ce module permet la gestion de la partie grammaticale (syntaxique) et un partie sémantique des requêtes reçues. 
+//! 
+//! Ce module ne doit normalement dépendre d'aucun autre, car il reçoit du texte, et renvoie du texte. Cependant une tolérance doit être faite sur les retours, autorisant par exemple la structure Retour du module de résolution, afin d'optimiser le processus d'analyse. 
+//! 
+//! ## Principe de fonctionnement 
+//! 
+//! Une requête est composée d'une ligne (séparateur '\n'), dans laquelle on dispose d'argument (séparateur ' '). Ces arguments peuvent être de tous les ordres (clé, chemin, valeur quelconque) et dépendend d'un contexte de résolution. 
+//! 
+//! __nb :__ _Attention, une requête a une taille limite, qui est la taille limite acceptée d'une ligne lors de la reception par le socket (voir la configuration)._
+//! 
+//! Ce contexte est retrouvé par le premier argument qui est toujours, dans l'esprit des fonctions lambda, le chemin vers une fonction de résolution. Le format est le suivant : "_fonction_" ou "_module:fonction_". 
+//! 
+//! Un 'chemin' est une clé qui permet de résoudre la profondeur (un objet dans un objet). Une clé est un chemin qui n'a seul niveau. Cette clé est toujours en seconde position. Les autres arguments n'ont pas de signifcation propre. 
+//! 
+//! Certaines fonctions n'autorisent qu'un nombre limité d'arguments. 
+//! 
 
 
 use std::net::TcpStream; 
@@ -11,7 +27,6 @@ use crate::TAILLE_LIGNE_MAX;
 // ---------------------------------------------------- 
 
 use crate::resolution::Retour; 
-use crate::base::AccesseurValeur; 
 
 // ---------------------------------------------------- 
 

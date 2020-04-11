@@ -25,33 +25,19 @@ pub struct Canal {
 	pub souscripteurs: Vec<Sender<String>>  
 } 
 
-// impl Canal { 
-// 	pub fn creer_valeur( &mut self, cle: &str, valeur: &str, valeur_type: Option<String> ) -> bool { 
-// 		self.liste.insert( 
-// 			cle.to_string(), 
-// 			match valeur_type { 
-// 				None => Valeurs::Texte( valeur.to_string() ), 
-// 				Some( t ) => match &t[..] { 
-// 					"objet" => { 
-// 						if valeur != "~" { 
-// 							return false; 
-// 						} else { 
-// 							Valeurs::Objet( HashMap::new() ) 
-// 						}
-// 					} 
-// 					_ => {
-// 						let mut v = Valeurs::Texte( valeur.to_string() ); 
-// 						if !v.alterer( &t ) { 
-// 							return false 
-// 						} 
-// 						v 
-// 					} 
-// 				} 
-// 			} 
-// 		); 
-// 		true 
-// 	} 
-// } 
+pub type AccesseurCanalV = Fn ( &mut Valeurs ) -> Retour; 
+
+impl Canal { 
+	pub fn resoudre<F>( &mut self, chemin: &[&str], fct: F )  -> Retour 
+		where F: FnOnce( &mut Valeurs ) -> Retour
+	{ 
+		if let Valeurs::Objet( o ) = &self.liste { 
+			self.liste.resoudre( chemin, fct ) 
+		} else { 
+			Retour::creer_str( false, "erreur fatale, le canal semble corrompu" ) 
+		} 
+	} 
+} 
 
 impl Drop for Canal { 
     fn drop(&mut self) { 
@@ -100,8 +86,6 @@ pub fn creer_racine( nom_defaut: &str ) -> (CanalThread, CanauxThread) {
 
 // ---------------------------------------------------- 
 
-pub type AccesseurValeur = fn( &mut Valeurs ) -> Retour; 
-
 #[derive(Debug)] 
 pub enum Valeurs { 
 	Boolean(bool), 
@@ -120,13 +104,56 @@ impl Drop for Valeurs {
 } 
 
 impl Valeurs { 
-	pub fn excuter( &mut self, vecteur: &[&str], fct: AccesseurValeur ) -> Retour { 
-		if let Some( v ) = self.acceder( vecteur ) { 
-			fct( v ) 
-		} else { 
-			Retour::creer_str( false, "le chemin n'est pas correct" ) 
-		} 
+
+	pub fn creer_valeur( &mut self, cle: String, valeur: String, valeur_type: Option<String> ) -> Retour { 
+		{
+			match self { 
+				Valeurs::Objet( h ) => h, 
+				_ => return Retour::creer_str( false, "tentative de création sur autre chose qu'un objet" ) 
+			} 
+		}.insert( 
+			cle, 
+			match valeur_type { 
+				None => Valeurs::Texte( valeur ), 
+				Some( t ) => match &t[..] { 
+					"objet" => { 
+						if valeur != "~" { 
+							return Retour::creer_str( false, "la valeur doit être à '~'" ); 
+						} else { 
+							Valeurs::Objet( HashMap::new() ) 
+						}
+					} 
+					_ => {
+						let mut v = Valeurs::Texte( valeur.to_string() ); 
+						if !v.alterer( &t ) { 
+							return Retour::creer_str( false, "altération impossible, la valeur n'est pas conforme au type souhaité" ); 
+						} 
+						v 
+					} 
+				} 
+			} 
+		); 
+		Retour::creer_str( true, "valeur créée et ajoutée au canal" ) 
 	} 
+
+	pub fn resoudre<F>( &mut self, chemin: &[&str], fct: F ) -> Retour 
+		where F: FnOnce( &mut Valeurs ) -> Retour 
+	{ 
+		match self { 
+			Valeurs::Objet( o ) => if let Some( v ) = o.get_mut( chemin[0] ) { 
+				if chemin.len() == 1 { 
+					fct( v ) 
+				} else { 
+					v.resoudre( &chemin[1..], fct ) 
+				} 
+			} else { 
+				Retour::creer_str( false, "chemin incorrect (clé inconnue)" ) 
+			} 
+			_ => Retour::creer_str( false, "chemin incorrect (hors d'un objet)" ) 
+		} 
+	}
+
+
 	pub fn acceder( &mut self, vecteur: &[&str] ) -> Option<&mut Self> { 
 		if vecteur.len() == 0 { 
 			Some( self ) 
