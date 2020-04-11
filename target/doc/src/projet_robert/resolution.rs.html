@@ -369,26 +369,106 @@
 <span id="369">369</span>
 <span id="370">370</span>
 <span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
 </pre><div class="example-wrap"><pre class="rust ">
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>; 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>; 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Mutex</span>; 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">TcpStream</span>; 
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>; 
 
 <span class="comment">// ---------------------------------------------------- </span>
 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">grammaire</span>; 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">grammaire</span>::<span class="ident">ArgumentsLocaux</span>; 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">base</span>::<span class="ident">DictionnaireThread</span>; 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">base</span>::<span class="ident">Dictionnaires</span>; 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">base</span>::<span class="ident">CanalThread</span>; 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">base</span>::<span class="ident">CanauxThread</span>; 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">base</span>::<span class="ident">Valeurs</span>; 
 
 <span class="comment">// ---------------------------------------------------- </span>
 
-<span class="kw">mod</span> <span class="ident">resoudre_numerique</span>; 
-<span class="kw">mod</span> <span class="ident">resoudre_texte</span>; 
-<span class="kw">mod</span> <span class="ident">resoudre_canal</span>; 
-<span class="kw">mod</span> <span class="ident">resoudre_administration</span>; 
+<span class="comment">// mod resoudre_numerique; </span>
+<span class="comment">// mod resoudre_texte; </span>
+<span class="comment">// mod resoudre_canal; </span>
+<span class="comment">// mod resoudre_administration; </span>
 
 <span class="comment">// ---------------------------------------------------- </span>
 
@@ -411,10 +491,10 @@
 	<span class="kw">pub</span> <span class="ident">poursuivre</span>: <span class="ident">bool</span>, 
 	
 	<span class="doccomment">/// Ce champ contient le nécessaire pour accéder au dictionnaire représentant le canal actuel. </span>
-	<span class="kw">pub</span> <span class="ident">dico</span>: <span class="ident">DictionnaireThread</span>, 
+	<span class="kw">pub</span> <span class="ident">canalthread</span>: <span class="ident">CanalThread</span>, 
 	
 	<span class="doccomment">/// Ce champ contient le nécessaire pour accéder au dictionnaires des canaux. </span>
-	<span class="kw">pub</span> <span class="ident">dicos</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Dictionnaires</span><span class="op">&gt;</span><span class="op">&gt;</span>, 
+	<span class="kw">pub</span> <span class="ident">canauxthread</span>: <span class="ident">CanauxThread</span>, 
 
 	<span class="doccomment">/// Ce champ contient l&#39;objet socket. </span>
 	<span class="kw">pub</span> <span class="ident">stream</span>: <span class="ident">TcpStream</span> 
@@ -468,268 +548,344 @@
 	<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;au revoir&quot;</span> ) 
 } 
 
-<span class="kw">fn</span> <span class="ident">resoudre_vider</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
-	<span class="kw">if</span> <span class="op">!</span><span class="ident">arguments</span>.<span class="ident">est_stop</span>() { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;aucun argument autorisé&quot;</span> ); 
-	} 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dico</span> <span class="op">=</span> <span class="ident">contexte</span>.<span class="ident">dico</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>(); 
-	<span class="kw">let</span> <span class="ident">valeurs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dico</span>.<span class="ident">liste</span>; 
-	<span class="ident">valeurs</span>.<span class="ident">clear</span>(); 
-	<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;base vidée&quot;</span> ) 
-} 
+<span class="comment">// fn resoudre_vider( contexte: &amp;mut Contexte, mut arguments: ArgumentsLocaux ) -&gt; Retour { </span>
+<span class="comment">// 	if !arguments.est_stop() { </span>
+<span class="comment">// 		return Retour::creer_str( false, &quot;aucun argument autorisé&quot; ); </span>
+<span class="comment">// 	} </span>
+<span class="comment">// 	let mut dico = contexte.dico.lock().unwrap(); </span>
+<span class="comment">// 	let valeurs = &amp;mut dico.liste; </span>
+<span class="comment">// 	valeurs.clear(); </span>
+<span class="comment">// 	Retour::creer_str( true, &quot;base vidée&quot; ) </span>
+<span class="comment">// } </span>
 
-<span class="kw">fn</span> <span class="ident">resoudre_definir</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dico</span> <span class="op">=</span> <span class="ident">contexte</span>.<span class="ident">dico</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>(); 
-	<span class="kw">let</span> <span class="ident">valeurs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dico</span>.<span class="ident">liste</span>; 
-	<span class="kw">if</span> <span class="ident">valeurs</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">NBRE_MAX_VALEURS</span> { 
-		<span class="kw">let</span> <span class="ident">cle</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">c</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
-			<span class="ident">c</span> 
-		} <span class="kw">else</span> { 
-			<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;une clé vide n&#39;est pas une clé acceptable&quot;</span> ); 
-		}; 
-		<span class="kw">let</span> <span class="ident">valeur</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">v</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
-			<span class="ident">v</span> 
-		} <span class="kw">else</span> { 
-			<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;aucune valeur fournie ou séparateur clé/valeur non-respecté (espace simple)&quot;</span> ); 
-		}; 
-		<span class="kw">match</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
-			<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> { 
-				<span class="ident">valeurs</span>.<span class="ident">insert</span>( 
-					<span class="ident">cle</span>, 
-					<span class="ident">Valeurs</span>::<span class="ident">Texte</span>( <span class="ident">valeur</span> ) 
-				); 
-				<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;paire clé/valeur ajoutée (type par défaut : texte)&quot;</span> ) 
-			} 
-			<span class="prelude-val">Some</span>( <span class="ident">t</span> ) <span class="op">=</span><span class="op">&gt;</span> { 
-				<span class="kw">if</span> <span class="op">!</span><span class="ident">arguments</span>.<span class="ident">est_stop</span>() { 
-					<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;trop d&#39;arguments fournis (max. 2-3)&quot;</span> ); 
-				} 
-				<span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">t</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;objet&quot;</span> { 
-					<span class="kw">if</span> <span class="ident">valeur</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;~&quot;</span> { 
-						<span class="ident">Retour</span>::<span class="ident">creer</span>( <span class="bool-val">false</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;non-encore implémenté ; {:?}&quot;</span>, (<span class="ident">cle</span>, <span class="ident">valeur</span>)) ) 
-					} <span class="kw">else</span> { 
-						<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;non-encore implémenté ; attention, seule la valeur &#39;~&#39; est autorisée en argument de valeur pour la création d&#39;un objet&quot;</span> ) 
-					}
-				} <span class="kw">else</span> { 
-					<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">Valeurs</span>::<span class="ident">Texte</span>( <span class="ident">valeur</span> ); 
-					<span class="kw">if</span> <span class="ident">v</span>.<span class="ident">alterer</span>( <span class="kw-2">&amp;</span><span class="ident">t</span> ) { 
-						<span class="ident">valeurs</span>.<span class="ident">insert</span>( 
-							<span class="ident">cle</span>, 
-							<span class="ident">v</span> 
-						);  
-						<span class="ident">Retour</span>::<span class="ident">creer</span>( <span class="bool-val">true</span>, <span class="macro">format</span><span class="macro">!</span>( 
-							<span class="string">&quot;paire clé/valeur ajoutée (type {})&quot;</span>, 
-							<span class="kw-2">&amp;</span><span class="ident">t</span>
-						) ) 
-					} <span class="kw">else</span> { 
-						<span class="ident">Retour</span>::<span class="ident">creer</span>( <span class="bool-val">false</span>, <span class="macro">format</span><span class="macro">!</span>( 
-							<span class="string">&quot;le type &#39;{}&#39; n&#39;est pas un type conforme&quot;</span>, 
-							<span class="kw-2">&amp;</span><span class="ident">t</span>
-						) ) 
-					} 
-				} 
+<span class="comment">// // pub fn chemin_acceder( &amp;mut self, vecteur: &amp;mut Vec&lt;&amp;str&gt;, fct: AccesseurObjet ) -&gt; Retour { </span>
+<span class="comment">// // 	if let Some( motif ) = vecteur.pop() { </span>
+<span class="comment">// // 		match self { </span>
+<span class="comment">// // 			Valeurs::Objet( h ) if vecteur.len() == 0 =&gt; { </span>
+<span class="comment">// // 				if let Some( valeur ) = h.get_mut( motif ) {</span>
+<span class="comment">// // 					fct( valeur ) </span>
+<span class="comment">// // 				} else { </span>
+<span class="comment">// // 					Retour::creer_str( false, &quot;chemin incorrect (dernier élément)&quot; ) </span>
+<span class="comment">// // 				} </span>
+<span class="comment">// // 			} </span>
+<span class="comment">// // 			Valeurs::Objet( h ) if vecteur.len() &gt; 0 =&gt; { </span>
+<span class="comment">// // 				if let Some( valeur ) = h.get_mut( motif ) {</span>
+<span class="comment">// // 					valeur.chemin_acceder( vecteur, fct ) </span>
+<span class="comment">// // 				} else { </span>
+<span class="comment">// // 					Retour::creer_str( false, &quot;chemin incorrect&quot; ) </span>
+<span class="comment">// // 				} </span>
+<span class="comment">// // 			} </span>
+<span class="comment">// // 			_ =&gt; Retour::creer_str( false, &quot;valeur inaccessible par un chemin&quot; ) </span>
+<span class="comment">// // 		}  </span>
+<span class="comment">// // 	} else { </span>
+<span class="comment">// // 		Retour::creer_str( false, &quot;erreur interne : le vecteur du chemin est vide&quot; ) </span>
+<span class="comment">// // 	} </span>
+<span class="comment">// // } </span>
 
-				
-			} 
-		} 
-	} <span class="kw">else</span> { 
-		<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;nbre max. de valeurs atteint&quot;</span> ) 
-	} 
-} 
+<span class="comment">// fn resoudre_definir( contexte: &amp;mut Contexte, mut arguments: ArgumentsLocaux ) -&gt; Retour { </span>
+<span class="comment">// 	let mut cle = if let Some( c ) = arguments.extraire() { </span>
+<span class="comment">// 		c </span>
+<span class="comment">// 	} else { </span>
+<span class="comment">// 		return Retour::creer_str( false, &quot;une clé vide n&#39;est pas une clé acceptable&quot; ); </span>
+<span class="comment">// 	}; </span>
+<span class="comment">// 	let valeur = if let Some( v ) = arguments.extraire() { </span>
+<span class="comment">// 		v </span>
+<span class="comment">// 	} else { </span>
+<span class="comment">// 		return Retour::creer_str( false, &quot;aucune valeur fournie ou séparateur clé/valeur non-respecté&quot; ); </span>
+<span class="comment">// 	}; </span>
+<span class="comment">// 	let valeur_type = arguments.extraire(); </span>
+<span class="comment">// 	if !arguments.est_stop() { </span>
+<span class="comment">// 		return Retour::creer_str( false, &quot;trop d&#39;arguments fournis (max. 2-3)&quot; ); </span>
+<span class="comment">// 	} </span>
+	
 
-<span class="kw">fn</span> <span class="ident">resoudre_obtenir</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
-	<span class="kw">let</span> <span class="ident">cle</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">c</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
-		<span class="ident">c</span> 
-	} <span class="kw">else</span> { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;vous devez spécifier une clé existante&quot;</span> ); 
-	}; 
-	<span class="kw">if</span> <span class="op">!</span><span class="ident">arguments</span>.<span class="ident">est_stop</span>() { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;trop d&#39;arguments fournis (maximum 1)&quot;</span> ); 
-	} 
-	<span class="kw">let</span> <span class="ident">dico</span> <span class="op">=</span> <span class="ident">contexte</span>.<span class="ident">dico</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>(); 
-	<span class="kw">let</span> <span class="ident">valeurs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">dico</span>.<span class="ident">liste</span>; 
+
+
+<span class="comment">// 	let mut dico = { </span>
+<span class="comment">// 		match contexte.dico.lock() { </span>
+<span class="comment">// 			Ok( d ) =&gt; d, </span>
+<span class="comment">// 			Err(_) =&gt; return Retour::creer_str( false, &quot;erreur interne; dictionnaire inaccessible&quot; ) </span>
+<span class="comment">// 		} </span>
+<span class="comment">// 	}; </span>
+<span class="comment">// 	if let Ok( chemin ) = grammaire::chemin_extraire( &amp;cle ) { </span>
+<span class="comment">// 		if chemin.len() == 1 { </span>
+<span class="comment">// 			if dico.creer_valeur( </span>
+<span class="comment">// 				chemin[0], </span>
+<span class="comment">// 				&amp;valeur, </span>
+<span class="comment">// 				valeur_type </span>
+<span class="comment">// 			) { </span>
+<span class="comment">// 				Retour::creer_str( true, &quot;valeur ajoutée&quot; ) </span>
+<span class="comment">// 			} else { </span>
+<span class="comment">// 				Retour::creer_str( true, &quot;impossible d&#39;ajouter cette valeur avec ces paramètres&quot; ) </span>
+<span class="comment">// 			} </span>
+<span class="comment">// 		} else { </span>
+<span class="comment">// 			Retour::creer_str( true, &quot;non implémenté&quot; ) </span>
+<span class="comment">// 		} </span>
+<span class="comment">// 	} else { </span>
+<span class="comment">// 		Retour::creer_str( false, &quot;la clé (ou le chemin) ne semble pas correcte&quot; ) </span>
+<span class="comment">// 	} </span>
 
 
 
 
-	<span class="kw">if</span> <span class="ident">valeurs</span>.<span class="ident">contains_key</span>( <span class="kw-2">&amp;</span><span class="ident">cle</span> ) { 
-		<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">valeurs</span>[<span class="kw-2">&amp;</span><span class="ident">cle</span>] { 
-			<span class="ident">Valeurs</span>::<span class="ident">Boolean</span>( <span class="ident">b</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer</span>( <span class="bool-val">true</span>, <span class="macro">format</span><span class="macro">!</span>( <span class="string">&quot;(booléen) {}&quot;</span>, <span class="ident">b</span> ) ), 
-			<span class="ident">Valeurs</span>::<span class="ident">Texte</span>( <span class="ident">t</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer</span>( <span class="bool-val">true</span>, <span class="macro">format</span><span class="macro">!</span>( <span class="string">&quot;(texte) \&quot;{}\&quot;&quot;</span>, <span class="ident">t</span> ) ), 
-			<span class="ident">Valeurs</span>::<span class="ident">Relatif</span>( <span class="ident">n</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer</span>( <span class="bool-val">true</span>, <span class="macro">format</span><span class="macro">!</span>( <span class="string">&quot;(réel) {}&quot;</span>, <span class="ident">n</span> ) ), 
-			<span class="ident">Valeurs</span>::<span class="ident">Flottant</span>( <span class="ident">n</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer</span>( <span class="bool-val">true</span>, <span class="macro">format</span><span class="macro">!</span>( <span class="string">&quot;(flottant) {}&quot;</span>, <span class="ident">n</span> ) ), 
-			<span class="ident">Valeurs</span>::<span class="ident">Objet</span>( <span class="ident">o</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer</span>( <span class="bool-val">true</span>, <span class="macro">format</span><span class="macro">!</span>( <span class="string">&quot;(objet ; non-encore implémenté) {:?}&quot;</span>, <span class="ident">o</span> ) ), 
-		} 
-	} <span class="kw">else</span> { 
-		<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;clé inconnue&quot;</span> ) 
-	} 
-} 
+<span class="comment">// 	// 	let point = valeurs; //{ </span>
+<span class="comment">// 	// 	// 	if chemin.len() == 1 { </span>
+<span class="comment">// 	// 	// 		valeurs </span>
+<span class="comment">// 	// 	// 	} else { </span>
+<span class="comment">// 	// 	// 		if let Some( valeur ) = valeurs.get_mut( chemin[0] ) { </span>
+<span class="comment">// 	// 	// 			valeur.acceder( &amp;chemin[1..chemin.len()-1] ) </span>
+<span class="comment">// 	// 	// 		} else { </span>
+<span class="comment">// 	// 	// 			return Retour::creer_str( false, &quot;la racine vers la valeur créé doit exister&quot; ); </span>
+<span class="comment">// 	// 	// 		} </span>
+<span class="comment">// 	// 	// 	} </span>
+<span class="comment">// 	// 	// }; </span>
+<span class="comment">// 	// 	let cle_point = chemin[chemin.len()].to_string(); </span>
+<span class="comment">// 	// 	println!(&quot;{:?}&quot;, point); </span>
+<span class="comment">// 	// 	println!(&quot;{:?}&quot;, cle_point); </span>
+<span class="comment">// 	// 	if point.len() &lt; NBRE_MAX_VALEURS { </span>
+<span class="comment">// 	// 		match arguments.extraire() { </span>
+<span class="comment">// 	// 			None =&gt; { </span>
+<span class="comment">// 	// 				point.insert( </span>
+<span class="comment">// 	// 					cle_point, </span>
+<span class="comment">// 	// 					Valeurs::Texte( valeur ) </span>
+<span class="comment">// 	// 				); </span>
+<span class="comment">// 	// 				Retour::creer_str( true, &quot;paire clé/valeur ajoutée (type par défaut : texte)&quot; ) </span>
+<span class="comment">// 	// 			} </span>
+<span class="comment">// 	// 			Some( t ) =&gt; { </span>
+<span class="comment">// 	// 				if !arguments.est_stop() { </span>
+<span class="comment">// 	// 					return Retour::creer_str( false, &quot;trop d&#39;arguments fournis (max. 2-3)&quot; ); </span>
+<span class="comment">// 	// 				} </span>
+<span class="comment">// 	// 				if &amp;t == &quot;objet&quot; { </span>
+<span class="comment">// 	// 					if valeur == &quot;~&quot; { </span>
+<span class="comment">// 	// 						point.insert( </span>
+<span class="comment">// 	// 							cle_point, </span>
+<span class="comment">// 	// 							Valeurs::Objet( HashMap::new() ) </span>
+<span class="comment">// 	// 						);  </span>
+<span class="comment">// 	// 						Retour::creer_str( true, &quot;l&#39;objet a été créé au point désiré&quot; )  </span>
+<span class="comment">// 	// 					} else { </span>
+<span class="comment">// 	// 						Retour::creer_str( false, &quot;attention, seule la valeur &#39;~&#39; est autorisée en argument de valeur pour la création d&#39;un objet&quot; ) </span>
+<span class="comment">// 	// 					}</span>
+<span class="comment">// 	// 				} else { </span>
+<span class="comment">// 	// 					let mut v = Valeurs::Texte( valeur ); </span>
+<span class="comment">// 	// 					if v.alterer( &amp;t ) { </span>
+<span class="comment">// 	// 						point.insert( </span>
+<span class="comment">// 	// 							cle_point, </span>
+<span class="comment">// 	// 							v </span>
+<span class="comment">// 	// 						);  </span>
+<span class="comment">// 	// 						Retour::creer( true, format!( </span>
+<span class="comment">// 	// 							&quot;paire clé/valeur ajoutée (type {})&quot;, </span>
+<span class="comment">// 	// 							&amp;t</span>
+<span class="comment">// 	// 						) ) </span>
+<span class="comment">// 	// 					} else { </span>
+<span class="comment">// 	// 						Retour::creer( false, format!( </span>
+<span class="comment">// 	// 							&quot;le type &#39;{}&#39; n&#39;est pas un type conforme&quot;, </span>
+<span class="comment">// 	// 							&amp;t</span>
+<span class="comment">// 	// 						) ) </span>
+<span class="comment">// 	// 					} </span>
+<span class="comment">// 	// 				} </span>
+<span class="comment">// 	// 			} </span>
+<span class="comment">// 	// 		} </span>
+<span class="comment">// 	// 	} else { </span>
+<span class="comment">// 	// 		Retour::creer_str( false, &quot;nbre max. de valeurs atteint&quot; ) </span>
+<span class="comment">// 	// 	} </span>
+<span class="comment">// 	// } else { </span>
+<span class="comment">// 	// 	Retour::creer_str( false, &quot;la clé ne correspond pas à une clé ou un chemin valide&quot; ) </span>
+<span class="comment">// 	// } </span>
+<span class="comment">// } </span>
 
-<span class="kw">fn</span> <span class="ident">resoudre_supprimer</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
-	<span class="kw">let</span> <span class="ident">cle</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">c</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
-		<span class="ident">c</span> 
-	} <span class="kw">else</span> { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;vous devez spécifier une clé existante&quot;</span> ); 
-	}; 
-	<span class="kw">if</span> <span class="op">!</span><span class="ident">arguments</span>.<span class="ident">est_stop</span>() { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;trop d&#39;arguments fournis (maximum 1)&quot;</span> ); 
-	} 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dico</span> <span class="op">=</span> <span class="ident">contexte</span>.<span class="ident">dico</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>(); 
-	<span class="kw">let</span> <span class="ident">valeurs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dico</span>.<span class="ident">liste</span>; 
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="kw">_</span> ) <span class="op">=</span> <span class="ident">valeurs</span>.<span class="ident">remove</span>( <span class="kw-2">&amp;</span><span class="ident">cle</span> ) { 
-		<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;clé supprimée&quot;</span> ) 
-	} <span class="kw">else</span> { 
-		<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;clé inconnue&quot;</span> ) 
-	} 
-} 
+<span class="comment">// fn resoudre_obtenir( contexte: &amp;mut Contexte, mut arguments: ArgumentsLocaux ) -&gt; Retour { </span>
+<span class="comment">// 	let cle = if let Some( c ) = arguments.extraire() { </span>
+<span class="comment">// 		c </span>
+<span class="comment">// 	} else { </span>
+<span class="comment">// 		return Retour::creer_str( false, &quot;vous devez spécifier une clé existante&quot; ); </span>
+<span class="comment">// 	}; </span>
+<span class="comment">// 	if !arguments.est_stop() { </span>
+<span class="comment">// 		return Retour::creer_str( false, &quot;trop d&#39;arguments fournis (maximum 1)&quot; ); </span>
+<span class="comment">// 	} </span>
+<span class="comment">// 	let dico = contexte.dico.lock().unwrap(); </span>
+<span class="comment">// 	let valeurs = &amp;dico.liste; </span>
 
-<span class="kw">fn</span> <span class="ident">resoudre_lister</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="kw">_</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;aucun argument accepté pour cette fonction&quot;</span> ); 
-	} 
-	<span class="kw">let</span> <span class="ident">dico</span> <span class="op">=</span> <span class="ident">contexte</span>.<span class="ident">dico</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>(); 
-	<span class="kw">let</span> <span class="ident">valeurs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">dico</span>.<span class="ident">liste</span>; 
-	<span class="kw">for</span> (<span class="ident">cle</span>, <span class="ident">valeur</span>) <span class="kw">in</span> <span class="ident">valeurs</span>.<span class="ident">iter</span>() { 
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">contexte</span>.<span class="ident">stream</span>.<span class="ident">write</span>( 
-			<span class="macro">format</span><span class="macro">!</span>( 
-				<span class="string">&quot;\t{} : {:?}\n&quot;</span>, 
-				<span class="ident">cle</span>, 
-				<span class="ident">valeur</span> 
-			).<span class="ident">as_bytes</span>() 
-		) { 
-			<span class="ident">contexte</span>.<span class="ident">stream</span>.<span class="ident">flush</span>().<span class="ident">unwrap</span>(); 
-			<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;erreur lors de l&#39;envoi&quot;</span> ); 
-		} 
-	} 
-	<span class="ident">contexte</span>.<span class="ident">stream</span>.<span class="ident">flush</span>().<span class="ident">unwrap</span>(); 
-	<span class="ident">Retour</span>::<span class="ident">creer</span>( <span class="bool-val">true</span>, <span class="macro">format</span><span class="macro">!</span>( <span class="string">&quot;stop ({})&quot;</span>, <span class="ident">valeurs</span>.<span class="ident">len</span>() ) ) 
-} 
 
-<span class="kw">fn</span> <span class="ident">resoudre_tester</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> {
-	<span class="kw">let</span> <span class="ident">cle</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">c</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
-		<span class="ident">c</span> 
-	} <span class="kw">else</span> { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;vous devez spécifier une clé à tester&quot;</span> ); 
-	}; 
-	<span class="kw">if</span> <span class="op">!</span><span class="ident">arguments</span>.<span class="ident">est_stop</span>() { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;trop d&#39;arguments fournis (maximum 1)&quot;</span> ); 
-	} 
-	<span class="kw">let</span> <span class="ident">dico</span> <span class="op">=</span> <span class="ident">contexte</span>.<span class="ident">dico</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>(); 
-	<span class="kw">let</span> <span class="ident">valeurs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">dico</span>.<span class="ident">liste</span>; 
-	<span class="kw">if</span> <span class="ident">valeurs</span>.<span class="ident">contains_key</span>( <span class="kw-2">&amp;</span><span class="ident">cle</span> ) { 
-		<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;clé existante&quot;</span> ) 
-	} <span class="kw">else</span> { 
-		<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;clé inexistante&quot;</span> ) 
-	} 
-} 
 
-<span class="kw">fn</span> <span class="ident">resoudre_ajouter</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
-	<span class="kw">let</span> <span class="ident">cle</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">c</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
-		<span class="ident">c</span> 
-	} <span class="kw">else</span> { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;une clé vide n&#39;est pas une clé acceptable&quot;</span> ); 
-	}; 
-	<span class="kw">let</span> <span class="ident">ajout</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">v</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
-		<span class="ident">v</span> 
-	} <span class="kw">else</span> { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;aucune valeur fournie ou séparateur clé/valeur non-respecté (espace simple)&quot;</span> ); 
-	}; 
-	<span class="kw">if</span> <span class="op">!</span><span class="ident">arguments</span>.<span class="ident">est_stop</span>() { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;trop d&#39;arguments fournis (maximum 2)&quot;</span> ); 
-	} 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dico</span> <span class="op">=</span> <span class="ident">contexte</span>.<span class="ident">dico</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>(); 
-	<span class="kw">let</span> <span class="ident">valeurs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dico</span>.<span class="ident">liste</span>; 
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">v</span> ) <span class="op">=</span> <span class="ident">valeurs</span>.<span class="ident">get_mut</span>( <span class="kw-2">&amp;</span><span class="ident">cle</span> ) { 
-		<span class="kw">if</span> <span class="ident">v</span>.<span class="ident">ajouter_texte</span>( <span class="kw-2">&amp;</span><span class="ident">ajout</span> ) { 
-			<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;valeur modifée&quot;</span> ) 
-		} <span class="kw">else</span> { 
-			<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;ce format n&#39;est pas supporté ou le texte est trop long&quot;</span> ) 
-		} 
-	} <span class="kw">else</span> { 
-		<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;clé inconnue&quot;</span> ) 
-	} 
-} 
 
-<span class="kw">fn</span> <span class="ident">resoudre_alterer</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
-	<span class="kw">let</span> <span class="ident">cle</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">c</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
-		<span class="ident">c</span> 
-	} <span class="kw">else</span> { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;vous devez spécifier une clé existante&quot;</span> ); 
-	}; 
-	<span class="kw">let</span> <span class="ident">valeur_type</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">t</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
-		<span class="ident">t</span> 
-	} <span class="kw">else</span> { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;vous devez spécifier un type connu&quot;</span> ); 
-	}; 
-	<span class="kw">if</span> <span class="op">!</span><span class="ident">arguments</span>.<span class="ident">est_stop</span>() { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;trop d&#39;arguments fournis (maximum 2)&quot;</span> ); 
-	} 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dico</span> <span class="op">=</span> <span class="ident">contexte</span>.<span class="ident">dico</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>(); 
-	<span class="kw">let</span> <span class="ident">valeurs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dico</span>.<span class="ident">liste</span>; 
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">v</span> ) <span class="op">=</span> <span class="ident">valeurs</span>.<span class="ident">get_mut</span>( <span class="kw-2">&amp;</span><span class="ident">cle</span> ) { 
-		<span class="kw">if</span> <span class="ident">v</span>.<span class="ident">alterer</span>( <span class="kw-2">&amp;</span><span class="ident">valeur_type</span> ) { 
-			<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;altération effectuée&quot;</span> ) 
-		} <span class="kw">else</span> { 
-			<span class="ident">Retour</span>::<span class="ident">creer</span>( <span class="bool-val">false</span>, <span class="macro">format</span><span class="macro">!</span>( 
-				<span class="string">&quot;altération impossible avec ce type &#39;{}&#39;&quot;</span>, 
-				<span class="ident">valeur_type</span> 
-			) ) 
-		} 
-	} <span class="kw">else</span> { 
-		<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;clé inconnue&quot;</span> ) 
-	} 
-} 
+<span class="comment">// 	if valeurs.contains_key( &amp;cle ) { </span>
+<span class="comment">// 		match &amp;valeurs[&amp;cle] { </span>
+<span class="comment">// 			Valeurs::Boolean( b ) =&gt; Retour::creer( true, format!( &quot;(booléen) {}&quot;, b ) ), </span>
+<span class="comment">// 			Valeurs::Texte( t ) =&gt; Retour::creer( true, format!( &quot;(texte) \&quot;{}\&quot;&quot;, t ) ), </span>
+<span class="comment">// 			Valeurs::Relatif( n ) =&gt; Retour::creer( true, format!( &quot;(réel) {}&quot;, n ) ), </span>
+<span class="comment">// 			Valeurs::Flottant( n ) =&gt; Retour::creer( true, format!( &quot;(flottant) {}&quot;, n ) ), </span>
+<span class="comment">// 			Valeurs::Objet( o ) =&gt; Retour::creer( true, format!( &quot;(objet ; non-encore implémenté) {:?}&quot;, o ) ), </span>
+<span class="comment">// 		} </span>
+<span class="comment">// 	} else { </span>
+<span class="comment">// 		Retour::creer_str( false, &quot;clé inconnue&quot; ) </span>
+<span class="comment">// 	} </span>
+<span class="comment">// } </span>
 
-<span class="kw">fn</span> <span class="ident">resoudre_resumer</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
-	<span class="kw">if</span> <span class="op">!</span><span class="ident">arguments</span>.<span class="ident">est_stop</span>() { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;aucun argument autorisé&quot;</span> ); 
-	} 
-	<span class="kw">let</span> <span class="ident">dico</span> <span class="op">=</span> <span class="ident">contexte</span>.<span class="ident">dico</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>(); 
-	<span class="kw">let</span> <span class="ident">valeurs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">dico</span>.<span class="ident">liste</span>; 
-	<span class="ident">Retour</span>::<span class="ident">creer</span>(  
-		<span class="bool-val">true</span>, 
-		<span class="macro">format</span><span class="macro">!</span>( 
-			<span class="string">&quot;canal \&quot;{}\&quot; ({})&quot;</span>, 
-			<span class="ident">dico</span>.<span class="ident">nom</span>, 
-			<span class="ident">valeurs</span>.<span class="ident">len</span>() 
-		) 
-	) 
-} 
+<span class="comment">// fn resoudre_supprimer( contexte: &amp;mut Contexte, mut arguments: ArgumentsLocaux ) -&gt; Retour { </span>
+<span class="comment">// 	let cle = if let Some( c ) = arguments.extraire() { </span>
+<span class="comment">// 		c </span>
+<span class="comment">// 	} else { </span>
+<span class="comment">// 		return Retour::creer_str( false, &quot;vous devez spécifier une clé existante&quot; ); </span>
+<span class="comment">// 	}; </span>
+<span class="comment">// 	if !arguments.est_stop() { </span>
+<span class="comment">// 		return Retour::creer_str( false, &quot;trop d&#39;arguments fournis (maximum 1)&quot; ); </span>
+<span class="comment">// 	} </span>
+<span class="comment">// 	let mut dico = contexte.dico.lock().unwrap(); </span>
+<span class="comment">// 	let valeurs = &amp;mut dico.liste; </span>
+<span class="comment">// 	if let Some( _ ) = valeurs.remove( &amp;cle ) { </span>
+<span class="comment">// 		Retour::creer_str( true, &quot;clé supprimée&quot; ) </span>
+<span class="comment">// 	} else { </span>
+<span class="comment">// 		Retour::creer_str( false, &quot;clé inconnue&quot; ) </span>
+<span class="comment">// 	} </span>
+<span class="comment">// } </span>
+
+<span class="comment">// fn resoudre_lister( contexte: &amp;mut Contexte, mut arguments: ArgumentsLocaux ) -&gt; Retour { </span>
+<span class="comment">// 	if let Some( _ ) = arguments.extraire() { </span>
+<span class="comment">// 		return Retour::creer_str( false, &quot;aucun argument accepté pour cette fonction&quot; ); </span>
+<span class="comment">// 	} </span>
+<span class="comment">// 	let dico = contexte.dico.lock().unwrap(); </span>
+<span class="comment">// 	let valeurs = &amp;dico.liste; </span>
+<span class="comment">// 	for (cle, valeur) in valeurs.iter() { </span>
+<span class="comment">// 		if let Err(_) = contexte.stream.write( </span>
+<span class="comment">// 			format!( </span>
+<span class="comment">// 				&quot;\t{} : {:?}\n&quot;, </span>
+<span class="comment">// 				cle, </span>
+<span class="comment">// 				valeur </span>
+<span class="comment">// 			).as_bytes() </span>
+<span class="comment">// 		) { </span>
+<span class="comment">// 			contexte.stream.flush().unwrap(); </span>
+<span class="comment">// 			return Retour::creer_str( false, &quot;erreur lors de l&#39;envoi&quot; ); </span>
+<span class="comment">// 		} </span>
+<span class="comment">// 	} </span>
+<span class="comment">// 	contexte.stream.flush().unwrap(); </span>
+<span class="comment">// 	Retour::creer( true, format!( &quot;stop ({})&quot;, valeurs.len() ) ) </span>
+<span class="comment">// } </span>
+
+<span class="comment">// fn resoudre_tester( contexte: &amp;mut Contexte, mut arguments: ArgumentsLocaux ) -&gt; Retour {</span>
+<span class="comment">// 	let cle = if let Some( c ) = arguments.extraire() { </span>
+<span class="comment">// 		c </span>
+<span class="comment">// 	} else { </span>
+<span class="comment">// 		return Retour::creer_str( false, &quot;vous devez spécifier une clé à tester&quot; ); </span>
+<span class="comment">// 	}; </span>
+<span class="comment">// 	if !arguments.est_stop() { </span>
+<span class="comment">// 		return Retour::creer_str( false, &quot;trop d&#39;arguments fournis (maximum 1)&quot; ); </span>
+<span class="comment">// 	} </span>
+<span class="comment">// 	let dico = contexte.dico.lock().unwrap(); </span>
+<span class="comment">// 	let valeurs = &amp;dico.liste; </span>
+<span class="comment">// 	if valeurs.contains_key( &amp;cle ) { </span>
+<span class="comment">// 		Retour::creer_str( true, &quot;clé existante&quot; ) </span>
+<span class="comment">// 	} else { </span>
+<span class="comment">// 		Retour::creer_str( true, &quot;clé inexistante&quot; ) </span>
+<span class="comment">// 	} </span>
+<span class="comment">// } </span>
+
+<span class="comment">// fn resoudre_ajouter( contexte: &amp;mut Contexte, mut arguments: ArgumentsLocaux ) -&gt; Retour { </span>
+<span class="comment">// 	let cle = if let Some( c ) = arguments.extraire() { </span>
+<span class="comment">// 		c </span>
+<span class="comment">// 	} else { </span>
+<span class="comment">// 		return Retour::creer_str( false, &quot;une clé vide n&#39;est pas une clé acceptable&quot; ); </span>
+<span class="comment">// 	}; </span>
+<span class="comment">// 	let ajout = if let Some( v ) = arguments.extraire() { </span>
+<span class="comment">// 		v </span>
+<span class="comment">// 	} else { </span>
+<span class="comment">// 		return Retour::creer_str( false, &quot;aucune valeur fournie ou séparateur clé/valeur non-respecté (espace simple)&quot; ); </span>
+<span class="comment">// 	}; </span>
+<span class="comment">// 	if !arguments.est_stop() { </span>
+<span class="comment">// 		return Retour::creer_str( false, &quot;trop d&#39;arguments fournis (maximum 2)&quot; ); </span>
+<span class="comment">// 	} </span>
+<span class="comment">// 	let mut dico = contexte.dico.lock().unwrap(); </span>
+<span class="comment">// 	let valeurs = &amp;mut dico.liste; </span>
+<span class="comment">// 	if let Some( v ) = valeurs.get_mut( &amp;cle ) { </span>
+<span class="comment">// 		if v.ajouter_texte( &amp;ajout ) { </span>
+<span class="comment">// 			Retour::creer_str( true, &quot;valeur modifée&quot; ) </span>
+<span class="comment">// 		} else { </span>
+<span class="comment">// 			Retour::creer_str( false, &quot;ce format n&#39;est pas supporté ou le texte est trop long&quot; ) </span>
+<span class="comment">// 		} </span>
+<span class="comment">// 	} else { </span>
+<span class="comment">// 		Retour::creer_str( false, &quot;clé inconnue&quot; ) </span>
+<span class="comment">// 	} </span>
+<span class="comment">// } </span>
+
+<span class="comment">// fn resoudre_alterer( contexte: &amp;mut Contexte, mut arguments: ArgumentsLocaux ) -&gt; Retour { </span>
+<span class="comment">// 	let cle = if let Some( c ) = arguments.extraire() { </span>
+<span class="comment">// 		c </span>
+<span class="comment">// 	} else { </span>
+<span class="comment">// 		return Retour::creer_str( false, &quot;vous devez spécifier une clé existante&quot; ); </span>
+<span class="comment">// 	}; </span>
+<span class="comment">// 	let valeur_type = if let Some( t ) = arguments.extraire() { </span>
+<span class="comment">// 		t </span>
+<span class="comment">// 	} else { </span>
+<span class="comment">// 		return Retour::creer_str( false, &quot;vous devez spécifier un type connu&quot; ); </span>
+<span class="comment">// 	}; </span>
+<span class="comment">// 	if !arguments.est_stop() { </span>
+<span class="comment">// 		return Retour::creer_str( false, &quot;trop d&#39;arguments fournis (maximum 2)&quot; ); </span>
+<span class="comment">// 	} </span>
+<span class="comment">// 	let mut dico = contexte.dico.lock().unwrap(); </span>
+<span class="comment">// 	let valeurs = &amp;mut dico.liste; </span>
+<span class="comment">// 	if let Some( v ) = valeurs.get_mut( &amp;cle ) { </span>
+<span class="comment">// 		if v.alterer( &amp;valeur_type ) { </span>
+<span class="comment">// 			Retour::creer_str( true, &quot;altération effectuée&quot; ) </span>
+<span class="comment">// 		} else { </span>
+<span class="comment">// 			Retour::creer( false, format!( </span>
+<span class="comment">// 				&quot;altération impossible avec ce type &#39;{}&#39;&quot;, </span>
+<span class="comment">// 				valeur_type </span>
+<span class="comment">// 			) ) </span>
+<span class="comment">// 		} </span>
+<span class="comment">// 	} else { </span>
+<span class="comment">// 		Retour::creer_str( false, &quot;clé inconnue&quot; ) </span>
+<span class="comment">// 	} </span>
+<span class="comment">// } </span>
+
+<span class="comment">// fn resoudre_resumer( contexte: &amp;mut Contexte, mut arguments: ArgumentsLocaux ) -&gt; Retour { </span>
+<span class="comment">// 	if !arguments.est_stop() { </span>
+<span class="comment">// 		return Retour::creer_str( false, &quot;aucun argument autorisé&quot; ); </span>
+<span class="comment">// 	} </span>
+<span class="comment">// 	let dico = contexte.dico.lock().unwrap(); </span>
+<span class="comment">// 	let valeurs = &amp;dico.liste; </span>
+<span class="comment">// 	Retour::creer(  </span>
+<span class="comment">// 		true, </span>
+<span class="comment">// 		format!( </span>
+<span class="comment">// 			&quot;canal \&quot;{}\&quot; ({})&quot;, </span>
+<span class="comment">// 			dico.nom, </span>
+<span class="comment">// 			valeurs.len() </span>
+<span class="comment">// 		) </span>
+<span class="comment">// 	) </span>
+<span class="comment">// } </span>
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resoudre</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="ident">appel</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">arguments</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
 	(<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">n</span> ) <span class="op">=</span> <span class="ident">appel</span>.<span class="ident">find</span>( <span class="string">&#39;:&#39;</span> ) { 
 		<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">appel</span>[..<span class="ident">n</span>] { 
-			<span class="string">&quot;numérique&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">resoudre_numerique</span>::<span class="ident">resoudre</span>( <span class="kw-2">&amp;</span><span class="ident">appel</span>[<span class="ident">n</span><span class="op">+</span><span class="number">1</span>..] ) { 
-				<span class="prelude-val">Ok</span>( <span class="ident">fct</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fct</span>, 
-				<span class="prelude-val">Err</span>( <span class="ident">r</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">r</span> 
-			}, 
-			<span class="string">&quot;texte&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">resoudre_texte</span>::<span class="ident">resoudre</span>( <span class="kw-2">&amp;</span><span class="ident">appel</span>[<span class="ident">n</span><span class="op">+</span><span class="number">1</span>..] ) { 
-				<span class="prelude-val">Ok</span>( <span class="ident">fct</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fct</span>, 
-				<span class="prelude-val">Err</span>( <span class="ident">r</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">r</span> 
-			}, 
-			<span class="string">&quot;canal&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">resoudre_canal</span>::<span class="ident">resoudre</span>( <span class="kw-2">&amp;</span><span class="ident">appel</span>[<span class="ident">n</span><span class="op">+</span><span class="number">1</span>..] ) { 
-				<span class="prelude-val">Ok</span>( <span class="ident">fct</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fct</span>, 
-				<span class="prelude-val">Err</span>( <span class="ident">r</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">r</span> 
-			}, 
-			<span class="string">&quot;administration&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">resoudre_administration</span>::<span class="ident">resoudre</span>( <span class="kw-2">&amp;</span><span class="ident">appel</span>[<span class="ident">n</span><span class="op">+</span><span class="number">1</span>..] ) { 
-				<span class="prelude-val">Ok</span>( <span class="ident">fct</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fct</span>, 
-				<span class="prelude-val">Err</span>( <span class="ident">r</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">r</span> 
-			}, 
+			<span class="comment">// &quot;numérique&quot; =&gt; match resoudre_numerique::resoudre( &amp;appel[n+1..] ) { </span>
+			<span class="comment">// 	Ok( fct ) =&gt; fct, </span>
+			<span class="comment">// 	Err( r ) =&gt; return r </span>
+			<span class="comment">// }, </span>
+			<span class="comment">// &quot;texte&quot; =&gt; match resoudre_texte::resoudre( &amp;appel[n+1..] ) { </span>
+			<span class="comment">// 	Ok( fct ) =&gt; fct, </span>
+			<span class="comment">// 	Err( r ) =&gt; return r </span>
+			<span class="comment">// }, </span>
+			<span class="comment">// &quot;canal&quot; =&gt; match resoudre_canal::resoudre( &amp;appel[n+1..] ) { </span>
+			<span class="comment">// 	Ok( fct ) =&gt; fct, </span>
+			<span class="comment">// 	Err( r ) =&gt; return r </span>
+			<span class="comment">// }, </span>
+			<span class="comment">// &quot;administration&quot; =&gt; match resoudre_administration::resoudre( &amp;appel[n+1..] ) { </span>
+			<span class="comment">// 	Ok( fct ) =&gt; fct, </span>
+			<span class="comment">// 	Err( r ) =&gt; return r </span>
+			<span class="comment">// }, </span>
 			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;module inconnu&quot;</span> ) 
 		}
 	} <span class="kw">else</span> { 
 		<span class="kw">match</span> <span class="ident">appel</span> { 
 			<span class="comment">// actions génériques </span>
 			<span class="string">&quot;stop&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">resoudre_stop</span> <span class="kw">as</span> <span class="ident">Resolveur</span>, 
-			<span class="string">&quot;vider&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">resoudre_vider</span> <span class="kw">as</span> <span class="ident">Resolveur</span>, 
-			<span class="string">&quot;définir&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">resoudre_definir</span> <span class="kw">as</span> <span class="ident">Resolveur</span>, 
-			<span class="string">&quot;obtenir&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">resoudre_obtenir</span> <span class="kw">as</span> <span class="ident">Resolveur</span>, 
-			<span class="string">&quot;supprimer&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">resoudre_supprimer</span> <span class="kw">as</span> <span class="ident">Resolveur</span>, 
-			<span class="string">&quot;lister&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">resoudre_lister</span> <span class="kw">as</span> <span class="ident">Resolveur</span>, 
-			<span class="string">&quot;tester&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">resoudre_tester</span> <span class="kw">as</span> <span class="ident">Resolveur</span>, 
-			<span class="string">&quot;ajouter&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">resoudre_ajouter</span> <span class="kw">as</span> <span class="ident">Resolveur</span>, 
-			<span class="string">&quot;altérer&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">resoudre_alterer</span> <span class="kw">as</span> <span class="ident">Resolveur</span>, 
-			<span class="string">&quot;résumer&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">resoudre_resumer</span> <span class="kw">as</span> <span class="ident">Resolveur</span>, 
+			<span class="comment">// &quot;vider&quot; =&gt; resoudre_vider as Resolveur, </span>
+			<span class="comment">// &quot;définir&quot; =&gt; resoudre_definir as Resolveur, </span>
+			<span class="comment">// &quot;obtenir&quot; =&gt; resoudre_obtenir as Resolveur, </span>
+			<span class="comment">// &quot;supprimer&quot; =&gt; resoudre_supprimer as Resolveur, </span>
+			<span class="comment">// &quot;lister&quot; =&gt; resoudre_lister as Resolveur, </span>
+			<span class="comment">// &quot;tester&quot; =&gt; resoudre_tester as Resolveur, </span>
+			<span class="comment">// &quot;ajouter&quot; =&gt; resoudre_ajouter as Resolveur, </span>
+			<span class="comment">// &quot;altérer&quot; =&gt; resoudre_alterer as Resolveur, </span>
+			<span class="comment">// &quot;résumer&quot; =&gt; resoudre_resumer as Resolveur, </span>
 
 			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;module général : fonction inconnue&quot;</span> ) 
 		} 

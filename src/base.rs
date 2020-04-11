@@ -15,40 +15,43 @@ use crate::TAILLE_TEXTE_MAX;
 
 // ---------------------------------------------------- 
 
+
+/// Un canal se constitue de trois principaux éléments : son nom, sa liste de valeurs (qui est stockée dans un Objet, un élément de l'énumération des Valeurs) ainsi qu'un vecteur de souscripteurs. 
+/// A partir de la version 1.1, dans l'idéal, la compatibilité devrait être toujours maintenue avec ce minimum. 
 #[derive(Debug)] 
 pub struct Canal { 
 	pub nom: String, 
-	pub liste: HashMap<String,Valeurs>, 
+	pub liste: Valeurs, 
 	pub souscripteurs: Vec<Sender<String>>  
 } 
 
-impl Canal { 
-	pub fn creer_valeur( &mut self, cle: &str, valeur: &str, valeur_type: Option<String> ) -> bool { 
-		self.liste.insert( 
-			cle.to_string(), 
-			match valeur_type { 
-				None => Valeurs::Texte( valeur.to_string() ), 
-				Some( t ) => match &t[..] { 
-					"objet" => { 
-						if valeur != "~" { 
-							return false; 
-						} else { 
-							Valeurs::Objet( HashMap::new() ) 
-						}
-					} 
-					_ => {
-						let mut v = Valeurs::Texte( valeur.to_string() ); 
-						if !v.alterer( &t ) { 
-							return false 
-						} 
-						v 
-					} 
-				} 
-			} 
-		); 
-		true 
-	} 
-} 
+// impl Canal { 
+// 	pub fn creer_valeur( &mut self, cle: &str, valeur: &str, valeur_type: Option<String> ) -> bool { 
+// 		self.liste.insert( 
+// 			cle.to_string(), 
+// 			match valeur_type { 
+// 				None => Valeurs::Texte( valeur.to_string() ), 
+// 				Some( t ) => match &t[..] { 
+// 					"objet" => { 
+// 						if valeur != "~" { 
+// 							return false; 
+// 						} else { 
+// 							Valeurs::Objet( HashMap::new() ) 
+// 						}
+// 					} 
+// 					_ => {
+// 						let mut v = Valeurs::Texte( valeur.to_string() ); 
+// 						if !v.alterer( &t ) { 
+// 							return false 
+// 						} 
+// 						v 
+// 					} 
+// 				} 
+// 			} 
+// 		); 
+// 		true 
+// 	} 
+// } 
 
 impl Drop for Canal { 
     fn drop(&mut self) { 
@@ -75,7 +78,7 @@ pub fn creer_racine( nom_defaut: &str ) -> (CanalThread, CanauxThread) {
 		Mutex::new( 
 			Canal { 
 				nom: nom.clone(), 
-				liste: HashMap::new(), 
+				liste: Valeurs::Objet( HashMap::new() ), 
 				souscripteurs: Vec::<Sender<String>>::new() 
 			} 
 		) 

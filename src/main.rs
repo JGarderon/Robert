@@ -3,13 +3,15 @@
 //! 
 //! Robert est donc à classer dans la famille des No-SQL. Les requêtes des utilisateurs ne sont pas à proprement parler un langage de programmation, mais un DSL - un langage spécifique. Avec cette spécificité : il est intégralement francophone (commentaires dans le code, la documentation, mais aussi les commandes elles-mêmes). 
 //! 
-//! Vous vous demandez d'où vient son nom ? Bonne question : comme il fonctionne sur un système "clé/valeur", appelé des "dictionnaires", il semblait assez logique que ce petit logiciel sans prétention, qui se veut simple, facilement extensible et efficace s'appelle... le (petit) Robert. Comme un illustre ancêtre papier ! Et puis Redis et Rust commencent tous les deux par un 'R' alors... 
+//! Vous vous demandez d'où vient son nom ? Bonne question : comme il fonctionne sur un système "clé/valeur", stocké dans ce qu'il convient d'appeler des "dictionnaires", il semblait assez logique que ce petit logiciel sans prétention, qui se veut simple, facilement extensible et efficace s'appelle... le (petit) Robert. Comme un illustre ancêtre papier ! Et puis Redis et Rust commencent tous les deux par un 'R' alors... 
 //! 
 //! A ce jour, il gère des clés au format texte et des valeurs de plusieurs types (valeur textuelle, réelle, flottante, boolèenne). D'autres types de valeurs sont attendus et sans attendre (compte tenu du caractère ouvert et libre du code), n'hésitez pas à y ajouter votre grain de sel. 
 //! 
 //! La philosophie de Robert est d'offrir un logiciel appréhendable par le plus grand nombre, simple et rapide, qui ne soit pas un "jouet" de programmation sans être une usine à gaz que seuls une poignée de personnes est capable de développer et maintenir. Robert dans la lignée de la philosophie "KISS" de l'univers Unix : _Keep It Simple, Stupid !_ Ainsi il ne vous fera jamais le café... 
 //! 
-//! Par l'usage de Rust pour son développement, le logiciel est stable, sûr et son empreinte mémoire est très faible. Rust ne connaît (quasi-)pas les fuites de mémoire : Robert non plus. Le projet souhaite aussi s'assoir sur des ressources sûres, et éviter d'utiliser des adjonctions de code extérieur insondable. Aussi Robert n'a aucune autre dépendance à ce jour, que l'usage des modules internes au langage. 
+//! Par l'usage de Rust pour son développement, le logiciel est stable, sûr et son empreinte mémoire est très faible. Rust ne connaît (quasi-)pas les fuites de mémoire : Robert non plus (car il tente d'en suivre au plus près la philosophie). Le projet souhaite aussi s'assoir sur des ressources sûres, et éviter d'utiliser des adjonctions de code extérieur insondable. Aussi Robert n'a aucune autre dépendance à ce jour, que l'usage des modules internes au langage. 
+//! 
+//! __D'où sa devise : _copier, compiler, profiter !___
 //! 
 
 use std::net::{TcpListener}; 
@@ -140,6 +142,7 @@ fn lancement_service( ipport: &str ) -> Result<(), &'static str> {
 
 // --- --- --- --- --- --- --- --- --- 
 
+/// Ai-je vraiment besoin de documenter à quoi sert cette fonction... ? 
 fn main() { 
 
 	if let Err( e ) = lancement_service( "127.0.0.1:8080" ) { 

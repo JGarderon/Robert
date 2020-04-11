@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["ArgumentsLocauxEtat",""],["ExtractionLigne",""]],"fn":[["extraction_commande",""],["extraire_ligne",""]],"struct":[["ArgumentsLocaux",""]]});
+initSidebarItems({"enum":[["ArgumentsLocauxEtat",""],["ExtractionLigne",""]],"fn":[["chemin_extraire",""],["extraction_commande",""],["extraire_ligne",""]],"struct":[["ArgumentsLocaux",""]]});

@@ -148,19 +148,24 @@
 <span id="148">148</span>
 <span id="149">149</span>
 <span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
 </pre><div class="example-wrap"><pre class="rust ">
 
 <span class="doccomment">//! Robert est un logiciel type &quot;Redis-Like&quot; : un système de gestion de données haute performance, stockée en RAM, qui n&#39;offre cependant comme son illustre grand frère, toutes les finesses d&#39;une base de données SQL classique. </span>
 <span class="doccomment">//! </span>
 <span class="doccomment">//! Robert est donc à classer dans la famille des No-SQL. Les requêtes des utilisateurs ne sont pas à proprement parler un langage de programmation, mais un DSL - un langage spécifique. Avec cette spécificité : il est intégralement francophone (commentaires dans le code, la documentation, mais aussi les commandes elles-mêmes). </span>
 <span class="doccomment">//! </span>
-<span class="doccomment">//! Vous vous demandez d&#39;où vient son nom ? Bonne question : comme il fonctionne sur un système &quot;clé/valeur&quot;, appelé des &quot;dictionnaires&quot;, il semblait assez logique que ce petit logiciel sans prétention, qui se veut simple, facilement extensible et efficace s&#39;appelle... le (petit) Robert. Comme un illustre ancêtre papier ! Et puis Redis et Rust commencent tous les deux par un &#39;R&#39; alors... </span>
+<span class="doccomment">//! Vous vous demandez d&#39;où vient son nom ? Bonne question : comme il fonctionne sur un système &quot;clé/valeur&quot;, stocké dans ce qu&#39;il convient d&#39;appeler des &quot;dictionnaires&quot;, il semblait assez logique que ce petit logiciel sans prétention, qui se veut simple, facilement extensible et efficace s&#39;appelle... le (petit) Robert. Comme un illustre ancêtre papier ! Et puis Redis et Rust commencent tous les deux par un &#39;R&#39; alors... </span>
 <span class="doccomment">//! </span>
 <span class="doccomment">//! A ce jour, il gère des clés au format texte et des valeurs de plusieurs types (valeur textuelle, réelle, flottante, boolèenne). D&#39;autres types de valeurs sont attendus et sans attendre (compte tenu du caractère ouvert et libre du code), n&#39;hésitez pas à y ajouter votre grain de sel. </span>
 <span class="doccomment">//! </span>
 <span class="doccomment">//! La philosophie de Robert est d&#39;offrir un logiciel appréhendable par le plus grand nombre, simple et rapide, qui ne soit pas un &quot;jouet&quot; de programmation sans être une usine à gaz que seuls une poignée de personnes est capable de développer et maintenir. Robert dans la lignée de la philosophie &quot;KISS&quot; de l&#39;univers Unix : _Keep It Simple, Stupid !_ Ainsi il ne vous fera jamais le café... </span>
 <span class="doccomment">//! </span>
-<span class="doccomment">//! Par l&#39;usage de Rust pour son développement, le logiciel est stable, sûr et son empreinte mémoire est très faible. Rust ne connaît (quasi-)pas les fuites de mémoire : Robert non plus. Le projet souhaite aussi s&#39;assoir sur des ressources sûres, et éviter d&#39;utiliser des adjonctions de code extérieur insondable. Aussi Robert n&#39;a aucune autre dépendance à ce jour, que l&#39;usage des modules internes au langage. </span>
+<span class="doccomment">//! Par l&#39;usage de Rust pour son développement, le logiciel est stable, sûr et son empreinte mémoire est très faible. Rust ne connaît (quasi-)pas les fuites de mémoire : Robert non plus (car il tente d&#39;en suivre au plus près la philosophie). Le projet souhaite aussi s&#39;assoir sur des ressources sûres, et éviter d&#39;utiliser des adjonctions de code extérieur insondable. Aussi Robert n&#39;a aucune autre dépendance à ce jour, que l&#39;usage des modules internes au langage. </span>
+<span class="doccomment">//! </span>
+<span class="doccomment">//! __D&#39;où sa devise : _copier, compiler, profiter !___</span>
 <span class="doccomment">//! </span>
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::{<span class="ident">TcpListener</span>}; 
@@ -175,7 +180,7 @@
 <span class="kw">const</span> <span class="ident">DEBUG</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="bool-val">true</span>; 
 
 <span class="doccomment">/// Nom du dictionnaire par défaut, créé par le programme et qui sert aussi de canal par défaut. Il ne peut et ne doit être jamais supprimé lors de l&#39;exécution des requêtes des utilisateurs. </span>
-<span class="kw">const</span> <span class="ident">DICO_NOM_DEFAUT</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;défaut&quot;</span>;
+<span class="kw">const</span> <span class="ident">CANAL_NOM_DEFAUT</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;défaut&quot;</span>;
 
 <span class="doccomment">/// Taille maximale admissible par ligne reçue sur un socket. Cette taille fournie donc la taille maximum admissible des requêtes pour le reste du programme. </span>
 <span class="kw">const</span> <span class="ident">TAILLE_LIGNE_MAX</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1024</span>; 
@@ -251,7 +256,7 @@
 <span class="doccomment">/// Fonction permettant de lancer le service d&#39;écoute (socket TCP). A l&#39;avenir, cette fonction retournerait un objet JoinHandle permettant au service d&#39;agir dans un thread dédié et ne pas boucler la fonction &#39;main&#39;. </span>
 <span class="doccomment">/// Chaque nouveau client est envoyé dans un nouveau thread, avec un objet &quot;Contexte&quot;, qui porte les informations essentielles liées au socket TCP en cours. Les requêtes sont gérées par le thread du client. </span>
 <span class="kw">fn</span> <span class="ident">lancement_service</span>( <span class="ident">ipport</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> { 
-	<span class="kw">let</span> (<span class="ident">dico_thread</span>, <span class="ident">dicos</span>) <span class="op">=</span> <span class="ident">base</span>::<span class="ident">creer_racine</span>( <span class="ident">DICO_NOM_DEFAUT</span> ); 
+	<span class="kw">let</span> (<span class="ident">canal_thread</span>, <span class="ident">canaux_thread</span>) <span class="op">=</span> <span class="ident">base</span>::<span class="ident">creer_racine</span>( <span class="ident">CANAL_NOM_DEFAUT</span> ); 
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>( <span class="ident">listener</span> ) <span class="op">=</span> <span class="ident">TcpListener</span>::<span class="ident">bind</span>( <span class="ident">ipport</span> ) {
 	    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fils</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>(); 
 	    <span class="kw">for</span> <span class="ident">resultat</span> <span class="kw">in</span> <span class="ident">listener</span>.<span class="ident">incoming</span>() { 
@@ -265,8 +270,8 @@
 	    			} 
 	    			<span class="kw">let</span> <span class="ident">contexte</span> <span class="op">=</span> <span class="ident">Contexte</span> { 
 	    				<span class="ident">poursuivre</span>: <span class="bool-val">true</span>, 
-	    				<span class="ident">dico</span>: <span class="ident">dico_thread</span>.<span class="ident">clone</span>(), 
-	    				<span class="ident">dicos</span>: <span class="ident">dicos</span>.<span class="ident">clone</span>(), 
+	    				<span class="ident">canalthread</span>: <span class="ident">canal_thread</span>.<span class="ident">clone</span>(), 
+	    				<span class="ident">canauxthread</span>: <span class="ident">canaux_thread</span>.<span class="ident">clone</span>(), 
 	    				<span class="ident">stream</span>: <span class="ident">stream</span>, 
 	    			}; 
 	    			<span class="ident">fils</span>.<span class="ident">push</span>( 
@@ -291,6 +296,7 @@
 
 <span class="comment">// --- --- --- --- --- --- --- --- --- </span>
 
+<span class="doccomment">/// Ai-je vraiment besoin de documenter à quoi sert cette fonction... ? </span>
 <span class="kw">fn</span> <span class="ident">main</span>() { 
 
 	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>( <span class="ident">e</span> ) <span class="op">=</span> <span class="ident">lancement_service</span>( <span class="string">&quot;127.0.0.1:8080&quot;</span> ) { 
