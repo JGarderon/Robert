@@ -3,9 +3,11 @@ use std::io::Write;
 use std::sync::Arc; 
 use std::sync::Mutex; 
 use std::net::TcpStream; 
+use std::collections::HashMap; 
 
 // ---------------------------------------------------- 
 
+use crate::grammaire; 
 use crate::grammaire::ArgumentsLocaux; 
 use crate::base::DictionnaireThread; 
 use crate::base::Dictionnaires; 
@@ -24,25 +26,39 @@ use crate::NBRE_MAX_VALEURS;
 
 // ---------------------------------------------------- 
 
-/// Un type spécifique au projet : le type 'Résolveur' est la signature d'une fonction de résolution, quelque soit le module de résolution. Elle prend deux paramêtres : le contexte du socket ainsi qu'un objet permettant de récupèrer à la demande les arguments dits 'locaux' (propre à une requête). La fonction renvoie un objet "retour". La définition de cette signature, soulage les signatures dans d'autres fonctions de résolution. 
+/// Un type spécifique au projet : le type 'Résolveur' est la signature d'une fonction de résolution, quelque soit le module de résolution. 
+/// Elle prend deux paramètres : le contexte du socket ainsi qu'un objet permettant de récupèrer à la demande les arguments dits 'locaux' (propre à une requête). La fonction renvoie un objet "retour", qui sera transmis au client via une série d'octets écrite sur le socket. 
+/// La définition de cette signature a pour principal but de soulager les signatures dans d'autres fonctions de résolution. 
 type Resolveur = fn ( &mut Contexte, ArgumentsLocaux ) -> Retour; 
 
 // ---------------------------------------------------- 
 
+/// La structure 'Contexte' permet de rassembler dans un objet unique, l'ensemble des éléments propres à un socket quelque soit la fonction de résolution qui sera appelée. Elle référence aussi le dictionnaire (canal) en cours, ainsi que le dictionnaire des canaux. 
+/// Dans une fonction de résolution, elle se présentera toujours dans la forme d'une référence mutable. 
 pub struct Contexte { 
+	
+	/// Ce champ lorsqu'il est à "faux", permet d'interrompre la boucle locale du thead gérant le socket, dès la fin de la fonction de résolution actuelle. 
 	pub poursuivre: bool, 
+	
+	/// Ce champ contient le nécessaire pour accéder au dictionnaire représentant le canal actuel. 
 	pub dico: DictionnaireThread, 
+	
+	/// Ce champ contient le nécessaire pour accéder au dictionnaires des canaux. 
 	pub dicos: Arc<Mutex<Dictionnaires>>, 
+
+	/// Ce champ contient l'objet socket. 
 	pub stream: TcpStream 
 } 
 
-// ---------------------------------------------------- 
+// ----------------------------------------------------  
 
+/// Les retours peuvent être soit un texte statique (&'static str) - c'est-à-dire invariable et intégré au directement dans le code source du programme (efficacité), soit un texte généré par la fonction de résolution (String) - c'est-à-dire variable. 
 pub enum RetourType { 
 	Statique(&'static str), 
 	Dynamique(String) 
 } 
 
+/// L'implémentation permet ici de rassembler les valeurs vers l'équivalent d'un slice de Bytes, qui sera utilisé pour le retour écrit sur le socket du client. 
 impl RetourType { 
 	pub fn vers_bytes( &self ) -> &[u8] { 
 		match self { 
@@ -92,59 +108,139 @@ fn resoudre_vider( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> 
 	Retour::creer_str( true, "base vidée" ) 
 } 
 
-fn resoudre_definir( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-	let mut dico = contexte.dico.lock().unwrap(); 
-	let valeurs = &mut dico.liste; 
-	if valeurs.len() < NBRE_MAX_VALEURS { 
-		let cle = if let Some( c ) = arguments.extraire() { 
-			c 
-		} else { 
-			return Retour::creer_str( false, "une clé vide n'est pas une clé acceptable" ); 
-		}; 
-		let valeur = if let Some( v ) = arguments.extraire() { 
-			v 
-		} else { 
-			return Retour::creer_str( false, "aucune valeur fournie ou séparateur clé/valeur non-respecté (espace simple)" ); 
-		}; 
-		match arguments.extraire() { 
-			None => { 
-				valeurs.insert( 
-					cle, 
-					Valeurs::Texte( valeur ) 
-				); 
-				Retour::creer_str( true, "paire clé/valeur ajoutée (type par défaut : texte)" ) 
-			} 
-			Some( t ) => { 
-				if !arguments.est_stop() { 
-					return Retour::creer_str( false, "trop d'arguments fournis (max. 2-3)" ); 
-				} 
-				if &t == "objet" { 
-					Retour::creer( false, format!("non-encore implémenté ; {:?}", (cle, valeur))) 
-				} else { 
-					let mut v = Valeurs::Texte( valeur ); 
-					if v.alterer( &t ) { 
-						valeurs.insert( 
-							cle, 
-							v 
-						);  
-						Retour::creer( true, format!( 
-							"paire clé/valeur ajoutée (type {})", 
-							&t
-						) ) 
-					} else { 
-						Retour::creer( false, format!( 
-							"le type '{}' n'est pas un type conforme", 
-							&t
-						) ) 
-					} 
-				} 
+// pub fn chemin_acceder( &mut self, vecteur: &mut Vec<&str>, fct: AccesseurObjet ) -> Retour { 
+// 	if let Some( motif ) = vecteur.pop() { 
+// 		match self { 
+// 			Valeurs::Objet( h ) if vecteur.len() == 0 => { 
+// 				if let Some( valeur ) = h.get_mut( motif ) {
+// 					fct( valeur ) 
+// 				} else { 
+// 					Retour::creer_str( false, "chemin incorrect (dernier élément)" ) 
+// 				} 
+// 			} 
+// 			Valeurs::Objet( h ) if vecteur.len() > 0 => { 
+// 				if let Some( valeur ) = h.get_mut( motif ) {
+// 					valeur.chemin_acceder( vecteur, fct ) 
+// 				} else { 
+// 					Retour::creer_str( false, "chemin incorrect" ) 
+// 				} 
+// 			} 
+// 			_ => Retour::creer_str( false, "valeur inaccessible par un chemin" ) 
+// 		}  
+// 	} else { 
+// 		Retour::creer_str( false, "erreur interne : le vecteur du chemin est vide" ) 
+// 	} 
+// } 
 
-				
+fn resoudre_definir( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	let mut cle = if let Some( c ) = arguments.extraire() { 
+		c 
+	} else { 
+		return Retour::creer_str( false, "une clé vide n'est pas une clé acceptable" ); 
+	}; 
+	let valeur = if let Some( v ) = arguments.extraire() { 
+		v 
+	} else { 
+		return Retour::creer_str( false, "aucune valeur fournie ou séparateur clé/valeur non-respecté" ); 
+	}; 
+	let valeur_type = arguments.extraire(); 
+	if !arguments.est_stop() { 
+		return Retour::creer_str( false, "trop d'arguments fournis (max. 2-3)" ); 
+	} 
+	
+
+
+
+	let mut dico = { 
+		match contexte.dico.lock() { 
+			Ok( d ) => d, 
+			Err(_) => return Retour::creer_str( false, "erreur interne; dictionnaire inaccessible" ) 
+		} 
+	}; 
+	if let Ok( chemin ) = grammaire::chemin_extraire( &cle ) { 
+		if chemin.len() == 1 { 
+			if dico.creer_valeur( 
+				chemin[0], 
+				&valeur, 
+				valeur_type 
+			) { 
+				Retour::creer_str( true, "valeur ajoutée" ) 
+			} else { 
+				Retour::creer_str( true, "impossible d'ajouter cette valeur avec ces paramètres" ) 
 			} 
+		} else { 
+			Retour::creer_str( true, "non implémenté" ) 
 		} 
 	} else { 
-		Retour::creer_str( false, "nbre max. de valeurs atteint" ) 
+		Retour::creer_str( false, "la clé (ou le chemin) ne semble pas correcte" ) 
 	} 
+
+
+
+
+	// 	let point = valeurs; //{ 
+	// 	// 	if chemin.len() == 1 { 
+	// 	// 		valeurs 
+	// 	// 	} else { 
+	// 	// 		if let Some( valeur ) = valeurs.get_mut( chemin[0] ) { 
+	// 	// 			valeur.acceder( &chemin[1..chemin.len()-1] ) 
+	// 	// 		} else { 
+	// 	// 			return Retour::creer_str( false, "la racine vers la valeur créé doit exister" ); 
+	// 	// 		} 
+	// 	// 	} 
+	// 	// }; 
+	// 	let cle_point = chemin[chemin.len()].to_string(); 
+	// 	println!("{:?}", point); 
+	// 	println!("{:?}", cle_point); 
+	// 	if point.len() < NBRE_MAX_VALEURS { 
+	// 		match arguments.extraire() { 
+	// 			None => { 
+	// 				point.insert( 
+	// 					cle_point, 
+	// 					Valeurs::Texte( valeur ) 
+	// 				); 
+	// 				Retour::creer_str( true, "paire clé/valeur ajoutée (type par défaut : texte)" ) 
+	// 			} 
+	// 			Some( t ) => { 
+	// 				if !arguments.est_stop() { 
+	// 					return Retour::creer_str( false, "trop d'arguments fournis (max. 2-3)" ); 
+	// 				} 
+	// 				if &t == "objet" { 
+	// 					if valeur == "~" { 
+	// 						point.insert( 
+	// 							cle_point, 
+	// 							Valeurs::Objet( HashMap::new() ) 
+	// 						);  
+	// 						Retour::creer_str( true, "l'objet a été créé au point désiré" )  
+	// 					} else { 
+	// 						Retour::creer_str( false, "attention, seule la valeur '~' est autorisée en argument de valeur pour la création d'un objet" ) 
+	// 					}
+	// 				} else { 
+	// 					let mut v = Valeurs::Texte( valeur ); 
+	// 					if v.alterer( &t ) { 
+	// 						point.insert( 
+	// 							cle_point, 
+	// 							v 
+	// 						);  
+	// 						Retour::creer( true, format!( 
+	// 							"paire clé/valeur ajoutée (type {})", 
+	// 							&t
+	// 						) ) 
+	// 					} else { 
+	// 						Retour::creer( false, format!( 
+	// 							"le type '{}' n'est pas un type conforme", 
+	// 							&t
+	// 						) ) 
+	// 					} 
+	// 				} 
+	// 			} 
+	// 		} 
+	// 	} else { 
+	// 		Retour::creer_str( false, "nbre max. de valeurs atteint" ) 
+	// 	} 
+	// } else { 
+	// 	Retour::creer_str( false, "la clé ne correspond pas à une clé ou un chemin valide" ) 
+	// } 
 } 
 
 fn resoudre_obtenir( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 

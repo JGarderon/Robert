@@ -11,6 +11,7 @@ use crate::TAILLE_LIGNE_MAX;
 // ---------------------------------------------------- 
 
 use crate::resolution::Retour; 
+use crate::base::AccesseurValeur; 
 
 // ---------------------------------------------------- 
 
@@ -143,4 +144,24 @@ pub fn extraction_commande( commande: &str ) -> (&str, &str) {
 		( &commande, "" ) 
 	} 
 } 
+
+// ---------------------------------------------------- 
+
+pub fn chemin_extraire( chemin: &str ) -> Result<Vec<&str>,&'static str> { 
+    let iterateur = chemin.split( '/' ); 
+    let mut motifs: Vec<&str> = Vec::new(); 
+    for motif in iterateur { 
+        motifs.push( motif ); 
+    } 
+    if motifs.len() < 1 { 
+        Err( "le chemin est vide" ) 
+    } else { 
+        Ok( motifs ) 
+    } 
+} 
+
+
+
+
+
 

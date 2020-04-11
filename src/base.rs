@@ -6,6 +6,10 @@ use std::sync::Mutex;
 
 // ---------------------------------------------------- 
 
+use crate::resolution::Retour; 
+
+// ---------------------------------------------------- 
+
 use crate::DEBUG; 
 use crate::TAILLE_TEXTE_MAX; 
 
@@ -16,6 +20,34 @@ pub struct Dictionnaire {
 	pub nom: String, 
 	pub liste: HashMap<String,Valeurs>, 
 	pub souscripteurs: Vec<Sender<String>>  
+} 
+
+impl Dictionnaire { 
+	pub fn creer_valeur( &mut self, cle: &str, valeur: &str, valeur_type: Option<String> ) -> bool { 
+		self.liste.insert( 
+			cle.to_string(), 
+			match valeur_type { 
+				None => Valeurs::Texte( valeur.to_string() ), 
+				Some( t ) => match &t[..] { 
+					"objet" => { 
+						if valeur != "~" { 
+							return false; 
+						} else { 
+							Valeurs::Objet( HashMap::new() ) 
+						}
+					} 
+					_ => {
+						let mut v = Valeurs::Texte( valeur.to_string() ); 
+						if !v.alterer( &t ) { 
+							return false 
+						} 
+						v 
+					} 
+				} 
+			} 
+		); 
+		true 
+	} 
 } 
 
 impl Drop for Dictionnaire { 
@@ -63,6 +95,8 @@ pub fn creer_racine( nom_defaut: &str ) -> (DictionnaireThread, Arc<Mutex<Dictio
 
 // ---------------------------------------------------- 
 
+pub type AccesseurValeur = fn( &mut Valeurs ) -> Retour; 
+
 #[derive(Debug)] 
 pub enum Valeurs { 
 	Boolean(bool), 
@@ -81,6 +115,29 @@ impl Drop for Valeurs {
 } 
 
 impl Valeurs { 
+	pub fn excuter( &mut self, vecteur: &[&str], fct: AccesseurValeur ) -> Retour { 
+		if let Some( v ) = self.acceder( vecteur ) { 
+			fct( v ) 
+		} else { 
+			Retour::creer_str( false, "le chemin n'est pas correct" ) 
+		} 
+	} 
+	pub fn acceder( &mut self, vecteur: &[&str] ) -> Option<&mut Self> { 
+		if vecteur.len() == 0 { 
+			Some( self ) 
+		} else { 
+			match self { 
+				Valeurs::Objet( h ) => { 
+					if let Some( valeur ) = h.get_mut( vecteur[0] ) { 
+						valeur.acceder( &vecteur[1..] ) 
+					} else { 
+						None 
+					} 
+				} 
+				_ => None 
+			} 
+		} 
+	} 
 	pub fn alterer( &mut self, r#type: &str ) -> bool { 
 		match r#type { 
 			"booléen" => match self { 
