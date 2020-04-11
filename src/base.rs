@@ -16,13 +16,13 @@ use crate::TAILLE_TEXTE_MAX;
 // ---------------------------------------------------- 
 
 #[derive(Debug)] 
-pub struct Dictionnaire { 
+pub struct Canal { 
 	pub nom: String, 
 	pub liste: HashMap<String,Valeurs>, 
 	pub souscripteurs: Vec<Sender<String>>  
 } 
 
-impl Dictionnaire { 
+impl Canal { 
 	pub fn creer_valeur( &mut self, cle: &str, valeur: &str, valeur_type: Option<String> ) -> bool { 
 		self.liste.insert( 
 			cle.to_string(), 
@@ -50,46 +50,48 @@ impl Dictionnaire {
 	} 
 } 
 
-impl Drop for Dictionnaire { 
+impl Drop for Canal { 
     fn drop(&mut self) { 
     	if DEBUG { 
-        	println!( "! suppression 'Dictionnaire' : {:?}", self ); 
+        	println!( "! suppression 'Canal' : {:?}", self ); 
     	}
     } 
 } 
 
-pub type DictionnaireThread = Arc<Mutex<Dictionnaire>>; 
+pub type CanalThread = Arc<Mutex<Canal>>; 
 
-pub struct Dictionnaires { 
-	pub liste: HashMap<String,DictionnaireThread> 
+pub struct Canaux { 
+	pub liste: HashMap<String,CanalThread> 
 } 
 
-pub fn creer_racine( nom_defaut: &str ) -> (DictionnaireThread, Arc<Mutex<Dictionnaires>>) { 
-	let mut tmp = Dictionnaires { 
+pub type CanauxThread = Arc<Mutex<Canaux>>; 
+
+pub fn creer_racine( nom_defaut: &str ) -> (CanalThread, CanauxThread) { 
+	let mut tmp = Canaux { 
 		liste: HashMap::new() 
 	}; 
 	let nom = nom_defaut.to_string(); 
-	let dico_thread = Arc::new( 
+	let canal = Arc::new( 
 		Mutex::new( 
-			Dictionnaire { 
+			Canal { 
 				nom: nom.clone(), 
 				liste: HashMap::new(), 
 				souscripteurs: Vec::<Sender<String>>::new() 
 			} 
 		) 
-	) as DictionnaireThread; 
+	) as CanalThread; 
 	tmp.liste.insert( 
 		nom, 
-		dico_thread.clone() 
+		canal.clone() 
 	); 
-	let dicos = Arc::new( 
+	let canaux = Arc::new( 
 		Mutex::new( 
 			tmp 
 		) 
-	); 
+	) as CanauxThread; 
 	( 
-		dico_thread, 
-		dicos 
+		canal, 
+		canaux 
 	) 
 } 
 
