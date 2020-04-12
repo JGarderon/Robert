@@ -86,6 +86,28 @@ fn resoudre_vider( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> 
 	} 
 } 
 
+// fn resoudre_lister( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+// 	if let Some( _ ) = arguments.extraire() { 
+// 		return Retour::creer_str( false, "aucun argument accepté pour cette fonction" ); 
+// 	} 
+// 	let dicos = contexte.dicos.lock().unwrap(); 
+// 	for (nom, d) in dicos.liste.iter() { 
+// 		let dico = d.lock().unwrap(); 
+// 		if let Err(_) = contexte.stream.write( 
+// 			format!( 
+// 				"\tcanal \"{}\" ({:?})\n", 
+// 				nom, 
+// 				dico.liste.len() 
+// 			).as_bytes() 
+// 		) { 
+// 			contexte.stream.flush().unwrap(); 
+// 			return Retour::creer_str( false, "erreur lors de l'envoi" ); 
+// 		} 
+// 	} 
+// 	contexte.stream.flush().unwrap(); 
+// 	Retour::creer( true, format!( "stop ({})", dicos.liste.len() ) ) 
+// } 
+
 
 pub fn resoudre( appel: &str ) -> Result<Resolveur,Retour> { 
 	match appel { 

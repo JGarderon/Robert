@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["resoudre",""],["resoudre_incrementer",""],["resoudre_maj",""]]});
+initSidebarItems({"fn":[["resoudre",""],["resoudre_incrementer","Fonction de résolution locale \"incrémenter une valeur numérique\""]]});

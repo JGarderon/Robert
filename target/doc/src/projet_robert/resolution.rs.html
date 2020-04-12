@@ -342,6 +342,9 @@
 <span id="342">342</span>
 <span id="343">343</span>
 <span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
 </pre><div class="example-wrap"><pre class="rust ">
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>; 
@@ -357,23 +360,10 @@
 
 <span class="comment">// ---------------------------------------------------- </span>
 
-<span class="comment">// mod resoudre_numerique; </span>
+<span class="kw">mod</span> <span class="ident">resoudre_numerique</span>; 
 <span class="comment">// mod resoudre_texte; </span>
-<span class="comment">// mod resoudre_canal; </span>
+<span class="kw">mod</span> <span class="ident">resoudre_canal</span>; 
 <span class="kw">mod</span> <span class="ident">resoudre_administration</span>; 
-
-<span class="comment">// ----------------------------------------------------  </span>
-
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">Canal</span> {
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">contexte</span>:<span class="ident">ident</span> ) <span class="op">=</span><span class="op">&gt;</span> {
-        { 
-        	<span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">contexte</span>.<span class="ident">canalthread</span>.<span class="ident">lock</span>() { 
-        		<span class="prelude-val">Ok</span>( <span class="ident">c</span> )	<span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>, 
-        		<span class="prelude-val">Err</span>( <span class="ident">empoisonne</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">empoisonne</span>.<span class="ident">into_inner</span>() 
-        	} 
-        } 
-    };
-} 
 
 <span class="comment">// ---------------------------------------------------- </span>
 
@@ -384,7 +374,7 @@
 
 <span class="comment">// ---------------------------------------------------- </span>
 
-<span class="doccomment">/// La structure &#39;Contexte&#39; permet de rassembler dans un objet unique, l&#39;ensemble des éléments propres à un socket quelque soit la fonction de résolution qui sera appelée. Elle référence aussi le dictionnaire (canal) en cours, ainsi que le dictionnaire des canaux. </span>
+<span class="doccomment">/// La structure &#39;Contexte&#39; permet de rassembler dans un objet unique, l&#39;ensemble des éléments propres à un socket quelque soit la fonction de résolution qui sera appelée. Elle référence aussi le canal en cours d&#39;usage par le client, ainsi que l&#39;origine (Canaux). </span>
 <span class="doccomment">/// Dans une fonction de résolution, elle se présentera toujours dans la forme d&#39;une référence mutable. </span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Contexte</span> { 
 	
@@ -392,19 +382,21 @@
 	<span class="kw">pub</span> <span class="ident">poursuivre</span>: <span class="ident">bool</span>, 
 	
 	<span class="doccomment">/// Ce champ contient le nécessaire pour accéder au dictionnaire représentant le canal actuel. </span>
+	<span class="doccomment">/// Il est d&#39;un type Arc&lt;Mutex&lt;Canal&gt;&gt; : un CanalThread est un Canal avec sa protection d&#39;usage pour les threads. </span>
 	<span class="kw">pub</span> <span class="ident">canalthread</span>: <span class="ident">CanalThread</span>, 
 	
 	<span class="doccomment">/// Ce champ contient le nécessaire pour accéder au dictionnaires des canaux. </span>
+	<span class="doccomment">/// Il est d&#39;un type Arc&lt;Mutex&lt;Canaux&gt;&gt; : un CanauxThread est l&#39;origine de tous les canaux, avec sa protection d&#39;usage pour les threads. </span>
 	<span class="kw">pub</span> <span class="ident">canauxthread</span>: <span class="ident">CanauxThread</span>, 
 
-	<span class="doccomment">/// Ce champ contient l&#39;objet socket. </span>
+	<span class="doccomment">/// Ce champ contient l&#39;objet socket, librement clonable. </span>
 	<span class="kw">pub</span> <span class="ident">stream</span>: <span class="ident">TcpStream</span> 
 
 } 
 
 <span class="comment">// ----------------------------------------------------  </span>
 
-<span class="doccomment">/// Les retours peuvent être soit un texte statique (_&amp;&#39;static str_) - c&#39;est-à-dire invariable et intégré au directement dans le code source du programme (efficacité), soit un texte généré par la fonction de résolution (String) - c&#39;est-à-dire variable. </span>
+<span class="doccomment">/// Les retours peuvent être soit un texte statique (_&amp;&#39;static str_) - c&#39;est-à-dire invariable et intégré au directement dans le code source du programme (efficacité), soit un texte généré par la fonction de résolution (_String_) - c&#39;est-à-dire variable. </span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">RetourType</span> { 
 
 	<span class="doccomment">/// Est de type _&amp;&#39;static str_ </span>
@@ -461,6 +453,8 @@
 
 <span class="comment">// ---------------------------------------------------- </span>
 
+<span class="doccomment">/// Fonction de résolution : arrête la boucle principale du thread du client. </span>
+<span class="doccomment">/// Ne prend aucun argument (obligatoire). </span>
 <span class="kw">fn</span> <span class="ident">resoudre_stop</span> ( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
 	<span class="kw">if</span> <span class="op">!</span><span class="ident">arguments</span>.<span class="ident">est_stop</span>() { 
 		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;aucun argument autorisé&quot;</span> ); 
@@ -469,6 +463,10 @@
 	<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;au revoir&quot;</span> ) 
 } 
 
+<span class="doccomment">/// # Fonction de résolution &quot;définir une nouvelle valeur&quot; </span>
+<span class="doccomment">/// Elle définit une nouvelle valeur stockée dans le canal (sans la diffuser). </span>
+<span class="doccomment">/// Au moins deux arguments doivent être fournis : la clé (ou un chemin comprenant la clé) ainsi qu&#39;une valeur quelconque. Cette valeur peut être altérer dans un format particulier grâce à un troisième argument optionnelle qui représente son type. Si l&#39;altération est impossible, l&#39;ajout n&#39;est pas effectuée. </span>
+<span class="doccomment">/// Si aucun type de valeur n&#39;est fourni, c&#39;est le texte qui est le type par défaut. </span>
 <span class="kw">fn</span> <span class="ident">resoudre_definir</span> ( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
 	<span class="kw">let</span> <span class="ident">arg_chemin</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">c</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
 		<span class="ident">c</span> 
@@ -508,6 +506,7 @@
 	} 
 } 
 
+<span class="doccomment">/// # Fonction de résolution &quot;obtenir une valeur existante&quot; </span>
 <span class="kw">fn</span> <span class="ident">resoudre_obtenir</span> ( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
 	<span class="kw">let</span> <span class="ident">arg_chemin</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">c</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
 		<span class="ident">c</span> 
@@ -532,6 +531,7 @@
 	} 
 } 
 
+<span class="doccomment">/// # Fonction de résolution &quot;supprimer une valeur existante&quot; </span>
 <span class="kw">fn</span> <span class="ident">resoudre_supprimer</span> ( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
 	<span class="kw">let</span> <span class="ident">arg_chemin</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">c</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
 		<span class="ident">c</span> 
@@ -557,6 +557,7 @@
 	} 
 } 
 
+<span class="doccomment">/// # Fonction de résolution &quot;tester l&#39;existence d&#39;un chemin&quot; </span>
 <span class="kw">fn</span> <span class="ident">resoudre_tester</span> ( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
 	<span class="kw">let</span> <span class="ident">arg_chemin</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">c</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
 		<span class="ident">c</span> 
@@ -575,6 +576,7 @@
 	} 
 } 
 
+<span class="doccomment">/// # Fonction de résolution &quot;lister toutes les valeurs d&#39;un canal&quot; </span>
 <span class="kw">fn</span> <span class="ident">resoudre_lister</span> ( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
 	<span class="kw">let</span> <span class="ident">arg_chemin</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">c</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
 		<span class="ident">c</span> 
@@ -615,6 +617,7 @@
 	} 
 } 
 
+<span class="doccomment">/// # Fonction de résolution &quot;altérer une valeur existante&quot; </span>
 <span class="kw">fn</span> <span class="ident">resoudre_alterer</span> ( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
 	<span class="kw">let</span> <span class="ident">arg_chemin</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">c</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
 		<span class="ident">c</span> 
@@ -642,21 +645,24 @@
 	} 
 } 
 
+<span class="doccomment">/// # Fonction de résolution centrale </span>
+<span class="doccomment">/// Cette fonction est appelée par le thread du client, et redirigera l&#39;appel vers la bonne fonction de résolution, en fonction du module souhaité. </span>
+<span class="doccomment">/// Les fonctions génériques, définies dans ce présent module, y sont directement incorporées. Les fonctions spéficiques, qui se retrouvent dans les sous-modules, ont une fonction de résolution secondaire : cette fonction est principale car elle appelera la fonction de résolution secondaire, celle du sous-module. </span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resoudre</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="ident">appel</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">arguments</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
 	(<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">n</span> ) <span class="op">=</span> <span class="ident">appel</span>.<span class="ident">find</span>( <span class="string">&#39;:&#39;</span> ) { 
 		<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">appel</span>[..<span class="ident">n</span>] { 
-			<span class="comment">// &quot;numérique&quot; =&gt; match resoudre_numerique::resoudre( &amp;appel[n+1..] ) { </span>
-			<span class="comment">// 	Ok( fct ) =&gt; fct, </span>
-			<span class="comment">// 	Err( r ) =&gt; return r </span>
-			<span class="comment">// }, </span>
+			<span class="string">&quot;numérique&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">resoudre_numerique</span>::<span class="ident">resoudre</span>( <span class="kw-2">&amp;</span><span class="ident">appel</span>[<span class="ident">n</span><span class="op">+</span><span class="number">1</span>..] ) { 
+				<span class="prelude-val">Ok</span>( <span class="ident">fct</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fct</span>, 
+				<span class="prelude-val">Err</span>( <span class="ident">r</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">r</span> 
+			}, 
 			<span class="comment">// &quot;texte&quot; =&gt; match resoudre_texte::resoudre( &amp;appel[n+1..] ) { </span>
 			<span class="comment">// 	Ok( fct ) =&gt; fct, </span>
 			<span class="comment">// 	Err( r ) =&gt; return r </span>
 			<span class="comment">// }, </span>
-			<span class="comment">// &quot;canal&quot; =&gt; match resoudre_canal::resoudre( &amp;appel[n+1..] ) { </span>
-			<span class="comment">// 	Ok( fct ) =&gt; fct, </span>
-			<span class="comment">// 	Err( r ) =&gt; return r </span>
-			<span class="comment">// }, </span>
+			<span class="string">&quot;canal&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">resoudre_canal</span>::<span class="ident">resoudre</span>( <span class="kw-2">&amp;</span><span class="ident">appel</span>[<span class="ident">n</span><span class="op">+</span><span class="number">1</span>..] ) { 
+				<span class="prelude-val">Ok</span>( <span class="ident">fct</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fct</span>, 
+				<span class="prelude-val">Err</span>( <span class="ident">r</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">r</span> 
+			}, 
 			<span class="string">&quot;administration&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">resoudre_administration</span>::<span class="ident">resoudre</span>( <span class="kw-2">&amp;</span><span class="ident">appel</span>[<span class="ident">n</span><span class="op">+</span><span class="number">1</span>..] ) { 
 				<span class="prelude-val">Ok</span>( <span class="ident">fct</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fct</span>, 
 				<span class="prelude-val">Err</span>( <span class="ident">r</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">r</span> 

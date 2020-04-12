@@ -12,23 +12,10 @@ use crate::base::Valeurs;
 
 // ---------------------------------------------------- 
 
-// mod resoudre_numerique; 
+mod resoudre_numerique; 
 // mod resoudre_texte; 
-// mod resoudre_canal; 
+mod resoudre_canal; 
 mod resoudre_administration; 
-
-// ----------------------------------------------------  
-
-macro_rules! Canal {
-    ( $contexte:ident ) => {
-        { 
-        	match $contexte.canalthread.lock() { 
-        		Ok( c )	=> c, 
-        		Err( empoisonne ) => empoisonne.into_inner() 
-        	} 
-        } 
-    };
-} 
 
 // ---------------------------------------------------- 
 
@@ -39,7 +26,7 @@ type Resolveur = fn ( &mut Contexte, ArgumentsLocaux ) -> Retour;
 
 // ---------------------------------------------------- 
 
-/// La structure 'Contexte' permet de rassembler dans un objet unique, l'ensemble des éléments propres à un socket quelque soit la fonction de résolution qui sera appelée. Elle référence aussi le dictionnaire (canal) en cours, ainsi que le dictionnaire des canaux. 
+/// La structure 'Contexte' permet de rassembler dans un objet unique, l'ensemble des éléments propres à un socket quelque soit la fonction de résolution qui sera appelée. Elle référence aussi le canal en cours d'usage par le client, ainsi que l'origine (Canaux). 
 /// Dans une fonction de résolution, elle se présentera toujours dans la forme d'une référence mutable. 
 pub struct Contexte { 
 	
@@ -47,19 +34,21 @@ pub struct Contexte {
 	pub poursuivre: bool, 
 	
 	/// Ce champ contient le nécessaire pour accéder au dictionnaire représentant le canal actuel. 
+	/// Il est d'un type Arc<Mutex<Canal>> : un CanalThread est un Canal avec sa protection d'usage pour les threads. 
 	pub canalthread: CanalThread, 
 	
 	/// Ce champ contient le nécessaire pour accéder au dictionnaires des canaux. 
+	/// Il est d'un type Arc<Mutex<Canaux>> : un CanauxThread est l'origine de tous les canaux, avec sa protection d'usage pour les threads. 
 	pub canauxthread: CanauxThread, 
 
-	/// Ce champ contient l'objet socket. 
+	/// Ce champ contient l'objet socket, librement clonable. 
 	pub stream: TcpStream 
 
 } 
 
 // ----------------------------------------------------  
 
-/// Les retours peuvent être soit un texte statique (_&'static str_) - c'est-à-dire invariable et intégré au directement dans le code source du programme (efficacité), soit un texte généré par la fonction de résolution (String) - c'est-à-dire variable. 
+/// Les retours peuvent être soit un texte statique (_&'static str_) - c'est-à-dire invariable et intégré au directement dans le code source du programme (efficacité), soit un texte généré par la fonction de résolution (_String_) - c'est-à-dire variable. 
 pub enum RetourType { 
 
 	/// Est de type _&'static str_ 
@@ -116,6 +105,8 @@ impl Retour {
 
 // ---------------------------------------------------- 
 
+/// Fonction de résolution : arrête la boucle principale du thread du client. 
+/// Ne prend aucun argument (obligatoire). 
 fn resoudre_stop ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	if !arguments.est_stop() { 
 		return Retour::creer_str( false, "aucun argument autorisé" ); 
@@ -124,6 +115,10 @@ fn resoudre_stop ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> 
 	Retour::creer_str( true, "au revoir" ) 
 } 
 
+/// # Fonction de résolution "définir une nouvelle valeur" 
+/// Elle définit une nouvelle valeur stockée dans le canal (sans la diffuser). 
+/// Au moins deux arguments doivent être fournis : la clé (ou un chemin comprenant la clé) ainsi qu'une valeur quelconque. Cette valeur peut être altérer dans un format particulier grâce à un troisième argument optionnelle qui représente son type. Si l'altération est impossible, l'ajout n'est pas effectuée. 
+/// Si aucun type de valeur n'est fourni, c'est le texte qui est le type par défaut. 
 fn resoudre_definir ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	let arg_chemin = if let Some( c ) = arguments.extraire() { 
 		c 
@@ -163,6 +158,7 @@ fn resoudre_definir ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) 
 	} 
 } 
 
+/// # Fonction de résolution "obtenir une valeur existante" 
 fn resoudre_obtenir ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	let arg_chemin = if let Some( c ) = arguments.extraire() { 
 		c 
@@ -187,6 +183,7 @@ fn resoudre_obtenir ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) 
 	} 
 } 
 
+/// # Fonction de résolution "supprimer une valeur existante" 
 fn resoudre_supprimer ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	let arg_chemin = if let Some( c ) = arguments.extraire() { 
 		c 
@@ -212,6 +209,7 @@ fn resoudre_supprimer ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux 
 	} 
 } 
 
+/// # Fonction de résolution "tester l'existence d'un chemin" 
 fn resoudre_tester ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	let arg_chemin = if let Some( c ) = arguments.extraire() { 
 		c 
@@ -230,6 +228,7 @@ fn resoudre_tester ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 	} 
 } 
 
+/// # Fonction de résolution "lister toutes les valeurs d'un canal" 
 fn resoudre_lister ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	let arg_chemin = if let Some( c ) = arguments.extraire() { 
 		c 
@@ -270,6 +269,7 @@ fn resoudre_lister ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 	} 
 } 
 
+/// # Fonction de résolution "altérer une valeur existante" 
 fn resoudre_alterer ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	let arg_chemin = if let Some( c ) = arguments.extraire() { 
 		c 
@@ -297,21 +297,24 @@ fn resoudre_alterer ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) 
 	} 
 } 
 
+/// # Fonction de résolution centrale 
+/// Cette fonction est appelée par le thread du client, et redirigera l'appel vers la bonne fonction de résolution, en fonction du module souhaité. 
+/// Les fonctions génériques, définies dans ce présent module, y sont directement incorporées. Les fonctions spéficiques, qui se retrouvent dans les sous-modules, ont une fonction de résolution secondaire : cette fonction est principale car elle appelera la fonction de résolution secondaire, celle du sous-module. 
 pub fn resoudre( contexte: &mut Contexte, appel: &str, arguments: &str ) -> Retour { 
 	(if let Some( n ) = appel.find( ':' ) { 
 		match &appel[..n] { 
-			// "numérique" => match resoudre_numerique::resoudre( &appel[n+1..] ) { 
-			// 	Ok( fct ) => fct, 
-			// 	Err( r ) => return r 
-			// }, 
+			"numérique" => match resoudre_numerique::resoudre( &appel[n+1..] ) { 
+				Ok( fct ) => fct, 
+				Err( r ) => return r 
+			}, 
 			// "texte" => match resoudre_texte::resoudre( &appel[n+1..] ) { 
 			// 	Ok( fct ) => fct, 
 			// 	Err( r ) => return r 
 			// }, 
-			// "canal" => match resoudre_canal::resoudre( &appel[n+1..] ) { 
-			// 	Ok( fct ) => fct, 
-			// 	Err( r ) => return r 
-			// }, 
+			"canal" => match resoudre_canal::resoudre( &appel[n+1..] ) { 
+				Ok( fct ) => fct, 
+				Err( r ) => return r 
+			}, 
 			"administration" => match resoudre_administration::resoudre( &appel[n+1..] ) { 
 				Ok( fct ) => fct, 
 				Err( r ) => return r 
