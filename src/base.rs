@@ -11,10 +11,9 @@ use crate::resolution::Retour;
 // ---------------------------------------------------- 
 
 use crate::DEBUG; 
-use crate::TAILLE_TEXTE_MAX; 
+use crate::NBRE_MAX_VALEURS; 
 
 // ---------------------------------------------------- 
-
 
 /// Un canal se constitue de trois principaux éléments : son nom, sa liste de valeurs (qui est stockée dans un Objet, un élément de l'énumération des Valeurs) ainsi qu'un vecteur de souscripteurs. 
 /// A partir de la version 1.1, dans l'idéal, la compatibilité devrait être toujours maintenue avec ce minimum. 
@@ -25,17 +24,11 @@ pub struct Canal {
 	pub souscripteurs: Vec<Sender<String>>  
 } 
 
-pub type AccesseurCanalV = Fn ( &mut Valeurs ) -> Retour; 
-
 impl Canal { 
 	pub fn resoudre<F>( &mut self, chemin: &[&str], fct: F )  -> Retour 
 		where F: FnOnce( &mut Valeurs ) -> Retour
 	{ 
-		if let Valeurs::Objet( o ) = &self.liste { 
-			self.liste.resoudre( chemin, fct ) 
-		} else { 
-			Retour::creer_str( false, "erreur fatale, le canal semble corrompu" ) 
-		} 
+		self.liste.resoudre( chemin, fct ) 
 	} 
 } 
 
@@ -108,7 +101,12 @@ impl Valeurs {
 	pub fn creer_valeur( &mut self, cle: String, valeur: String, valeur_type: Option<String> ) -> Retour { 
 		{
 			match self { 
-				Valeurs::Objet( h ) => h, 
+				Valeurs::Objet( h ) => { 
+					if h.len() >= NBRE_MAX_VALEURS { 
+						return Retour::creer_str( false, "objet plein (max. d'éléments atteints)" ) 
+					} 
+					h 
+				} 
 				_ => return Retour::creer_str( false, "tentative de création sur autre chose qu'un objet" ) 
 			} 
 		}.insert( 
@@ -153,23 +151,6 @@ impl Valeurs {
 		} 
 	}
 
-
-	pub fn acceder( &mut self, vecteur: &[&str] ) -> Option<&mut Self> { 
-		if vecteur.len() == 0 { 
-			Some( self ) 
-		} else { 
-			match self { 
-				Valeurs::Objet( h ) => { 
-					if let Some( valeur ) = h.get_mut( vecteur[0] ) { 
-						valeur.acceder( &vecteur[1..] ) 
-					} else { 
-						None 
-					} 
-				} 
-				_ => None 
-			} 
-		} 
-	} 
 	pub fn alterer( &mut self, r#type: &str ) -> bool { 
 		match r#type { 
 			"booléen" => match self { 
@@ -256,19 +237,6 @@ impl Valeurs {
 			_ => false 
 		} 
 	} 
-    pub fn ajouter_texte( &mut self, v: &str ) -> bool { 
-        match self { 
-            Valeurs::Texte( t ) => { 
-            	if t.len() + v.len() < TAILLE_TEXTE_MAX { 
-	            	t.push_str( v ); 
-	            	true 
-            	} else { 
-            		false 
-            	} 
-            } 
-            _ => return false 
-        } 
-    } 
 } 
 
 

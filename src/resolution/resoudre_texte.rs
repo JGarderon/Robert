@@ -14,6 +14,8 @@ use crate::resolution::Retour;
 
 // ---------------------------------------------------- 
 
+			// "ajouter" => resoudre_ajouter as Resolveur, -> vers texte 
+
 fn resoudre_contenir( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	let motif = if let Some( m ) = arguments.extraire() { 
 		m 
@@ -154,4 +156,39 @@ pub fn resoudre( appel: &str ) -> Result<Resolveur,Retour> {
 		_ => Err( Retour::creer_str( false, "module numérique : fonction inconnue" ) ) 
 	} 
 } 
+
+
+
+
+
+
+
+    // pub fn ajouter_texte( &mut self, v: &str ) -> bool { 
+    //     match self { 
+    //         Valeurs::Texte( t ) => { 
+    //         	if t.len() + v.len() < TAILLE_TEXTE_MAX { 
+	   //          	t.push_str( v ); 
+	   //          	true 
+    //         	} else { 
+    //         		false 
+    //         	} 
+    //         } 
+    //         _ => return false 
+    //     } 
+    // } 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

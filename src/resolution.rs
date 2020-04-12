@@ -1,9 +1,6 @@
 
 use std::io::Write; 
-use std::sync::Arc; 
-use std::sync::Mutex; 
 use std::net::TcpStream; 
-use std::collections::HashMap; 
 
 // ---------------------------------------------------- 
 
@@ -18,12 +15,20 @@ use crate::base::Valeurs;
 // mod resoudre_numerique; 
 // mod resoudre_texte; 
 // mod resoudre_canal; 
-// mod resoudre_administration; 
+mod resoudre_administration; 
 
-// ---------------------------------------------------- 
+// ----------------------------------------------------  
 
-use crate::NBRE_MAX_VALEURS; 
-use crate::base::AccesseurCanalV; 
+macro_rules! Canal {
+    ( $contexte:ident ) => {
+        { 
+        	match $contexte.canalthread.lock() { 
+        		Ok( c )	=> c, 
+        		Err( empoisonne ) => empoisonne.into_inner() 
+        	} 
+        } 
+    };
+} 
 
 // ---------------------------------------------------- 
 
@@ -111,7 +116,7 @@ impl Retour {
 
 // ---------------------------------------------------- 
 
-fn resoudre_stop( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+fn resoudre_stop ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	if !arguments.est_stop() { 
 		return Retour::creer_str( false, "aucun argument autorisé" ); 
 	} 
@@ -119,83 +124,8 @@ fn resoudre_stop( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> R
 	Retour::creer_str( true, "au revoir" ) 
 } 
 
-pub fn resoudre( contexte: &mut Contexte, appel: &str, arguments: &str ) -> Retour { 
-	(if let Some( n ) = appel.find( ':' ) { 
-		match &appel[..n] { 
-			// "numérique" => match resoudre_numerique::resoudre( &appel[n+1..] ) { 
-			// 	Ok( fct ) => fct, 
-			// 	Err( r ) => return r 
-			// }, 
-			// "texte" => match resoudre_texte::resoudre( &appel[n+1..] ) { 
-			// 	Ok( fct ) => fct, 
-			// 	Err( r ) => return r 
-			// }, 
-			// "canal" => match resoudre_canal::resoudre( &appel[n+1..] ) { 
-			// 	Ok( fct ) => fct, 
-			// 	Err( r ) => return r 
-			// }, 
-			// "administration" => match resoudre_administration::resoudre( &appel[n+1..] ) { 
-			// 	Ok( fct ) => fct, 
-			// 	Err( r ) => return r 
-			// }, 
-			_ => return Retour::creer_str( false, "module inconnu" ) 
-		}
-	} else { 
-		match appel { 
-			// actions génériques 
-			"stop" => resoudre_stop as Resolveur, 
-			// "vider" => resoudre_vider as Resolveur, 
-			"définir" => resoudre_definir as Resolveur, 
-			"obtenir" => resoudre_obtenir as Resolveur, 
-			// "supprimer" => resoudre_supprimer as Resolveur, 
-			// "lister" => resoudre_lister as Resolveur, 
-			// "tester" => resoudre_tester as Resolveur, 
-			// "ajouter" => resoudre_ajouter as Resolveur, 
-			// "altérer" => resoudre_alterer as Resolveur, 
-			// "résumer" => resoudre_resumer as Resolveur, 
-
-			_ => return Retour::creer_str( false, "module général : fonction inconnue" ) 
-		} 
-	})( 
-		contexte, 
-		ArgumentsLocaux { 
-	        source: arguments.chars().collect::<Vec<char>>(), 
-	        position: 0 
-	    } 
-	) 
-} 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-macro_rules! Canal {
-    ( $contexte:ident ) => {
-        { 
-        	match $contexte.canalthread.lock() { 
-        		Ok( c )	=> c, 
-        		Err( empoisonne ) => empoisonne.into_inner() 
-        	} 
-        } 
-    };
-} 
-
 fn resoudre_definir ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-	let mut arg_chemin = if let Some( c ) = arguments.extraire() { 
+	let arg_chemin = if let Some( c ) = arguments.extraire() { 
 		c 
 	} else { 
 		return Retour::creer_str( false, "un chemin vide n'est pas acceptable" ); 
@@ -234,7 +164,7 @@ fn resoudre_definir ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) 
 } 
 
 fn resoudre_obtenir ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-	let mut arg_chemin = if let Some( c ) = arguments.extraire() { 
+	let arg_chemin = if let Some( c ) = arguments.extraire() { 
 		c 
 	} else { 
 		return Retour::creer_str( false, "un chemin vide n'est pas acceptable" ); 
@@ -255,6 +185,132 @@ fn resoudre_obtenir ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) 
 		), 
 		Err( e ) => Retour::creer_str( false, e ) 
 	} 
+} 
+
+fn resoudre_supprimer ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	let arg_chemin = if let Some( c ) = arguments.extraire() { 
+		c 
+	} else { 
+		return Retour::creer_str( false, "un chemin vide n'est pas acceptable" ); 
+	}; 
+	let mut canal = Canal!( contexte ); 
+	match grammaire::chemin_extraire( &arg_chemin ) { 
+		Ok( chemin ) => canal.resoudre( 
+			&chemin[..chemin.len()-1], 
+			| parent | { 
+				match parent { 
+					Valeurs::Objet( h ) => if let Some( _ ) = h.remove( &chemin[chemin.len()-1].to_string() ) { 
+						Retour::creer_str( true, "la paire clé/valeur a été retirée" ) 
+					} else { 
+						Retour::creer_str( false, "cette clé n'existe pas dans l'objet" ) 
+					} 
+					_ => Retour::creer_str( false, "ce chemin n'amène pas à un objet" ) 
+				} 
+			} 
+		), 
+		Err( e ) => Retour::creer_str( false, e ) 
+	} 
+} 
+
+fn resoudre_tester ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	let arg_chemin = if let Some( c ) = arguments.extraire() { 
+		c 
+	} else { 
+		return Retour::creer_str( false, "un chemin vide n'est pas acceptable" ); 
+	}; 
+	let mut canal = Canal!( contexte ); 
+	match grammaire::chemin_extraire( &arg_chemin ) { 
+		Ok( chemin ) => canal.resoudre( 
+			&chemin, 
+			| _ | { 
+				Retour::creer_str( true, "ce chemin existe" ) 
+			} 
+		), 
+		Err( _ ) => Retour::creer_str( true, "ce chemin n'existe pas" ) 
+	} 
+} 
+
+fn resoudre_lister ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	let arg_chemin = if let Some( c ) = arguments.extraire() { 
+		c 
+	} else { 
+		return Retour::creer_str( false, "un chemin vide n'est pas acceptable" ); 
+	}; 
+	let mut canal = Canal!( contexte ); 
+	let mut stream_copie = match contexte.stream.try_clone() { 
+		Ok( s ) => s, 
+		Err( _ ) => return Retour::creer_str( false, "erreur interne ; copie du stream impossible" ) 
+	}; 
+	match grammaire::chemin_extraire( &arg_chemin ) { 
+		Ok( chemin ) => canal.resoudre( 
+			&chemin, 
+			| valeur | { 
+				match valeur { 
+					Valeurs::Objet( h ) => { 
+						for (cle, valeur) in h.iter() { 
+							if let Err(_) = stream_copie.write( 
+								format!( 
+									"\t{} : {:?}\n", 
+									cle, 
+									valeur 
+								).as_bytes() 
+							) { 
+								stream_copie.flush().unwrap(); 
+								return Retour::creer_str( false, "erreur lors de l'envoi" ); 
+							} 
+						} 
+						stream_copie.flush().unwrap(); 
+						Retour::creer( true, format!( "stop ({})", h.len() ) ) 
+					} 
+					_ => Retour::creer_str( false, "cette paire clé/valeur n'amène pas à un objet" ) 
+				} 
+			} 
+		), 
+		Err( _ ) => Retour::creer_str( true, "ce chemin n'existe pas" ) 
+	} 
+} 
+
+pub fn resoudre( contexte: &mut Contexte, appel: &str, arguments: &str ) -> Retour { 
+	(if let Some( n ) = appel.find( ':' ) { 
+		match &appel[..n] { 
+			// "numérique" => match resoudre_numerique::resoudre( &appel[n+1..] ) { 
+			// 	Ok( fct ) => fct, 
+			// 	Err( r ) => return r 
+			// }, 
+			// "texte" => match resoudre_texte::resoudre( &appel[n+1..] ) { 
+			// 	Ok( fct ) => fct, 
+			// 	Err( r ) => return r 
+			// }, 
+			// "canal" => match resoudre_canal::resoudre( &appel[n+1..] ) { 
+			// 	Ok( fct ) => fct, 
+			// 	Err( r ) => return r 
+			// }, 
+			"administration" => match resoudre_administration::resoudre( &appel[n+1..] ) { 
+				Ok( fct ) => fct, 
+				Err( r ) => return r 
+			}, 
+			_ => return Retour::creer_str( false, "module inconnu" ) 
+		}
+	} else { 
+		match appel { 
+			// actions génériques 
+			"stop" => resoudre_stop as Resolveur, 
+			"définir" => resoudre_definir as Resolveur, 
+			"obtenir" => resoudre_obtenir as Resolveur, 
+			"supprimer" => resoudre_supprimer as Resolveur, 
+			"tester" => resoudre_tester as Resolveur, 
+			"lister" => resoudre_lister as Resolveur, 
+			// "altérer" => resoudre_alterer as Resolveur, 
+
+			_ => return Retour::creer_str( false, "module général : fonction inconnue" ) 
+		} 
+	})( 
+		contexte, 
+		ArgumentsLocaux { 
+	        source: arguments.chars().collect::<Vec<char>>(), 
+	        position: 0 
+	    } 
+	) 
 } 
 
 

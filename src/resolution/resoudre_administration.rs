@@ -4,7 +4,7 @@ use std::mem;
 // ---------------------------------------------------- 
 
 use crate::base::Valeurs;
-use crate::base::Dictionnaire; 
+use crate::base::Canal; 
 use crate::resolution::Contexte; 
 use crate::grammaire::ArgumentsLocaux; 
 
@@ -26,20 +26,23 @@ impl Mesure for Valeurs {
 			Valeurs::Relatif( n ) => mem::size_of_val( n ), 
 			Valeurs::Flottant( f ) => mem::size_of_val( f ), 
 			Valeurs::Texte( t ) => mem::size_of_val( t )+t.as_bytes().len(), 
-			_ => 0 
+			Valeurs::Objet( h ) => mem::size_of_val( h ) 
 		} 
 	} 
 } 
 
-impl Mesure for Dictionnaire { 
+impl Mesure for Canal { 
 	fn mesurer( &self ) -> usize { 
 		let mut total = mem::size_of_val( &self ) 
 			+mem::size_of_val( &self.nom ) 
 			+self.nom.as_bytes().len() 
 			+mem::size_of_val( &self.liste ); 
-		for (cle, valeur) in self.liste.iter() { 
-			total += mem::size_of_val( &cle )+cle.as_bytes().len(); 
-			total += mem::size_of_val( &valeur )+valeur.mesurer(); 
+		match &self.liste { 
+			Valeurs::Objet( h ) => for (cle, valeur) in h.iter() { 
+				total += mem::size_of_val( &cle )+cle.as_bytes().len(); 
+				total += mem::size_of_val( &valeur )+valeur.mesurer(); 
+			} 
+			_ => panic!( "le canal '{}' est corrompu", self.nom ) 
 		} 
 		total 
 	} 
@@ -47,23 +50,47 @@ impl Mesure for Dictionnaire {
 
 // ---------------------------------------------------- 
 
-fn resoudre_calculer_taille( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+fn resoudre_mesurer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	if let Some( _ ) = arguments.extraire() { 
 		return Retour::creer_str( false, "aucun argument accepté pour cette fonction" ); 
 	} 
+	let canaux = { 
+		match contexte.canauxthread.lock() { 
+			Ok( canaux ) => canaux, 
+			Err( empoisonne ) => empoisonne.into_inner() 
+		} 
+	}; 
 	let mut total = 0; 
-	let dicos = contexte.dicos.lock().unwrap(); 
-	for (_, d) in dicos.liste.iter() { 
-		let dico = d.lock().unwrap(); 
-		total += dico.mesurer(); 
+	for (_, canalthread) in canaux.liste.iter() { 
+		total += { 
+			match canalthread.lock() { 
+				Ok( canal ) => canal, 
+				Err( empoisonne ) => empoisonne.into_inner() 
+			} 
+		}.mesurer(); 
 	} 
 	Retour::creer( true, format!( "total : {}", total ) ) 
+} 
+
+fn resoudre_vider( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	if !arguments.est_stop() { 
+		return Retour::creer_str( false, "aucun argument autorisé" ); 
+	} 
+	let mut canal = Canal!( contexte ); 
+	match &mut canal.liste { 
+		Valeurs::Objet( h ) => { 
+			h.clear(); 
+			Retour::creer_str( true, "base vidée" ) 
+		} 
+		_ => Retour::creer_str( false, "objet racine incorrect ; le canal semble corrompu" ) 
+	} 
 } 
 
 
 pub fn resoudre( appel: &str ) -> Result<Resolveur,Retour> { 
 	match appel { 
-		"calculertaille" => Ok( resoudre_calculer_taille as Resolveur ), 
+		"mesurer" => Ok( resoudre_mesurer as Resolveur ), 
+		"vider" => Ok( resoudre_vider as Resolveur ), 
 		_ => Err( Retour::creer_str( false, "module texte : fonction inconnue" ) ) 
 	} 
 } 

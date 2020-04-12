@@ -45,6 +45,17 @@ const NBRE_MAX_CANAUX: usize = 8;
 
 // --- --- --- --- --- --- --- --- --- 
 
+macro_rules! Canal {
+    ( $contexte:ident ) => {
+        { 
+        	match $contexte.canalthread.lock() { 
+        		Ok( c )	=> c, 
+        		Err( empoisonne ) => empoisonne.into_inner() 
+        	} 
+        } 
+    };
+} 
+
 mod resolution; 
 use crate::resolution::{Contexte}; 
 

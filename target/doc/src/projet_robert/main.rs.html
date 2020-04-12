@@ -151,6 +151,17 @@
 <span id="151">151</span>
 <span id="152">152</span>
 <span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
 </pre><div class="example-wrap"><pre class="rust ">
 
 <span class="doccomment">//! Robert est un logiciel type &quot;Redis-Like&quot; : un système de gestion de données haute performance, stockée en RAM, qui n&#39;offre cependant comme son illustre grand frère, toutes les finesses d&#39;une base de données SQL classique. </span>
@@ -198,6 +209,17 @@
 <span class="kw">const</span> <span class="ident">NBRE_MAX_CANAUX</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">8</span>; 
 
 <span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">Canal</span> {
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">contexte</span>:<span class="ident">ident</span> ) <span class="op">=</span><span class="op">&gt;</span> {
+        { 
+        	<span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">contexte</span>.<span class="ident">canalthread</span>.<span class="ident">lock</span>() { 
+        		<span class="prelude-val">Ok</span>( <span class="ident">c</span> )	<span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>, 
+        		<span class="prelude-val">Err</span>( <span class="ident">empoisonne</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">empoisonne</span>.<span class="ident">into_inner</span>() 
+        	} 
+        } 
+    };
+} 
 
 <span class="kw">mod</span> <span class="ident">resolution</span>; 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::{<span class="ident">Contexte</span>}; 
