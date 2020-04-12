@@ -108,6 +108,22 @@ fn resoudre_vider( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> 
 // 	Retour::creer( true, format!( "stop ({})", dicos.liste.len() ) ) 
 // } 
 
+// fn resoudre_resumer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+// 	if !arguments.est_stop() { 
+// 		return Retour::creer_str( false, "aucun argument autorisé" ); 
+// 	} 
+// 	let dico = contexte.dico.lock().unwrap(); 
+// 	let valeurs = &dico.liste; 
+// 	Retour::creer(  
+// 		true, 
+// 		format!( 
+// 			"canal \"{}\" ({})", 
+// 			dico.nom, 
+// 			valeurs.len() 
+// 		) 
+// 	) 
+// } 
+
 
 pub fn resoudre( appel: &str ) -> Result<Resolveur,Retour> { 
 	match appel { 
