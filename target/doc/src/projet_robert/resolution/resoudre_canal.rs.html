@@ -234,6 +234,49 @@
 <span id="234">234</span>
 <span id="235">235</span>
 <span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
 </pre><div class="example-wrap"><pre class="rust ">
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>; 
@@ -258,8 +301,6 @@
 
 <span class="comment">// ---------------------------------------------------- </span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">DEBUG</span>; 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">CANAL_NOM_DEFAUT</span>; 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">NBRE_MAX_CANAUX</span>; 
 
 <span class="comment">// ---------------------------------------------------- </span>
@@ -302,7 +343,7 @@
 <span class="doccomment">/// # Fonction de résolution locale &quot;supprimer un canal existant&quot; </span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Cette fonction tentera de supprimer un canal existant mais auparavant, elle avertira tous les éventuels souscripteurs présents de cette action, et les retira de la liste des souscripteurs. </span>
-<span class="doccomment">///</span>
+<span class="doccomment">/// </span>
 <span class="kw">fn</span> <span class="ident">resoudre_supprimer</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
 	<span class="kw">let</span> <span class="ident">nom</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">n</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
 		<span class="ident">n</span> 
@@ -337,7 +378,7 @@
 		} <span class="kw">else</span> { 
 			<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;canal inexistant&quot;</span> ) 
 		} 
-	}
+	} 
 } 
 
 <span class="doccomment">/// # Fonction de résolution locale &quot;tester l&#39;existence d&#39;un canal&quot; </span>
@@ -388,79 +429,124 @@
 	<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;canal privé actif&quot;</span> ) 
 } 
 
-<span class="comment">// fn resoudre_changer( contexte: &amp;mut Contexte, mut arguments: ArgumentsLocaux ) -&gt; Retour { </span>
-<span class="comment">// 	let nom = if let Some( n ) = arguments.extraire() { </span>
-<span class="comment">// 		n </span>
-<span class="comment">// 	} else { </span>
-<span class="comment">// 		return Retour::creer_str( false, &quot;nom de canal obligatoire&quot; ); </span>
-<span class="comment">// 	}; </span>
-<span class="comment">// 	if nom.len() &gt; 32 { </span>
-<span class="comment">// 		Retour::creer_str( false, &quot;nom de canal trop long (max. 32)&quot; ) </span>
-<span class="comment">// 	} else { </span>
-<span class="comment">// 		let dicos = contexte.dicos.lock().unwrap(); </span>
-<span class="comment">// 		if dicos.liste.contains_key( &amp;nom ) { </span>
-<span class="comment">// 			contexte.dico = dicos.liste[&amp;nom].clone(); </span>
-<span class="comment">// 			Retour::creer_str( true, &quot;canal modifié&quot; ) </span>
-<span class="comment">// 		} else { </span>
-<span class="comment">// 			Retour::creer_str( false, &quot;canal inexistant&quot; ) </span>
-<span class="comment">// 		} </span>
-<span class="comment">// 	} </span>
-<span class="comment">// } </span>
+<span class="doccomment">/// # Fonction de résolution locale &quot;renommer un canal existant&quot; </span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Cette fonction repose en grande partie sur sa soeur de suppression d&#39;un canal existant. La raison repose sur le fonctionnement interne de Rust : &quot;_It is a logic error for a key to be modified in such a way that the key&#39;s hash, as determined by the Hash trait, or its equality, as determined by the Eq trait, changes while it is in the map. This is normally only possible through Cell, RefCell, global state, I/O, or unsafe code._&quot; (voir : https://doc.rust-lang.org/std/collections/struct.HashMap.html) </span>
+<span class="doccomment">/// </span>
+<span class="doccomment">/// Robert évitant à tout prix le code non-sûr et vu la complexité introduite avec les souscripteurs, il est plus aisé qu&#39;un renommage produise l&#39;effet d&#39;une suppression et la réintroduction du canal avec son nouveau nom. </span>
+<span class="doccomment">/// </span>
+<span class="kw">fn</span> <span class="ident">resoudre_renommer</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
+	<span class="kw">let</span> <span class="ident">ancien_nom</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">n</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
+		<span class="ident">n</span> 
+	} <span class="kw">else</span> { 
+		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;ancien nom de canal obligatoire&quot;</span> ); 
+	}; 
+	<span class="kw">let</span> <span class="ident">nouveau_nom</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">n</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
+		<span class="ident">n</span> 
+	} <span class="kw">else</span> { 
+		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;nouveau nom de canal obligatoire&quot;</span> ); 
+	}; 
+	<span class="kw">if</span> <span class="ident">ancien_nom</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">32</span> <span class="op">|</span><span class="op">|</span> <span class="ident">ancien_nom</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">32</span> { 
+		<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;l&#39;un des deux noms est trop long (max. 32)&quot;</span> ) 
+	} <span class="kw">else</span> { 
+		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">canaux</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">contexte</span>.<span class="ident">canauxthread</span>.<span class="ident">lock</span>() { 
+			<span class="prelude-val">Ok</span>( <span class="ident">c</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>, 
+			<span class="prelude-val">Err</span>( <span class="ident">e</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">into_inner</span>() 
+		}; 
+		<span class="kw">if</span> <span class="ident">canaux</span>.<span class="ident">liste</span>.<span class="ident">contains_key</span>( <span class="kw-2">&amp;</span><span class="ident">nouveau_nom</span> ) { 
+			<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;nouveau nom de canal déjà existant&quot;</span> ); 
+		} 
+		<span class="kw">if</span> <span class="ident">canaux</span>.<span class="ident">liste</span>.<span class="ident">contains_key</span>( <span class="kw-2">&amp;</span><span class="ident">ancien_nom</span> ) { 
+			{ 
+				<span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="string">&quot;canal modifié&quot;</span>.<span class="ident">to_string</span>(); 
+				<span class="kw">match</span> <span class="ident">canaux</span>.<span class="ident">liste</span>[<span class="kw-2">&amp;</span><span class="ident">ancien_nom</span>].<span class="ident">lock</span>() { 
+					<span class="prelude-val">Ok</span>( <span class="ident">c</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>, 
+					<span class="prelude-val">Err</span>( <span class="ident">e</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">into_inner</span>() 
+				}.<span class="ident">souscripteurs</span>.<span class="ident">retain</span>( 
+					<span class="op">|</span> <span class="ident">souscripteur</span> <span class="op">|</span> { 
+						<span class="ident">souscripteur</span>.<span class="ident">send</span>( <span class="ident">message</span>.<span class="ident">clone</span>() ).<span class="ident">unwrap</span>(); 
+						<span class="bool-val">false</span> 
+					} 
+				); 
+			} 
+			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">canal</span> ) <span class="op">=</span> <span class="ident">canaux</span>.<span class="ident">liste</span>.<span class="ident">remove</span>( <span class="kw-2">&amp;</span><span class="ident">ancien_nom</span> ) { 
+				<span class="kw">match</span> <span class="ident">canal</span>.<span class="ident">lock</span>() { 
+					<span class="prelude-val">Ok</span>( <span class="ident">c</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>, 
+					<span class="prelude-val">Err</span>( <span class="ident">e</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">into_inner</span>() 
+				}.<span class="ident">nom</span> <span class="op">=</span> <span class="ident">nouveau_nom</span>.<span class="ident">to_string</span>(); 
+				<span class="ident">canaux</span>.<span class="ident">liste</span>.<span class="ident">insert</span>( 
+					<span class="ident">nouveau_nom</span>, 
+					<span class="ident">canal</span> 
+				); 
+				<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;canal supprimé&quot;</span> ) 
+			} <span class="kw">else</span> { 
+				<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;impossible de supprimer le canal&quot;</span> ) 
+			} 
+		} <span class="kw">else</span> { 
+			<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;canal inexistant&quot;</span> ) 
+		} 
+	} 
+} 
 
-<span class="comment">// fn resoudre_souscrire( contexte: &amp;mut Contexte, mut arguments: ArgumentsLocaux ) -&gt; Retour { </span>
-<span class="comment">// 	if let Some( _ ) = arguments.extraire() { </span>
-<span class="comment">// 		return Retour::creer_str( false, &quot;aucun argument accepté pour cette fonction&quot; ); </span>
-<span class="comment">// 	} </span>
-<span class="comment">// 	let (expediteur, destinaire): ( Sender&lt;String&gt;, Receiver&lt;String&gt; ) = mpsc::channel(); </span>
-<span class="comment">// 	{ </span>
-<span class="comment">// 		let mut dico = contexte.dico.lock().unwrap(); </span>
-<span class="comment">// 		dico.souscripteurs.push( expediteur ); </span>
-<span class="comment">// 	} </span>
-<span class="comment">// 	while let Ok( m ) = destinaire.recv() { </span>
-<span class="comment">// 		if let Ok( _ ) = contexte.stream.write( </span>
-<span class="comment">// 			format!( &quot;\t&gt;&gt;&gt; {}\n&quot;, m ).as_bytes() </span>
-<span class="comment">// 		) { </span>
-<span class="comment">// 			if let Ok( _ ) = contexte.stream.flush() { </span>
-<span class="comment">// 			} else { </span>
-<span class="comment">// 				break; </span>
-<span class="comment">// 			} </span>
-<span class="comment">// 		} else { </span>
-<span class="comment">// 			break; </span>
-<span class="comment">// 		}  </span>
-<span class="comment">// 	} </span>
-<span class="comment">// 	Retour::creer_str( true, &quot;diffusion terminée&quot; ) </span>
-<span class="comment">// } </span>
+<span class="kw">fn</span> <span class="ident">resoudre_souscrire</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
+	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="kw">_</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
+		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;aucun argument accepté pour cette fonction&quot;</span> ); 
+	} 
+	<span class="kw">let</span> (<span class="ident">expediteur</span>, <span class="ident">destinaire</span>): ( <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> ) <span class="op">=</span> <span class="ident">mpsc</span>::<span class="ident">channel</span>(); 
+	{ 
+		<span class="kw">match</span> <span class="ident">contexte</span>.<span class="ident">canalthread</span>.<span class="ident">lock</span>() { 
+			<span class="prelude-val">Ok</span>( <span class="ident">c</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>, 
+			<span class="prelude-val">Err</span>( <span class="ident">e</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">into_inner</span>() 
+		}.<span class="ident">souscripteurs</span>.<span class="ident">push</span>( <span class="ident">expediteur</span> ); 
+	} 
+	<span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>( <span class="ident">m</span> ) <span class="op">=</span> <span class="ident">destinaire</span>.<span class="ident">recv</span>() { 
+		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>( <span class="kw">_</span> ) <span class="op">=</span> <span class="ident">contexte</span>.<span class="ident">stream</span>.<span class="ident">write</span>( 
+			<span class="macro">format</span><span class="macro">!</span>( <span class="string">&quot;\t&gt;&gt;&gt; {}\n&quot;</span>, <span class="ident">m</span> ).<span class="ident">as_bytes</span>() 
+		) { 
+			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>( <span class="kw">_</span> ) <span class="op">=</span> <span class="ident">contexte</span>.<span class="ident">stream</span>.<span class="ident">flush</span>() { 
+			} <span class="kw">else</span> { 
+				<span class="kw">break</span>; 
+			} 
+		} <span class="kw">else</span> { 
+			<span class="kw">break</span>; 
+		}  
+	} 
+	<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;diffusion terminée&quot;</span> ) 
+} 
 
-<span class="comment">// fn resoudre_emettre( contexte: &amp;mut Contexte, arguments: ArgumentsLocaux ) -&gt; Retour { </span>
-<span class="comment">// 	let mut dico = contexte.dico.lock().unwrap(); </span>
-<span class="comment">// 	let message = arguments.source.iter().collect::&lt;String&gt;(); </span>
-<span class="comment">// 	dico.souscripteurs.retain( </span>
-<span class="comment">// 		| souscripteur | { </span>
-<span class="comment">// 			if let Ok( _ ) = souscripteur.send( message.clone() ) { </span>
-<span class="comment">// 				true </span>
-<span class="comment">// 			} else { </span>
-<span class="comment">// 				false </span>
-<span class="comment">// 			} </span>
-<span class="comment">// 		} </span>
-<span class="comment">// 	); </span>
-<span class="comment">// 	Retour::creer( </span>
-<span class="comment">// 		true, </span>
-<span class="comment">// 		format!( </span>
-<span class="comment">// 			&quot;diffusion émise aux souscripteurs ({})&quot;, </span>
-<span class="comment">// 			dico.souscripteurs.len() </span>
-<span class="comment">// 		) </span>
-<span class="comment">// 	) </span>
-<span class="comment">// } </span>
+<span class="kw">fn</span> <span class="ident">resoudre_emettre</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
+	<span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">source</span>.<span class="ident">iter</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(); 
+	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">contexte</span>.<span class="ident">canalthread</span>.<span class="ident">lock</span>() { 
+		<span class="prelude-val">Ok</span>( <span class="ident">c</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>, 
+		<span class="prelude-val">Err</span>( <span class="ident">e</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">into_inner</span>() 
+	}; 
+	<span class="ident">c</span>.<span class="ident">souscripteurs</span>.<span class="ident">retain</span>( 
+		<span class="op">|</span> <span class="ident">souscripteur</span> <span class="op">|</span> { 
+			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>( <span class="kw">_</span> ) <span class="op">=</span> <span class="ident">souscripteur</span>.<span class="ident">send</span>( <span class="ident">message</span>.<span class="ident">clone</span>() ) { 
+				<span class="bool-val">true</span> 
+			} <span class="kw">else</span> { 
+				<span class="bool-val">false</span> 
+			} 
+		} 
+	); 
+	<span class="ident">Retour</span>::<span class="ident">creer</span>( 
+		<span class="bool-val">true</span>, 
+		<span class="macro">format</span><span class="macro">!</span>( 
+			<span class="string">&quot;diffusion émise aux souscripteurs ({})&quot;</span>, 
+			<span class="ident">c</span>.<span class="ident">souscripteurs</span>.<span class="ident">len</span>() 
+		) 
+	) 
+} 
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resoudre</span>( <span class="ident">appel</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Resolveur</span>,<span class="ident">Retour</span><span class="op">&gt;</span> { 
 	<span class="kw">match</span> <span class="ident">appel</span> { 
 		<span class="string">&quot;créer&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>( <span class="ident">resoudre_creer</span> <span class="kw">as</span> <span class="ident">Resolveur</span> ), 
 		<span class="string">&quot;supprimer&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>( <span class="ident">resoudre_supprimer</span> <span class="kw">as</span> <span class="ident">Resolveur</span> ), 
 		<span class="string">&quot;tester&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>( <span class="ident">resoudre_tester</span> <span class="kw">as</span> <span class="ident">Resolveur</span> ), 
-		<span class="comment">// &quot;capturer&quot; =&gt; Ok( resoudre_capturer as Resolveur ), </span>
-		<span class="comment">// &quot;changer&quot; =&gt; Ok( resoudre_changer as Resolveur ), </span>
-		<span class="comment">// &quot;souscrire&quot; =&gt; Ok( resoudre_souscrire as Resolveur ), </span>
-		<span class="comment">// &quot;emettre&quot; =&gt; Ok( resoudre_emettre as Resolveur ), </span>
+		<span class="string">&quot;capturer&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>( <span class="ident">resoudre_capturer</span> <span class="kw">as</span> <span class="ident">Resolveur</span> ), 
+		<span class="string">&quot;renommer&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>( <span class="ident">resoudre_renommer</span> <span class="kw">as</span> <span class="ident">Resolveur</span> ), 
+		<span class="string">&quot;souscrire&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>( <span class="ident">resoudre_souscrire</span> <span class="kw">as</span> <span class="ident">Resolveur</span> ), 
+		<span class="string">&quot;emettre&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>( <span class="ident">resoudre_emettre</span> <span class="kw">as</span> <span class="ident">Resolveur</span> ), 
 		<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>( <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;module texte : fonction inconnue&quot;</span> ) ) 
 	} 
 } 
