@@ -270,6 +270,33 @@ fn resoudre_lister ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 	} 
 } 
 
+fn resoudre_alterer ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	let arg_chemin = if let Some( c ) = arguments.extraire() { 
+		c 
+	} else { 
+		return Retour::creer_str( false, "un chemin vide n'est pas acceptable" ); 
+	}; 
+	let valeur_type = if let Some( vt ) = arguments.extraire() { 
+		vt 
+	} else { 
+		return Retour::creer_str( false, "vous devez spécifier un type correct pour l'altération" ); 
+	}; 
+	let mut canal = Canal!( contexte ); 
+	match grammaire::chemin_extraire( &arg_chemin ) { 
+		Ok( chemin ) => canal.resoudre( 
+			&chemin, 
+			| valeur | { 
+				if valeur.alterer( &valeur_type ) { 
+					Retour::creer_str( true, "altération effectuée" ) 
+				} else { 
+					Retour::creer_str( true, "altération impossible" ) 
+				} 
+			} 
+		), 
+		Err( _ ) => Retour::creer_str( true, "ce chemin n'existe pas" ) 
+	} 
+} 
+
 pub fn resoudre( contexte: &mut Contexte, appel: &str, arguments: &str ) -> Retour { 
 	(if let Some( n ) = appel.find( ':' ) { 
 		match &appel[..n] { 
@@ -300,7 +327,7 @@ pub fn resoudre( contexte: &mut Contexte, appel: &str, arguments: &str ) -> Reto
 			"supprimer" => resoudre_supprimer as Resolveur, 
 			"tester" => resoudre_tester as Resolveur, 
 			"lister" => resoudre_lister as Resolveur, 
-			// "altérer" => resoudre_alterer as Resolveur, 
+			"altérer" => resoudre_alterer as Resolveur, 
 
 			_ => return Retour::creer_str( false, "module général : fonction inconnue" ) 
 		} 

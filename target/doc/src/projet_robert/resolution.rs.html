@@ -315,6 +315,33 @@
 <span id="315">315</span>
 <span id="316">316</span>
 <span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
 </pre><div class="example-wrap"><pre class="rust ">
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>; 
@@ -588,6 +615,33 @@
 	} 
 } 
 
+<span class="kw">fn</span> <span class="ident">resoudre_alterer</span> ( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
+	<span class="kw">let</span> <span class="ident">arg_chemin</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">c</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
+		<span class="ident">c</span> 
+	} <span class="kw">else</span> { 
+		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;un chemin vide n&#39;est pas acceptable&quot;</span> ); 
+	}; 
+	<span class="kw">let</span> <span class="ident">valeur_type</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">vt</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
+		<span class="ident">vt</span> 
+	} <span class="kw">else</span> { 
+		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;vous devez spécifier un type correct pour l&#39;altération&quot;</span> ); 
+	}; 
+	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">canal</span> <span class="op">=</span> <span class="macro">Canal</span><span class="macro">!</span>( <span class="ident">contexte</span> ); 
+	<span class="kw">match</span> <span class="ident">grammaire</span>::<span class="ident">chemin_extraire</span>( <span class="kw-2">&amp;</span><span class="ident">arg_chemin</span> ) { 
+		<span class="prelude-val">Ok</span>( <span class="ident">chemin</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">canal</span>.<span class="ident">resoudre</span>( 
+			<span class="kw-2">&amp;</span><span class="ident">chemin</span>, 
+			<span class="op">|</span> <span class="ident">valeur</span> <span class="op">|</span> { 
+				<span class="kw">if</span> <span class="ident">valeur</span>.<span class="ident">alterer</span>( <span class="kw-2">&amp;</span><span class="ident">valeur_type</span> ) { 
+					<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;altération effectuée&quot;</span> ) 
+				} <span class="kw">else</span> { 
+					<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;altération impossible&quot;</span> ) 
+				} 
+			} 
+		), 
+		<span class="prelude-val">Err</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;ce chemin n&#39;existe pas&quot;</span> ) 
+	} 
+} 
+
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resoudre</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="ident">appel</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">arguments</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
 	(<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">n</span> ) <span class="op">=</span> <span class="ident">appel</span>.<span class="ident">find</span>( <span class="string">&#39;:&#39;</span> ) { 
 		<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">appel</span>[..<span class="ident">n</span>] { 
@@ -618,7 +672,7 @@
 			<span class="string">&quot;supprimer&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">resoudre_supprimer</span> <span class="kw">as</span> <span class="ident">Resolveur</span>, 
 			<span class="string">&quot;tester&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">resoudre_tester</span> <span class="kw">as</span> <span class="ident">Resolveur</span>, 
 			<span class="string">&quot;lister&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">resoudre_lister</span> <span class="kw">as</span> <span class="ident">Resolveur</span>, 
-			<span class="comment">// &quot;altérer&quot; =&gt; resoudre_alterer as Resolveur, </span>
+			<span class="string">&quot;altérer&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">resoudre_alterer</span> <span class="kw">as</span> <span class="ident">Resolveur</span>, 
 
 			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;module général : fonction inconnue&quot;</span> ) 
 		} 

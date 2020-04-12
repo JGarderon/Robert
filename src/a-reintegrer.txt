@@ -2,63 +2,6 @@
 
 
 
-// fn resoudre_ajouter( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-// 	let cle = if let Some( c ) = arguments.extraire() { 
-// 		c 
-// 	} else { 
-// 		return Retour::creer_str( false, "une clé vide n'est pas une clé acceptable" ); 
-// 	}; 
-// 	let ajout = if let Some( v ) = arguments.extraire() { 
-// 		v 
-// 	} else { 
-// 		return Retour::creer_str( false, "aucune valeur fournie ou séparateur clé/valeur non-respecté (espace simple)" ); 
-// 	}; 
-// 	if !arguments.est_stop() { 
-// 		return Retour::creer_str( false, "trop d'arguments fournis (maximum 2)" ); 
-// 	} 
-// 	let mut dico = contexte.dico.lock().unwrap(); 
-// 	let valeurs = &mut dico.liste; 
-// 	if let Some( v ) = valeurs.get_mut( &cle ) { 
-// 		if v.ajouter_texte( &ajout ) { 
-// 			Retour::creer_str( true, "valeur modifée" ) 
-// 		} else { 
-// 			Retour::creer_str( false, "ce format n'est pas supporté ou le texte est trop long" ) 
-// 		} 
-// 	} else { 
-// 		Retour::creer_str( false, "clé inconnue" ) 
-// 	} 
-// } 
-
-// fn resoudre_alterer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-// 	let cle = if let Some( c ) = arguments.extraire() { 
-// 		c 
-// 	} else { 
-// 		return Retour::creer_str( false, "vous devez spécifier une clé existante" ); 
-// 	}; 
-// 	let valeur_type = if let Some( t ) = arguments.extraire() { 
-// 		t 
-// 	} else { 
-// 		return Retour::creer_str( false, "vous devez spécifier un type connu" ); 
-// 	}; 
-// 	if !arguments.est_stop() { 
-// 		return Retour::creer_str( false, "trop d'arguments fournis (maximum 2)" ); 
-// 	} 
-// 	let mut dico = contexte.dico.lock().unwrap(); 
-// 	let valeurs = &mut dico.liste; 
-// 	if let Some( v ) = valeurs.get_mut( &cle ) { 
-// 		if v.alterer( &valeur_type ) { 
-// 			Retour::creer_str( true, "altération effectuée" ) 
-// 		} else { 
-// 			Retour::creer( false, format!( 
-// 				"altération impossible avec ce type '{}'", 
-// 				valeur_type 
-// 			) ) 
-// 		} 
-// 	} else { 
-// 		Retour::creer_str( false, "clé inconnue" ) 
-// 	} 
-// } 
-
 // fn resoudre_resumer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 // 	if !arguments.est_stop() { 
 // 		return Retour::creer_str( false, "aucun argument autorisé" ); 
