@@ -1,10 +1,7 @@
 
-use std::io::Write; 
-
-// ---------------------------------------------------- 
-
 use crate::base::Valeurs; 
 use crate::resolution::Contexte; 
+use crate::grammaire; 
 use crate::grammaire::ArgumentsLocaux; 
 
 // ---------------------------------------------------- 
@@ -14,145 +11,150 @@ use crate::resolution::Retour;
 
 // ---------------------------------------------------- 
 
-			// "ajouter" => resoudre_ajouter as Resolveur, -> vers texte 
+use crate::TAILLE_TEXTE_MAX; 
 
-fn resoudre_contenir( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-	let motif = if let Some( m ) = arguments.extraire() { 
-		m 
-	} else { 
-		return Retour::creer_str( false, "motif de recherche obligatoire" ); 
-	}; 
-	let dico = contexte.dico.lock().unwrap(); 
-	let mut i = 0; 
-	for (cle, valeur) in dico.liste.iter() { 
-		match valeur { 
-			Valeurs::Texte( t ) => { 
-				if t.contains( &motif ) { 
-					if let Err(_) = contexte.stream.write( 
-						format!( 
-							"\t{}\n", 
-							cle 
-						).as_bytes() 
-					) { 
-						contexte.stream.flush().unwrap(); 
-						return Retour::creer_str( false, "erreur lors de l'envoi" ); 
-					} 
-					i += 1; 
-				} 
-			} 
-			_ => () 
-		} 
-	} 
-	Retour::creer( true, format!( "stop ({})", i ) ) 
-} 
+// ---------------------------------------------------- 
 
-fn resoudre_debuter( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-	let motif = if let Some( m ) = arguments.extraire() { 
-		m 
-	} else { 
-		return Retour::creer_str( false, "motif de recherche obligatoire" ); 
-	}; 
-	let dico = contexte.dico.lock().unwrap(); 
-	let mut i = 0; 
-	for (cle, valeur) in dico.liste.iter() { 
-		match valeur { 
-			Valeurs::Texte( t ) => { 
-				if t.starts_with( &motif ) { 
-					if let Err(_) = contexte.stream.write( 
-						format!( 
-							"\t{}\n", 
-							cle 
-						).as_bytes() 
-					) { 
-						contexte.stream.flush().unwrap(); 
-						return Retour::creer_str( false, "erreur lors de l'envoi" ); 
-					} 
-					i += 1; 
-				} 
-			} 
-			_ => () 
-		} 
-	} 
-	Retour::creer( true, format!( "stop ({})", i ) ) 
-} 
-
-fn resoudre_terminer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-	let motif = if let Some( m ) = arguments.extraire() { 
-		m 
-	} else { 
-		return Retour::creer_str( false, "motif de recherche obligatoire" ); 
-	}; 
-	let dico = contexte.dico.lock().unwrap(); 
-	let mut i = 0; 
-	for (cle, valeur) in dico.liste.iter() { 
-		match valeur { 
-			Valeurs::Texte( t ) => { 
-				if t.ends_with( &motif ) { 
-					if let Err(_) = contexte.stream.write( 
-						format!( 
-							"\t{}\n", 
-							cle 
-						).as_bytes() 
-					) { 
-						contexte.stream.flush().unwrap(); 
-						return Retour::creer_str( false, "erreur lors de l'envoi" ); 
-					} 
-					i += 1; 
-				} 
-			} 
-			_ => () 
-		} 
-	} 
-	Retour::creer( true, format!( "stop ({})", i ) ) 
-} 
-
-fn resoudre_remplacer_un( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-	let cle = if let Some( c ) = arguments.extraire() { 
+/// # Fonction de résolution locale "ajouter du texte" 
+///
+fn resoudre_ajouter( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	let arg_chemin = if let Some( c ) = arguments.extraire() { 
 		c 
 	} else { 
-		return Retour::creer_str( false, "clé obligatoire" ); 
+		return Retour::creer_str( false, "un chemin vide n'est pas acceptable" ); 
 	}; 
-	let recherche = if let Some( m ) = arguments.extraire() { 
-		m 
+	let ajout = if let Some( c ) = arguments.extraire() { 
+		c 
 	} else { 
-		return Retour::creer_str( false, "motif de recherche obligatoire" ); 
+		return Retour::creer_str( false, "aucun texte supplémentaire fourni" ); 
 	}; 
-	let remplacement = if let Some( r ) = arguments.extraire() { 
-		r 
-	} else { 
-		return Retour::creer_str( false, "motif de remplacement obligatoire" ); 
-	}; 
-	let nbre_max =  arguments.extraire(); 
-	let mut dico = contexte.dico.lock().unwrap(); 
-	let valeurs = &mut dico.liste; 
-	if let Some( v ) = valeurs.get_mut( &cle ) { 
-		match v { 
-			Valeurs::Texte( t ) => { 
-				if let Some( t_n ) = nbre_max { 
-					if let Ok( n ) = t_n.parse() { 
-						*t = t.replacen( &recherche, &remplacement, n ); 
-						Retour::creer_str( true, "remplacement(s) effectué(s)" ) 
-					} else { 
-						Retour::creer_str( true, "nbre de remplacements maximum invalide" ) 
+	let mut canal = Canal!( contexte ); 
+	match grammaire::chemin_extraire( &arg_chemin ) { 
+		Ok( chemin ) => canal.resoudre( 
+			&chemin, 
+			| valeur | { 
+				match valeur { 
+					Valeurs::Texte( t ) => { 
+						if t.len()+ajout.len() < TAILLE_TEXTE_MAX { 
+							t.push_str( &ajout ); 
+							Retour::creer_str( true, "texte ajouté" ) 
+						} else { 
+							Retour::creer_str( true, "texte final trop long" ) 
+						}
 					} 
-				} else { 
-					*t = t.replace( &recherche, &remplacement ); 
-					Retour::creer_str( true, "remplacement(s) effectué(s)" ) 
+					_ => Retour::creer_str( false, "le type de valeur cible n'est pas conforme" ) 
 				} 
 			} 
-			_ => Retour::creer_str( false, "la valeur n'est pas un texte" ) 
-		} 
+		), 
+		Err( _ ) => Retour::creer_str( false, "ce chemin n'existe pas" ) 
+	} 
+} 
+
+/// # Fonction de résolution locale "compter le texte (caractères)" 
+///
+fn resoudre_compter( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	let arg_chemin = if let Some( c ) = arguments.extraire() { 
+		c 
 	} else { 
-		Retour::creer_str( false, "erreur lors de l'envoi" ) 
+		return Retour::creer_str( false, "un chemin vide n'est pas acceptable" ); 
+	}; 
+	let mut canal = Canal!( contexte ); 
+	match grammaire::chemin_extraire( &arg_chemin ) { 
+		Ok( chemin ) => canal.resoudre( 
+			&chemin, 
+			| valeur | { 
+				match valeur { 
+					Valeurs::Texte( t ) => { 
+						Retour::creer( true, format!( "{} caractères", t.chars().count() ) ) 
+					} 
+					_ => Retour::creer_str( false, "le type de valeur cible n'est pas conforme" ) 
+				} 
+			} 
+		), 
+		Err( _ ) => Retour::creer_str( false, "ce chemin n'existe pas" ) 
+	} 
+} 
+
+/// # Fonction de résolution locale "découper du texte (caractères)" 
+///
+fn resoudre_decouper( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	let arg_chemin = if let Some( c ) = arguments.extraire() { 
+		c 
+	} else { 
+		return Retour::creer_str( false, "un chemin vide n'est pas acceptable" ); 
+	}; 
+	let debut = match {
+		if let Some( d ) = arguments.extraire() { 
+			d 
+		} else { 
+			return Retour::creer_str( false, "l'origine est impérative" ); 
+		} 
+	}.parse::<usize>() { 
+		Ok( n ) => n, 
+		Err( _ ) => return Retour::creer_str( false, "origine =/= entier positif " ) 
+	}; 
+	let fin = arguments.extraire(); 
+	let mut canal = Canal!( contexte ); 
+	match grammaire::chemin_extraire( &arg_chemin ) { 
+		Ok( chemin ) => canal.resoudre( 
+			&chemin, 
+			| valeur | { 
+				match valeur { 
+					Valeurs::Texte( t ) => { 
+						if debut >= t.len() { 
+							Retour::creer_str( false, "origine hors borne" ) 
+						} else { 
+							let mut position = 0; 
+							match fin { 
+								Some( f ) => match f.parse::<usize>() { 
+									Ok( n ) => { 
+										if n > t.len() { 
+											Retour::creer_str( false, "fin hors borne" ) 
+										} else { 
+											t.retain( 
+												| _ | { 
+													position += 1; 
+													if position-1 < debut || position-1 > n { 
+														false 
+													} else { 
+														true 
+													} 
+												} 
+											); 
+											Retour::creer_str( true, "texte découpé" ) 
+										} 
+									} 
+									Err( _ ) => Retour::creer_str( false, "fin =/= entier positif " ) 
+								} 
+								None => { 
+									t.retain( 
+										| _ | { 
+											position += 1; 
+											if position-1 < debut { 
+												false 
+											} else { 
+												true 
+											} 
+										} 
+									); 
+									Retour::creer_str( true, "texte découpé" ) 
+								} 
+							} 
+						} 
+					} 
+					_ => Retour::creer_str( false, "le type de valeur cible n'est pas conforme" ) 
+				} 
+			} 
+		), 
+		Err( _ ) => Retour::creer_str( false, "ce chemin n'existe pas" ) 
 	} 
 } 
 
 pub fn resoudre( appel: &str ) -> Result<Resolveur,Retour> { 
 	match appel { 
-		"contenir" => Ok( resoudre_contenir as Resolveur ), 
-		"débuter" => Ok( resoudre_debuter as Resolveur ), 
-		"terminer" => Ok( resoudre_terminer as Resolveur ), 
-		"remplacerun" => Ok( resoudre_remplacer_un as Resolveur ), 
+		"ajouter" => Ok( resoudre_ajouter as Resolveur ), 
+		"compter" => Ok( resoudre_compter as Resolveur ), 
+		"découper" => Ok( resoudre_decouper as Resolveur ), 
 		_ => Err( Retour::creer_str( false, "module numérique : fonction inconnue" ) ) 
 	} 
 } 

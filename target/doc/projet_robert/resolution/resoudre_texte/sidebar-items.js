@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["resoudre",""],["resoudre_contenir",""],["resoudre_debuter",""],["resoudre_remplacer_un",""],["resoudre_terminer",""]]});
+initSidebarItems({"fn":[["resoudre",""],["resoudre_ajouter","Fonction de résolution locale \"ajouter du texte\""],["resoudre_compter","Fonction de résolution locale \"compter le texte (caractères)\""],["resoudre_decouper","Fonction de résolution locale \"découper du texte (caractères)\""]]});

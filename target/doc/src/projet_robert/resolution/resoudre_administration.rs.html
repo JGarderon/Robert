@@ -123,6 +123,22 @@
 <span id="123">123</span>
 <span id="124">124</span>
 <span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
 </pre><div class="example-wrap"><pre class="rust ">
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>; 
@@ -232,6 +248,22 @@
 <span class="comment">// 	} </span>
 <span class="comment">// 	contexte.stream.flush().unwrap(); </span>
 <span class="comment">// 	Retour::creer( true, format!( &quot;stop ({})&quot;, dicos.liste.len() ) ) </span>
+<span class="comment">// } </span>
+
+<span class="comment">// fn resoudre_resumer( contexte: &amp;mut Contexte, mut arguments: ArgumentsLocaux ) -&gt; Retour { </span>
+<span class="comment">// 	if !arguments.est_stop() { </span>
+<span class="comment">// 		return Retour::creer_str( false, &quot;aucun argument autorisé&quot; ); </span>
+<span class="comment">// 	} </span>
+<span class="comment">// 	let dico = contexte.dico.lock().unwrap(); </span>
+<span class="comment">// 	let valeurs = &amp;dico.liste; </span>
+<span class="comment">// 	Retour::creer(  </span>
+<span class="comment">// 		true, </span>
+<span class="comment">// 		format!( </span>
+<span class="comment">// 			&quot;canal \&quot;{}\&quot; ({})&quot;, </span>
+<span class="comment">// 			dico.nom, </span>
+<span class="comment">// 			valeurs.len() </span>
+<span class="comment">// 		) </span>
+<span class="comment">// 	) </span>
 <span class="comment">// } </span>
 
 

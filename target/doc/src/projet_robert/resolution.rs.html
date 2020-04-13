@@ -344,7 +344,6 @@
 <span id="344">344</span>
 <span id="345">345</span>
 <span id="346">346</span>
-<span id="347">347</span>
 </pre><div class="example-wrap"><pre class="rust ">
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>; 
@@ -361,7 +360,7 @@
 <span class="comment">// ---------------------------------------------------- </span>
 
 <span class="kw">mod</span> <span class="ident">resoudre_numerique</span>; 
-<span class="comment">// mod resoudre_texte; </span>
+<span class="kw">mod</span> <span class="ident">resoudre_texte</span>; 
 <span class="kw">mod</span> <span class="ident">resoudre_canal</span>; 
 <span class="kw">mod</span> <span class="ident">resoudre_administration</span>; 
 
@@ -655,10 +654,10 @@
 				<span class="prelude-val">Ok</span>( <span class="ident">fct</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fct</span>, 
 				<span class="prelude-val">Err</span>( <span class="ident">r</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">r</span> 
 			}, 
-			<span class="comment">// &quot;texte&quot; =&gt; match resoudre_texte::resoudre( &amp;appel[n+1..] ) { </span>
-			<span class="comment">// 	Ok( fct ) =&gt; fct, </span>
-			<span class="comment">// 	Err( r ) =&gt; return r </span>
-			<span class="comment">// }, </span>
+			<span class="string">&quot;texte&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">resoudre_texte</span>::<span class="ident">resoudre</span>( <span class="kw-2">&amp;</span><span class="ident">appel</span>[<span class="ident">n</span><span class="op">+</span><span class="number">1</span>..] ) { 
+				<span class="prelude-val">Ok</span>( <span class="ident">fct</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fct</span>, 
+				<span class="prelude-val">Err</span>( <span class="ident">r</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">r</span> 
+			}, 
 			<span class="string">&quot;canal&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">resoudre_canal</span>::<span class="ident">resoudre</span>( <span class="kw-2">&amp;</span><span class="ident">appel</span>[<span class="ident">n</span><span class="op">+</span><span class="number">1</span>..] ) { 
 				<span class="prelude-val">Ok</span>( <span class="ident">fct</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fct</span>, 
 				<span class="prelude-val">Err</span>( <span class="ident">r</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">r</span> 
@@ -671,7 +670,6 @@
 		}
 	} <span class="kw">else</span> { 
 		<span class="kw">match</span> <span class="ident">appel</span> { 
-			<span class="comment">// actions génériques </span>
 			<span class="string">&quot;stop&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">resoudre_stop</span> <span class="kw">as</span> <span class="ident">Resolveur</span>, 
 			<span class="string">&quot;définir&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">resoudre_definir</span> <span class="kw">as</span> <span class="ident">Resolveur</span>, 
 			<span class="string">&quot;obtenir&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">resoudre_obtenir</span> <span class="kw">as</span> <span class="ident">Resolveur</span>, 
