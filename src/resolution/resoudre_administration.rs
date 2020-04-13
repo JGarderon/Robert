@@ -1,5 +1,6 @@
 
 use std::mem; 
+use std::collections::HashMap; 
 
 // ---------------------------------------------------- 
 
@@ -19,6 +20,17 @@ trait Mesure {
 	fn mesurer( &self ) -> usize;  
 } 
 
+impl Mesure for HashMap<String,Valeurs> { 
+	fn mesurer( &self ) -> usize { 
+		let mut total = 0; 
+		for (cle, valeur) in self.iter() { 
+			total += mem::size_of_val( cle )+cle.as_bytes().len(); 
+			total += valeur.mesurer(); 
+		} 
+		total 
+	} 
+} 
+
 impl Mesure for Valeurs { 
 	fn mesurer( &self ) -> usize { 
 		mem::size_of_val( self )+match self { 
@@ -26,7 +38,7 @@ impl Mesure for Valeurs {
 			Valeurs::Relatif( n ) => mem::size_of_val( n ), 
 			Valeurs::Flottant( f ) => mem::size_of_val( f ), 
 			Valeurs::Texte( t ) => mem::size_of_val( t )+t.as_bytes().len(), 
-			Valeurs::Objet( h ) => mem::size_of_val( h ) 
+			Valeurs::Objet( h ) => mem::size_of_val( h )+h.mesurer()  
 		} 
 	} 
 } 
