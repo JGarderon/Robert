@@ -17,6 +17,8 @@ use crate::TAILLE_TEXTE_MAX;
 
 /// # Fonction de résolution locale "ajouter du texte" 
 ///
+/// Cette fonction ajoutera le texte fourni en argument, en respectant la taille maximale autorisée. Le texte doit être valide UTF-8. 
+///
 fn resoudre_ajouter( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	let arg_chemin = if let Some( c ) = arguments.extraire() { 
 		c 
@@ -50,7 +52,9 @@ fn resoudre_ajouter( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 	} 
 } 
 
-/// # Fonction de résolution locale "compter le texte (caractères)" 
+/// # Fonction de résolution locale "compter le texte (octets + caractères)" 
+///
+/// Cette fonction retournera sur deux lignes, le nombre de caractères (UTF-8) de la valeur textuelle puis du nombre d'octets correspondants. Les deux nombres ne doivent pas varier pour du texte qui se retreint à ASCII. 
 ///
 fn resoudre_compter( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	let arg_chemin = if let Some( c ) = arguments.extraire() { 
@@ -65,7 +69,14 @@ fn resoudre_compter( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 			| valeur | { 
 				match valeur { 
 					Valeurs::Texte( t ) => { 
-						Retour::creer( true, format!( "{} caractères", t.chars().count() ) ) 
+						Retour::creer( 
+							true, 
+							format!( 
+								"\t{} caractère(s)\n\t{} octet(s)", 
+								t.chars().count(), 
+								t.len() 
+							) 
+						) 
 					} 
 					_ => Retour::creer_str( false, "le type de valeur cible n'est pas conforme" ) 
 				} 
@@ -76,6 +87,10 @@ fn resoudre_compter( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 } 
 
 /// # Fonction de résolution locale "découper du texte (caractères)" 
+///
+/// Cette fonction utilise une origine obligatoire (borne inférieure) et optionnellement une limite (borne supérieure), pour ne garder que la partie désirée. 
+///
+/// Attention : la borne supérieure est l'indication de position d'un caractère valide UTF-8 (pas d'un octet), et ne représente __donc pas__ le nombre de caractères à garder depuis l'origine. 
 ///
 fn resoudre_decouper( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	let arg_chemin = if let Some( c ) = arguments.extraire() { 

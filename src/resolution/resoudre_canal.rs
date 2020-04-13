@@ -127,9 +127,9 @@ fn resoudre_tester( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) ->
 
 /// # Fonction de résolution locale "capturer un nouveau canal" 
 ///
-/// Cette fonction est un peu particulière, car elle crééra un canal spéficique à un thread. 
+/// Cette fonction est un peu particulière, car elle crééra un canal spéficique à un thread 'client'. 
 ///
-/// Le client disposera donc de son propre stockage de valeurs, ce qui est son intérêt. La perte de connexion provoque aussi la perte des informations contenus dans ce canal "artificiel". Il n'est référencé nul part ailleurs : aucune fonction classique sur les canaux n'aura de prise sur lui. 
+/// Le client disposera donc de son propre stockage de valeurs, ce qui est son intérêt. La perte de connexion provoque aussi la perte des informations contenues dans ce canal "artificiel". Il n'est référencé nul part ailleurs : aucune fonction classique sur les canaux n'aura de prise sur lui. 
 ///
 /// Aucun souscripteur ne pourra donc s'y abonner (à part le client lui-même... mais ce dernier étant représenté par un socket, il ne peut pas émettre et recevoir en même temps). 
 ///
