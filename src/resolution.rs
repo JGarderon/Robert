@@ -28,8 +28,14 @@ type Resolveur = fn ( &mut Contexte, ArgumentsLocaux ) -> Retour;
 
 /// La structure 'Contexte' permet de rassembler dans un objet unique, l'ensemble des éléments propres à un socket quelque soit la fonction de résolution qui sera appelée. Elle référence aussi le canal en cours d'usage par le client, ainsi que l'origine (Canaux). 
 /// Dans une fonction de résolution, elle se présentera toujours dans la forme d'une référence mutable. 
-pub struct Contexte { 
+pub struct Contexte<'a> { 
 	
+	/// Ce champ permet de récupérer un clone de l'objet en écoute sur l'interface réseau. 
+	pub service_ecoute: std::net::TcpListener, 
+
+	/// Ce champ lorsqu'il est à "faux", permet d'interrompre la boucle globale du service. 
+	pub service_poursuite: &'a mut bool, 
+
 	/// Ce champ lorsqu'il est à "faux", permet d'interrompre la boucle locale du thead gérant le socket, dès la fin de la fonction de résolution actuelle. 
 	pub poursuivre: bool, 
 	

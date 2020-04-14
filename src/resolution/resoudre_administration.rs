@@ -1,6 +1,8 @@
 
 use std::mem; 
-use std::collections::HashMap; 
+use std::collections::HashMap;
+use std::io::BufWriter; 
+use std::fs::File; 
 
 // ---------------------------------------------------- 
 
@@ -13,6 +15,13 @@ use crate::grammaire::ArgumentsLocaux;
 
 use crate::resolution::Resolveur; 
 use crate::resolution::Retour; 
+// ---------------------------------------------------- 
+
+use crate::serie::Source; 
+
+// ---------------------------------------------------- 
+
+use crate::serie::Serie; 
 
 // ---------------------------------------------------- 
 
@@ -61,6 +70,45 @@ impl Mesure for Canal {
 } 
 
 // ---------------------------------------------------- 
+
+fn resoudre_eteindre( contexte: &mut Contexte, _: ArgumentsLocaux ) -> Retour { 
+	*contexte.service_poursuite = false; // /!\ UNSAFE / à retirer urgemment 
+	match std::net::TcpStream::connect( contexte.service_ecoute.local_addr().unwrap() ) { 
+		Ok( _ ) => Retour::creer_str( true, "extinction enclenchée ; les fils vont être progressivement arrêtés" ), 
+		Err( _ ) => Retour::creer_str( false, "extinction enclenchée ; attention, la nouvelle connexion nécessaire n'a pas pu être enclenchée (l'écoute d'un nouveau client est bloquante)" ) 
+	} 
+	
+} 
+
+fn resoudre_serialiser( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	let fid = if let Some( arg ) = arguments.extraire() { 
+		arg 
+	} else { 
+		return Retour::creer_str( false, "identifiant de dump obligatoire" ); 
+	}; 
+	if !fid.is_ascii() { 
+		return Retour::creer_str( false, "seuls les caractères ASCII sont autorisés" ); 
+	} 
+	if fid.len() > 32 { 
+		return Retour::creer_str( false, "l'identifiant de dump doit faire 32 caractères maximum" ); 
+	} 
+	let canal = Canal!( contexte ); 
+	let f = if let Ok( f ) = File::create( format!( "./{}.dump", fid ) ) { 
+		f 
+	} else { 
+		return Retour::creer_str( false, "impossible de créer le fichier de dump" ); 
+	}; 
+	let mut s = Source { 
+		fichier: BufWriter::new( f ) 
+	}; 
+	if let Some( n ) = canal.liste.serialiser( 
+		&mut s 
+	) { 
+		Retour::creer( true, format!( "sérialisation terminée : {} octets", n ) ) 
+	} else { 
+		Retour::creer_str( true, "sérialisation en erreur" ) 
+	} 
+} 
 
 fn resoudre_mesurer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	if let Some( _ ) = arguments.extraire() { 
@@ -139,8 +187,10 @@ fn resoudre_vider( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> 
 
 pub fn resoudre( appel: &str ) -> Result<Resolveur,Retour> { 
 	match appel { 
+		"éteindre" => Ok( resoudre_eteindre as Resolveur ), 
 		"mesurer" => Ok( resoudre_mesurer as Resolveur ), 
 		"vider" => Ok( resoudre_vider as Resolveur ), 
+		"sérialiser" => Ok( resoudre_serialiser as Resolveur ), 
 		_ => Err( Retour::creer_str( false, "module texte : fonction inconnue" ) ) 
 	} 
 } 

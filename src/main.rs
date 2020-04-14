@@ -1,7 +1,7 @@
 
 //! Robert est un logiciel type "Redis-Like" : un système de gestion de données haute performance, stockée en RAM, qui n'offre cependant comme son illustre grand frère, toutes les finesses d'une base de données SQL classique. 
 //! 
-//! Robert est donc à classer dans la famille des No-SQL. Les requêtes des utilisateurs ne sont pas à proprement parler un langage de programmation, mais un DSL - un langage spécifique. Avec cette spécificité : il est intégralement francophone (commentaires dans le code, la documentation, mais aussi les commandes elles-mêmes). 
+//! Robert est donc à classer dans la famille des No-SQL "naïfs". Les requêtes des utilisateurs ne sont pas à proprement parler un langage de programmation, mais un DSL - un langage spécifique (une API en réalité). Avec cette spécificité : il est intégralement francophone (commentaires dans le code, la documentation, mais aussi les commandes elles-mêmes). 
 //! 
 //! Vous vous demandez d'où vient son nom ? Bonne question : comme il fonctionne sur un système "clé/valeur", stocké dans ce qu'il convient d'appeler des "dictionnaires", il semblait assez logique que ce petit logiciel sans prétention, qui se veut simple, facilement extensible et efficace s'appelle... le (petit) Robert. Comme un illustre ancêtre papier ! Et puis Redis et Rust commencent tous les deux par un 'R' alors... 
 //! 
@@ -11,7 +11,7 @@
 //! 
 //! Par l'usage de Rust pour son développement, le logiciel est stable, sûr et son empreinte mémoire est très faible. Rust ne connaît (quasi-)pas les fuites de mémoire : Robert non plus (car il tente d'en suivre au plus près la philosophie). Le projet souhaite aussi s'assoir sur des ressources sûres, et éviter d'utiliser des adjonctions de code extérieur insondable. Aussi Robert n'a aucune autre dépendance à ce jour, que l'usage des modules internes au langage. 
 //! 
-//! __D'où sa devise : _copier, compiler, profiter !___
+//! __D'où sa devise "CCP" : _copier, compiler, profiter !___
 //! 
 
 use std::net::{TcpListener}; 
@@ -64,6 +64,8 @@ mod base;
 mod grammaire; 
 use crate::grammaire::{ExtractionLigne}; 
 
+mod serie; 
+
 /// Fonction recevant un client et le traitant, par le biais d'un objet 'Contexte' déjà créé. Principalement une boucle qui reçoit sur texte dans un tampon, l'examine rapidement avec les outils du module "grammaire", et lancement la fonction de résolution de la requête. 
 fn recevoir( mut contexte: Contexte ) { 
 	let mut iterateur = match contexte.stream.try_clone() { 
@@ -71,6 +73,12 @@ fn recevoir( mut contexte: Contexte ) {
 		Err(_) => return 
 	}.bytes(); 
 	while contexte.poursuivre { 
+		if !*contexte.service_poursuite { 
+			contexte.stream.write( 
+				"[!] le service est en cours d'extinction ; vous allez être déconnecté immédiatement\n".as_bytes() 
+			).unwrap(); 
+			break; 
+		} 
 		let r = match grammaire::extraire_ligne( &mut iterateur ) { 
 			ExtractionLigne::Commande( s ) => { 
 				let appel = grammaire::extraction_commande( s.trim() ); 
@@ -109,39 +117,45 @@ fn recevoir( mut contexte: Contexte ) {
 	} 
 } 
 
-
 /// Fonction permettant de lancer le service d'écoute (socket TCP). A l'avenir, cette fonction retournerait un objet JoinHandle permettant au service d'agir dans un thread dédié et ne pas boucler la fonction 'main'. 
 /// Chaque nouveau client est envoyé dans un nouveau thread, avec un objet "Contexte", qui porte les informations essentielles liées au socket TCP en cours. Les requêtes sont gérées par le thread du client. 
 fn lancement_service( ipport: &str ) -> Result<(), &'static str> { 
+	static mut ETAT_GENERAL: bool = true; // /!\ UNSAFE / à retirer urgemment 
 	let (canal_thread, canaux_thread) = base::creer_racine( CANAL_NOM_DEFAUT ); 
     if let Ok( listener ) = TcpListener::bind( ipport ) {
 	    let mut fils: Vec<JoinHandle<_>> = Vec::new(); 
-	    for resultat in listener.incoming() { 
-	    	match resultat { 
-	    		Ok( stream ) => { 
-	    			if DEBUG { 
-		    			match &stream.peer_addr() { 
-		    				Ok( adresse ) => println!( "! nouvelle connexion: {:?}", adresse ), 
-		    				_ => continue 
-		    			} 
-	    			} 
-	    			let contexte = Contexte { 
-	    				poursuivre: true, 
-	    				canalthread: canal_thread.clone(), 
-	    				canauxthread: canaux_thread.clone(), 
-	    				stream: stream, 
-	    			}; 
-	    			fils.push( 
-	    				thread::spawn( 
-				        	move || { 
-				        		recevoir( contexte ); 
-				        	} 
-				        ) 
-				    ); 
-				} 
-		        _ => () 
-	    	} 
-	    } 
+	    let mut iterateur_connexion = listener.incoming();  
+	    while unsafe { ETAT_GENERAL } { // /!\ UNSAFE / à retirer urgemment 
+	    	let stream = match iterateur_connexion.next() { 
+	    		Some( Ok( s ) ) => s, 
+	    		Some( Err( _ ) ) => continue, 
+	    		None => { 
+	    			println!("! l'écouteur a rencontré un problème ; le service va débuter son extinction"); 
+	    			break; 
+	    		} 
+	    	}; 
+	    	if DEBUG { 
+    			match &stream.peer_addr() { 
+    				Ok( adresse ) => println!( "! nouvelle connexion: {:?}", adresse ), 
+    				_ => continue 
+    			} 
+			} 
+			let contexte = Contexte { 
+				service_ecoute: listener.try_clone().unwrap(), 
+				service_poursuite: unsafe { &mut ETAT_GENERAL }, // /!\ UNSAFE / à retirer urgemment 
+				poursuivre: true, 
+				canalthread: canal_thread.clone(), 
+				canauxthread: canaux_thread.clone(), 
+				stream: stream, 
+			}; 
+			fils.push( 
+				thread::spawn( 
+		        	move || { 
+		        		recevoir( contexte ); 
+		        	} 
+		        ) 
+		    ); 
+		} 
 	    for enfant in fils { 
 	    	enfant.join().unwrap(); 
 	    } 

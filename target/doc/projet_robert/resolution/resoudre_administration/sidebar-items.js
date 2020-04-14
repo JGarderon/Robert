@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["resoudre",""],["resoudre_mesurer",""],["resoudre_vider",""]],"trait":[["Mesure",""]]});
+initSidebarItems({"fn":[["resoudre",""],["resoudre_eteindre",""],["resoudre_mesurer",""],["resoudre_vider",""]],"trait":[["Mesure",""]]});

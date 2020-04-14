@@ -6,6 +6,8 @@ use std::sync::Mutex;
 
 // ---------------------------------------------------- 
 
+use crate::serie::Serie; 
+use crate::serie::Source; 
 use crate::resolution::Retour; 
 
 // ---------------------------------------------------- 
@@ -86,6 +88,54 @@ pub enum Valeurs {
 	Flottant(f32), 
 	Texte(String), 
 	Objet(HashMap<String,Valeurs>) 
+} 
+
+impl Serie for Valeurs { 
+	fn serialiser<T: std::io::Write>( &self, source: &mut Source<T> ) -> Option<usize> { 
+		match self { 
+			Valeurs::Boolean( b ) => { 
+				let mut buffer: [u8;1] = [0;1]; 
+				buffer[0] = if *b { 255u8 } else { 0u8 }; 
+				source.ecrire( 1, &buffer ) 
+			} 
+			Valeurs::Relatif( n ) => { 
+				let mut buffer: [u8;4] = [0;4]; 
+				buffer.copy_from_slice( &n.to_be_bytes() ); 
+				source.ecrire( 2, &buffer ) 
+			} 
+			Valeurs::Flottant( n ) => { 
+				let mut buffer: [u8;4] = [0;4]; 
+				buffer.copy_from_slice( &n.to_be_bytes() ); 
+				source.ecrire( 3, &buffer ) 
+			} 
+			Valeurs::Texte( t ) => { 
+				source.ecrire( 4, &t.as_bytes().to_vec() ) 
+			} 
+			Valeurs::Objet( o ) => { 
+				let mut n = 0; 
+				let mut buffer: [u8;4] = [0;4]; 
+				buffer.copy_from_slice( &(o.len() as u32).to_be_bytes() ); 
+				if let Some( t ) = source.ecrire( 5, &buffer[0..4] ) { 
+					n += t; 
+					for (cle, valeur) in o { 
+						if let Some( t ) = source.ecrire( 6, &cle.as_bytes().to_vec() ) { 
+							n += t; 
+						} else { 
+							return None; 
+						} 
+						if let Some( t ) = valeur.serialiser( source ) { 
+							n += t; 
+						} else { 
+							return None; 
+						} 
+					} 
+					Some( n ) 
+				} else {
+					None 
+				} 
+			} 
+		} 
+	} 
 } 
 
 impl Drop for Valeurs { 

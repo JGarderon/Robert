@@ -344,6 +344,9 @@
 <span id="344">344</span>
 <span id="345">345</span>
 <span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
 </pre><div class="example-wrap"><pre class="rust ">
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>; 
@@ -375,8 +378,11 @@
 
 <span class="doccomment">/// La structure &#39;Contexte&#39; permet de rassembler dans un objet unique, l&#39;ensemble des éléments propres à un socket quelque soit la fonction de résolution qui sera appelée. Elle référence aussi le canal en cours d&#39;usage par le client, ainsi que l&#39;origine (Canaux). </span>
 <span class="doccomment">/// Dans une fonction de résolution, elle se présentera toujours dans la forme d&#39;une référence mutable. </span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Contexte</span> { 
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Contexte</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> { 
 	
+	<span class="doccomment">/// Ce champ lorsqu&#39;il est à &quot;faux&quot; (_AtomicBool_), permet d&#39;interrompre la boucle globale du service. </span>
+	<span class="kw">pub</span> <span class="ident">service</span>: ( <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">TcpListener</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">bool</span> ), 
+
 	<span class="doccomment">/// Ce champ lorsqu&#39;il est à &quot;faux&quot;, permet d&#39;interrompre la boucle locale du thead gérant le socket, dès la fin de la fonction de résolution actuelle. </span>
 	<span class="kw">pub</span> <span class="ident">poursuivre</span>: <span class="ident">bool</span>, 
 	

@@ -162,6 +162,19 @@
 <span id="162">162</span>
 <span id="163">163</span>
 <span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
 </pre><div class="example-wrap"><pre class="rust ">
 
 <span class="doccomment">//! Robert est un logiciel type &quot;Redis-Like&quot; : un système de gestion de données haute performance, stockée en RAM, qui n&#39;offre cependant comme son illustre grand frère, toutes les finesses d&#39;une base de données SQL classique. </span>
@@ -179,6 +192,8 @@
 <span class="doccomment">//! __D&#39;où sa devise : _copier, compiler, profiter !___</span>
 <span class="doccomment">//! </span>
 
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>; 
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">atomic</span>::<span class="ident">AtomicBool</span>; 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::{<span class="ident">TcpListener</span>}; 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span>; 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>; 
@@ -236,6 +251,12 @@
 		<span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> 
 	}.<span class="ident">bytes</span>(); 
 	<span class="kw">while</span> <span class="ident">contexte</span>.<span class="ident">poursuivre</span> { 
+		<span class="kw">if</span> <span class="op">!</span><span class="kw-2">*</span><span class="ident">contexte</span>.<span class="ident">service</span>.<span class="number">1</span> { 
+			<span class="ident">contexte</span>.<span class="ident">stream</span>.<span class="ident">write</span>( 
+				<span class="string">&quot;[!] le service est en cours d&#39;extinction ; vous allez être déconnecté immédiatement\n&quot;</span>.<span class="ident">as_bytes</span>() 
+			); 
+			<span class="kw">break</span>; 
+		} 
 		<span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">grammaire</span>::<span class="ident">extraire_ligne</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">iterateur</span> ) { 
 			<span class="ident">ExtractionLigne</span>::<span class="ident">Commande</span>( <span class="ident">s</span> ) <span class="op">=</span><span class="op">&gt;</span> { 
 				<span class="kw">let</span> <span class="ident">appel</span> <span class="op">=</span> <span class="ident">grammaire</span>::<span class="ident">extraction_commande</span>( <span class="ident">s</span>.<span class="ident">trim</span>() ); 
@@ -274,39 +295,44 @@
 	} 
 } 
 
-
 <span class="doccomment">/// Fonction permettant de lancer le service d&#39;écoute (socket TCP). A l&#39;avenir, cette fonction retournerait un objet JoinHandle permettant au service d&#39;agir dans un thread dédié et ne pas boucler la fonction &#39;main&#39;. </span>
 <span class="doccomment">/// Chaque nouveau client est envoyé dans un nouveau thread, avec un objet &quot;Contexte&quot;, qui porte les informations essentielles liées au socket TCP en cours. Les requêtes sont gérées par le thread du client. </span>
 <span class="kw">fn</span> <span class="ident">lancement_service</span>( <span class="ident">ipport</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> { 
+	<span class="kw">static</span> <span class="kw-2">mut</span> <span class="ident">ETAT_GENERAL</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="bool-val">true</span>; <span class="comment">// /!\ UNSAFE / à retirer urgemment </span>
 	<span class="kw">let</span> (<span class="ident">canal_thread</span>, <span class="ident">canaux_thread</span>) <span class="op">=</span> <span class="ident">base</span>::<span class="ident">creer_racine</span>( <span class="ident">CANAL_NOM_DEFAUT</span> ); 
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>( <span class="ident">listener</span> ) <span class="op">=</span> <span class="ident">TcpListener</span>::<span class="ident">bind</span>( <span class="ident">ipport</span> ) {
 	    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fils</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JoinHandle</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>(); 
-	    <span class="kw">for</span> <span class="ident">resultat</span> <span class="kw">in</span> <span class="ident">listener</span>.<span class="ident">incoming</span>() { 
-	    	<span class="kw">match</span> <span class="ident">resultat</span> { 
-	    		<span class="prelude-val">Ok</span>( <span class="ident">stream</span> ) <span class="op">=</span><span class="op">&gt;</span> { 
-	    			<span class="kw">if</span> <span class="ident">DEBUG</span> { 
-		    			<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">stream</span>.<span class="ident">peer_addr</span>() { 
-		    				<span class="prelude-val">Ok</span>( <span class="ident">adresse</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">println</span><span class="macro">!</span>( <span class="string">&quot;! nouvelle connexion: {:?}&quot;</span>, <span class="ident">adresse</span> ), 
-		    				<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span> 
-		    			} 
-	    			} 
-	    			<span class="kw">let</span> <span class="ident">contexte</span> <span class="op">=</span> <span class="ident">Contexte</span> { 
-	    				<span class="ident">poursuivre</span>: <span class="bool-val">true</span>, 
-	    				<span class="ident">canalthread</span>: <span class="ident">canal_thread</span>.<span class="ident">clone</span>(), 
-	    				<span class="ident">canauxthread</span>: <span class="ident">canaux_thread</span>.<span class="ident">clone</span>(), 
-	    				<span class="ident">stream</span>: <span class="ident">stream</span>, 
-	    			}; 
-	    			<span class="ident">fils</span>.<span class="ident">push</span>( 
-	    				<span class="ident">thread</span>::<span class="ident">spawn</span>( 
-				        	<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> { 
-				        		<span class="ident">recevoir</span>( <span class="ident">contexte</span> ); 
-				        	} 
-				        ) 
-				    ); 
-				} 
-		        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> () 
-	    	} 
-	    } 
+	    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iterateur_connexion</span> <span class="op">=</span> <span class="ident">listener</span>.<span class="ident">incoming</span>();  
+	    <span class="kw">while</span> <span class="kw">unsafe</span> { <span class="ident">ETAT_GENERAL</span> } { <span class="comment">// /!\ UNSAFE / à retirer urgemment </span>
+	    	<span class="kw">let</span> <span class="ident">stream</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">iterateur_connexion</span>.<span class="ident">next</span>() { 
+	    		<span class="prelude-val">Some</span>( <span class="prelude-val">Ok</span>( <span class="ident">s</span> ) ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>, 
+	    		<span class="prelude-val">Some</span>( <span class="prelude-val">Err</span>( <span class="kw">_</span> ) ) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>, 
+	    		<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> { 
+	    			<span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;! l&#39;écouteur a rencontré un problème ; le service va débuter son extinction&quot;</span>); 
+	    			<span class="kw">break</span>; 
+	    		} 
+	    	}; 
+	    	<span class="kw">if</span> <span class="ident">DEBUG</span> { 
+    			<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">stream</span>.<span class="ident">peer_addr</span>() { 
+    				<span class="prelude-val">Ok</span>( <span class="ident">adresse</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">println</span><span class="macro">!</span>( <span class="string">&quot;! nouvelle connexion: {:?}&quot;</span>, <span class="ident">adresse</span> ), 
+    				<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span> 
+    			} 
+			} 
+			<span class="kw">let</span> <span class="ident">contexte</span> <span class="op">=</span> <span class="ident">Contexte</span> { 
+				<span class="ident">service</span>: <span class="kw">unsafe</span> { ( <span class="ident">listener</span>.<span class="ident">try_clone</span>().<span class="ident">unwrap</span>(), <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ETAT_GENERAL</span> ) }, <span class="comment">// /!\ UNSAFE / à retirer urgemment </span>
+				<span class="ident">poursuivre</span>: <span class="bool-val">true</span>, 
+				<span class="ident">canalthread</span>: <span class="ident">canal_thread</span>.<span class="ident">clone</span>(), 
+				<span class="ident">canauxthread</span>: <span class="ident">canaux_thread</span>.<span class="ident">clone</span>(), 
+				<span class="ident">stream</span>: <span class="ident">stream</span>, 
+			}; 
+			<span class="ident">fils</span>.<span class="ident">push</span>( 
+				<span class="ident">thread</span>::<span class="ident">spawn</span>( 
+		        	<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> { 
+		        		<span class="ident">recevoir</span>( <span class="ident">contexte</span> ); 
+		        	} 
+		        ) 
+		    ); 
+		} 
 	    <span class="kw">for</span> <span class="ident">enfant</span> <span class="kw">in</span> <span class="ident">fils</span> { 
 	    	<span class="ident">enfant</span>.<span class="ident">join</span>().<span class="ident">unwrap</span>(); 
 	    } 
