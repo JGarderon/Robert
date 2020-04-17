@@ -71,7 +71,17 @@ impl Mesure for Canal {
 
 // ---------------------------------------------------- 
 
+fn resoudre_authentifier( contexte: &mut Contexte, mut _arguments: ArgumentsLocaux ) -> Retour { 
+	if contexte.profil.authentifier( "tmp", "tmp" ) { 
+		Retour::creer_str( true, "authentification réussie" ) 
+	} else { 
+		contexte.poursuivre = false; 
+		Retour::creer_str( false, "authentification échouée ; vous allez être déconnecté" ) 
+	} 
+} 
+
 fn resoudre_eteindre( contexte: &mut Contexte, _: ArgumentsLocaux ) -> Retour { 
+	est_authentifie!( contexte ); 
 	*contexte.service_poursuite = false; // /!\ UNSAFE / à retirer urgemment 
 	match std::net::TcpStream::connect( contexte.service_ecoute.local_addr().unwrap() ) { 
 		Ok( _ ) => Retour::creer_str( true, "extinction enclenchée ; les fils vont être progressivement arrêtés" ), 
@@ -81,6 +91,7 @@ fn resoudre_eteindre( contexte: &mut Contexte, _: ArgumentsLocaux ) -> Retour {
 } 
 
 fn resoudre_serialiser( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	est_authentifie!( contexte ); 
 	let fid = if let Some( arg ) = arguments.extraire() { 
 		arg 
 	} else { 
@@ -111,6 +122,7 @@ fn resoudre_serialiser( contexte: &mut Contexte, mut arguments: ArgumentsLocaux 
 } 
 
 fn resoudre_mesurer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	est_authentifie!( contexte ); 
 	if let Some( _ ) = arguments.extraire() { 
 		return Retour::creer_str( false, "aucun argument accepté pour cette fonction" ); 
 	} 
@@ -133,6 +145,7 @@ fn resoudre_mesurer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 } 
 
 fn resoudre_vider( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	est_authentifie!( contexte ); 
 	if !arguments.est_stop() { 
 		return Retour::creer_str( false, "aucun argument autorisé" ); 
 	} 
@@ -187,6 +200,7 @@ fn resoudre_vider( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> 
 
 pub fn resoudre( appel: &str ) -> Result<Resolveur,Retour> { 
 	match appel { 
+		"authentifier" => Ok( resoudre_authentifier as Resolveur ), 
 		"éteindre" => Ok( resoudre_eteindre as Resolveur ), 
 		"mesurer" => Ok( resoudre_mesurer as Resolveur ), 
 		"vider" => Ok( resoudre_vider as Resolveur ), 

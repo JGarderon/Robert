@@ -17,7 +17,6 @@
 //! Certaines fonctions n'autorisent qu'un nombre limité d'arguments. 
 //! 
 
-
 use std::net::TcpStream; 
 use std::iter::FromIterator; 
 use std::io::Bytes; 

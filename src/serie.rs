@@ -6,7 +6,7 @@
 //! 
 //! Ce module est indépendant du module grammatical, qui est lisible l'humain. Le format supporté ici, est strictement binaire. 
 //! 
-//! Par défaut, le champ de taille de chaque objet stocké est représenté par un entier non-signé sur 32 bits, soit au maximum 4,3 Go. Ce point est indispensable à prendre en compte avant la compilation car si votre base se rapproche de cette taille, la valeur totale stockée pour être largement supérieure et la sérialisation être impossible. 
+//! Par défaut, le champ de taille de chaque objet stocké est représenté par un entier non-signé sur 32 bits, soit au maximum 4,3 Go. Ce point est indispensable à prendre en compte avant la compilation car si votre base se rapproche de cette taille, la valeur totale stockée pour être largement supérieure et la sérialisation être impossible (ou plus grave, l'erreur reste silencieuse mais le fichier est corrompu). 
 //! 
 //! La modification du format de taille de la source à un entier non-signé sur 64 bits (u64), résoud ce problème, mais le fichier généré sera bien plus gros. 
 //! 

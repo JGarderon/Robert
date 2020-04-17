@@ -15,8 +15,7 @@
 //! 
 
 use std::net::{TcpListener}; 
-use std::io::Read; 
-use std::io::Write; 
+use std::io::Read;  
 use std::thread; 
 use std::thread::JoinHandle; 
 
@@ -56,8 +55,15 @@ macro_rules! Canal {
     };
 } 
 
+mod contexte; 
+use crate::contexte::Contexte; 
+
+#[macro_use]
+mod profil; 
+use crate::profil::Profil; 
+
 mod resolution; 
-use crate::resolution::{Contexte}; 
+use crate::resolution::RetourType; 
 
 mod base; 
 
@@ -72,11 +78,15 @@ fn recevoir( mut contexte: Contexte ) {
 		Ok( s ) => s, 
 		Err(_) => return 
 	}.bytes(); 
+	if !contexte.ecrire( "[!] bonjour\n", true ) { 
+		return; 
+	} 
 	while contexte.poursuivre { 
 		if !*contexte.service_poursuite { 
-			contexte.stream.write( 
-				"[!] le service est en cours d'extinction ; vous allez être déconnecté immédiatement\n".as_bytes() 
-			).unwrap(); 
+			contexte.ecrire( 
+				"[!] le service est en cours d'extinction ; vous allez être déconnecté immédiatement\n", 
+				true 
+			); 
 			break; 
 		} 
 		let r = match grammaire::extraire_ligne( &mut iterateur ) { 
@@ -91,21 +101,19 @@ fn recevoir( mut contexte: Contexte ) {
 			ExtractionLigne::Erreur( m ) => m, 
 			ExtractionLigne::Stop => break 
 		}; 
-		if let Ok(_) = contexte.stream.write( 
-			if r.etat { "[+] ".as_bytes() } else { "[-] ".as_bytes() } 
-		) { 
-			if let Ok(_) = contexte.stream.write( r.message.vers_bytes() ) { 
-				if let Err(_) = contexte.stream.flush() { 
-					break; 
-				} else { 
-					if let Err(_) = contexte.stream.write( "\n".as_bytes() ) { 
-						break; 
-					} 
-				} 
-			} else { 
-				break; 
-			} 
-		} else { 
+		let mut e = contexte.ecrire( 
+			if r.etat { "[+] " } else { "[-] " }, 
+			false 
+		); 
+		e &= match r.message { 
+			RetourType::Statique( m ) => contexte.ecrire( m, false ), 
+			RetourType::Dynamique( m ) => contexte.ecrire( &m, false ) 
+		}; 
+		e &= contexte.ecrire( 
+			"\n", 
+			true 
+		); 
+		if !e { 
 			break; 
 		} 
 	} 
@@ -146,6 +154,9 @@ fn lancement_service( ipport: &str ) -> Result<(), &'static str> {
 				poursuivre: true, 
 				canalthread: canal_thread.clone(), 
 				canauxthread: canaux_thread.clone(), 
+				profil: Profil { 
+					identifie: false 
+				}, 
 				stream: stream, 
 			}; 
 			fils.push( 
