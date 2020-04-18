@@ -1,3 +1,5 @@
+//! # Module de résolution des requêtes de clients 
+//! 
 
 use std::io::Write; 
 

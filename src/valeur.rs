@@ -1,3 +1,5 @@
+//! # Module de définition des types de valeurs  
+//! 
 
 use std::collections::HashMap; 
 

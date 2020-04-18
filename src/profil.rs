@@ -1,3 +1,5 @@
+//! # Module des profils  
+//! 
 
 use std::fmt; 
 use std::fs::File; 

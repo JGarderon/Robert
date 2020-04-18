@@ -1,3 +1,11 @@
+//! # Sous-module de résolution "canal"
+//! 
+//! Ce module gère les fonctions liées à la gestion des canaux du processus. Certaines de ces fonctions peuvent être restreintes aux seuls clients authentifiés. 
+//! 
+
+	// --- --- --- --- --- --- --- --- --- 
+	// (1) Importation des modules internes 
+	// --- --- --- --- --- --- --- --- --- 
 
 use std::io::Write; 
 use std::sync::mpsc::{Sender, Receiver}; 
@@ -6,23 +14,28 @@ use std::sync::Arc;
 use std::sync::Mutex; 
 use std::collections::HashMap; 
 
-// ---------------------------------------------------- 
+	// --- --- --- --- --- --- --- --- --- 
+	// (2) Importation des modules du projet 
+	// --- --- --- --- --- --- --- --- --- 
 
 use crate::canal::{Canal, CanalThread}; 
 use crate::valeur::Valeurs; 
-use crate::resolution::Contexte; 
+use crate::resolution::{Contexte, Retour, Resolveur}; 
 use crate::grammaire::ArgumentsLocaux; 
 
-// ---------------------------------------------------- 
-
-use crate::resolution::Resolveur; 
-use crate::resolution::Retour; 
-
-// ---------------------------------------------------- 
+	// --- --- --- --- --- --- --- --- --- 
+	// (3) Constantes du projet 
+	// --- --- --- --- --- --- --- --- --- 
 
 use crate::configuration::NBRE_MAX_CANAUX; 
 
-// ---------------------------------------------------- 
+	// --- --- --- --- --- --- --- --- --- 
+	// (4) Définition des structures, énumérations et leurs implémentations 
+	// --- --- --- --- --- --- --- --- --- 
+
+	// --- --- --- --- --- --- --- --- --- 
+	// (5) Définition des fonctions 
+	// --- --- --- --- --- --- --- --- --- 
 
 /// # Fonction de résolution locale "créer un nouveau canal" 
 ///

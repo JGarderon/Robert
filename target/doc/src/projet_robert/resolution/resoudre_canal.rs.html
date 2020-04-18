@@ -276,7 +276,28 @@
 <span id="276">276</span>
 <span id="277">277</span>
 <span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">//! # Sous-module de résolution &quot;canal&quot;</span>
+<span class="doccomment">//! </span>
+<span class="doccomment">//! Ce module gère les fonctions liées à la gestion des canaux du processus. Certaines de ces fonctions peuvent être restreintes aux seuls clients authentifiés. </span>
+<span class="doccomment">//! </span>
+
+	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+	<span class="comment">// (1) Importation des modules internes </span>
+	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>; 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">mpsc</span>::{<span class="ident">Sender</span>, <span class="ident">Receiver</span>}; 
@@ -285,23 +306,28 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Mutex</span>; 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>; 
 
-<span class="comment">// ---------------------------------------------------- </span>
+	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+	<span class="comment">// (2) Importation des modules du projet </span>
+	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">canal</span>::{<span class="ident">Canal</span>, <span class="ident">CanalThread</span>}; 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">valeur</span>::<span class="ident">Valeurs</span>; 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::<span class="ident">Contexte</span>; 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::{<span class="ident">Contexte</span>, <span class="ident">Retour</span>, <span class="ident">Resolveur</span>}; 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">grammaire</span>::<span class="ident">ArgumentsLocaux</span>; 
 
-<span class="comment">// ---------------------------------------------------- </span>
-
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::<span class="ident">Resolveur</span>; 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::<span class="ident">Retour</span>; 
-
-<span class="comment">// ---------------------------------------------------- </span>
+	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+	<span class="comment">// (3) Constantes du projet </span>
+	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">configuration</span>::<span class="ident">NBRE_MAX_CANAUX</span>; 
 
-<span class="comment">// ---------------------------------------------------- </span>
+	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+	<span class="comment">// (4) Définition des structures, énumérations et leurs implémentations </span>
+	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+
+	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+	<span class="comment">// (5) Définition des fonctions </span>
+	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
 
 <span class="doccomment">/// # Fonction de résolution locale &quot;créer un nouveau canal&quot; </span>
 <span class="doccomment">///</span>

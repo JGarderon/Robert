@@ -1,3 +1,5 @@
+//! # Module de contexte client  
+//! 
 
 use std::net::TcpStream; 
 use std::io::Write; 

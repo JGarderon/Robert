@@ -1,4 +1,4 @@
-//! # Module "Série" 
+//! # Module de sérialisation des canaux 
 //! 
 //! Ce module sert à implémenter les fonctions de sérialisation et désérialisation des valeurs, vers des données binaires. 
 //! 

@@ -1,3 +1,5 @@
+//! # Module des canaux 
+//! 
 
 use std::sync::mpsc::Sender; 
 use std::collections::HashMap; 
