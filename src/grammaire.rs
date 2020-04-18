@@ -21,7 +21,7 @@ use std::net::TcpStream;
 use std::iter::FromIterator; 
 use std::io::Bytes; 
 
-use crate::TAILLE_LIGNE_MAX; 
+use crate::configuration::TAILLE_LIGNE_MAX; 
 
 // ---------------------------------------------------- 
 

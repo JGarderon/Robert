@@ -17,7 +17,7 @@ use crate::resolution::Retour;
 /// Si l'argument représente un relatif ou un flottant négatif, l'ajout réduira donc la valeur. 
 /// 
 /// Ainsi il n'est pas nécessaire d'ajouter une autre fonction de décrémentation ou de gestion des additions pour le projet Robert dans sa version par défaut car toutes les situations sont déjà couvertes. 
-///
+/// 
 fn resoudre_incrementer ( contexte: &mut Contexte, mut arguments: grammaire::ArgumentsLocaux ) -> Retour { 
 	let arg_chemin = if let Some( c ) = arguments.extraire() { 
 		c 
@@ -28,7 +28,7 @@ fn resoudre_incrementer ( contexte: &mut Contexte, mut arguments: grammaire::Arg
 		Some( i ) => i, 
 		None => "1".to_string() 
 	}; 
-	let mut canal = Canal!( contexte ); 
+	let mut canal = acces_canal!( contexte ); 
 	match grammaire::chemin_extraire( &arg_chemin ) { 
 		Ok( chemin ) => canal.resoudre( 
 			&chemin, 

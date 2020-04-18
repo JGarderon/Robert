@@ -11,7 +11,7 @@ use crate::resolution::Retour;
 
 // ---------------------------------------------------- 
 
-use crate::TAILLE_TEXTE_MAX; 
+use crate::configuration::TAILLE_TEXTE_MAX; 
 
 // ---------------------------------------------------- 
 
@@ -30,7 +30,7 @@ fn resoudre_ajouter( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 	} else { 
 		return Retour::creer_str( false, "aucun texte supplémentaire fourni" ); 
 	}; 
-	let mut canal = Canal!( contexte ); 
+	let mut canal = acces_canal!( contexte ); 
 	match grammaire::chemin_extraire( &arg_chemin ) { 
 		Ok( chemin ) => canal.resoudre( 
 			&chemin, 
@@ -62,7 +62,7 @@ fn resoudre_compter( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 	} else { 
 		return Retour::creer_str( false, "un chemin vide n'est pas acceptable" ); 
 	}; 
-	let mut canal = Canal!( contexte ); 
+	let mut canal = acces_canal!( contexte ); 
 	match grammaire::chemin_extraire( &arg_chemin ) { 
 		Ok( chemin ) => canal.resoudre( 
 			&chemin, 
@@ -109,7 +109,7 @@ fn resoudre_decouper( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) 
 		Err( _ ) => return Retour::creer_str( false, "origine =/= entier positif " ) 
 	}; 
 	let fin = arguments.extraire(); 
-	let mut canal = Canal!( contexte ); 
+	let mut canal = acces_canal!( contexte ); 
 	match grammaire::chemin_extraire( &arg_chemin ) { 
 		Ok( chemin ) => canal.resoudre( 
 			&chemin, 

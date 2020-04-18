@@ -6,11 +6,15 @@ use std::io::BufRead;
 
 // ---------------------------------------------------- 
 
-use crate::PROFILS_SOURCE; 
-use crate::PROFILS_PSEUDO_DEFAUT; 
+use crate::configuration::PROFILS_SOURCE; 
+use crate::configuration::PROFILS_PSEUDO_DEFAUT; 
 
 // ---------------------------------------------------- 
 
+/// # Macro "est authentifié (test)"
+/// 
+/// Cette macro ajoute un test d'authentification (avec retour de fonction si négative). Sert comme raccourci pour les modules de résolution qui souhaitent restreindre les droits aux seuls profils reconnus et autorisés. 
+/// 
 macro_rules! est_authentifie {
 	( $contexte:ident ) => {
         if !$contexte.profil.est_authentifie() { 

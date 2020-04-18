@@ -21,7 +21,7 @@ use crate::resolution::Retour;
 
 // ---------------------------------------------------- 
 
-use crate::NBRE_MAX_CANAUX; 
+use crate::configuration::NBRE_MAX_CANAUX; 
 
 // ---------------------------------------------------- 
 

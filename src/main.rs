@@ -15,120 +15,34 @@
 //! 
 
 use std::net::{TcpListener}; 
-use std::io::Read;  
 use std::thread; 
 use std::thread::JoinHandle; 
 
 // --- --- --- --- --- --- --- --- --- 
 
-/// Définit sur le mode "débug" est actif (renvoi sur la console par défaut). 
-const DEBUG: bool = true; 
-
-/// Nom du dictionnaire par défaut, créé par le programme et qui sert aussi de canal par défaut. Il ne peut et ne doit être jamais supprimé lors de l'exécution des requêtes des utilisateurs. 
-const CANAL_NOM_DEFAUT: &'static str = "défaut";
-
-/// Taille maximale admissible par ligne reçue sur un socket. Cette taille fournie donc la taille maximum admissible des requêtes pour le reste du programme. 
-const TAILLE_LIGNE_MAX: usize = 1024; 
-
-/// Taille maximale admissible pour le texte contenu dans les dictionnaires. 
-const TAILLE_TEXTE_MAX: usize = TAILLE_LIGNE_MAX*5; 
-
-// ///Nbre maximum admissible de valeurs pour chaque objet. 
-// const NBRE_MAX_OBJETS: usize = 250; 
-
-/// Nbre maximum admissible de valeurs pour chaque canal (dictionnaire). 
-const NBRE_MAX_VALEURS: usize = 500; 
-
-/// Nbre maximum admissible de canaux dans le processus en cours. 
-const NBRE_MAX_CANAUX: usize = 8; 
-
-/// Chemin vers le fichier des profils 
-const PROFILS_SOURCE: &'static str = "./profils.csv"; 
-
-const PROFILS_PSEUDO_DEFAUT: &'static str = "visiteur anonyme"; 
-
-// --- --- --- --- --- --- --- --- --- 
-
-macro_rules! Canal {
-    ( $contexte:ident ) => {
-        { 
-        	match $contexte.canalthread.lock() { 
-        		Ok( c )	=> c, 
-        		Err( empoisonne ) => empoisonne.into_inner() 
-        	} 
-        } 
-    };
-} 
+mod configuration; 
 
 mod contexte; 
-use crate::contexte::Contexte; 
+
 
 #[macro_use]
+mod base; 
+#[macro_use]
 mod profil; 
-use crate::profil::Profil; 
 
 mod resolution; 
-use crate::resolution::RetourType; 
-
-mod base; 
 
 mod grammaire; 
-use crate::grammaire::{ExtractionLigne}; 
 
 mod serie; 
 
-/// Fonction recevant un client et le traitant, par le biais d'un objet 'Contexte' déjà créé. Principalement une boucle qui reçoit sur texte dans un tampon, l'examine rapidement avec les outils du module "grammaire", et lancement la fonction de résolution de la requête. 
-fn recevoir( mut contexte: Contexte ) { 
-	let mut iterateur = match contexte.stream.try_clone() { 
-		Ok( s ) => s, 
-		Err(_) => return 
-	}.bytes(); 
-	if !contexte.ecrire( "[!] bonjour\n", true ) { 
-		return; 
-	} 
-	while contexte.poursuivre { 
-		if !*contexte.service_poursuite { 
-			contexte.ecrire( 
-				"[!] le service est en cours d'extinction ; vous allez être déconnecté immédiatement\n", 
-				true 
-			); 
-			break; 
-		} 
-		let r = match grammaire::extraire_ligne( &mut iterateur ) { 
-			ExtractionLigne::Commande( s ) => { 
-				let appel = grammaire::extraction_commande( s.trim() ); 
-				resolution::resoudre( 
-					&mut contexte, 
-					appel.0, 
-					appel.1 
-				) 
-			} 
-			ExtractionLigne::Erreur( m ) => m, 
-			ExtractionLigne::Stop => break 
-		}; 
-		let mut e = contexte.ecrire( 
-			if r.etat { "[+] " } else { "[-] " }, 
-			false 
-		); 
-		e &= match r.message { 
-			RetourType::Statique( m ) => contexte.ecrire( m, false ), 
-			RetourType::Dynamique( m ) => contexte.ecrire( &m, false ) 
-		}; 
-		e &= contexte.ecrire( 
-			"\n", 
-			true 
-		); 
-		if !e { 
-			break; 
-		} 
-	} 
-	if DEBUG { 
-		match contexte.stream.peer_addr() { 
-			Ok( adresse ) => println!( "! fin de connexion: {:?}", adresse ), 
-			_ => () 
-		} 
-	} 
-} 
+mod client; 
+
+// --- --- --- --- --- --- --- --- --- 
+
+use crate::profil::Profil; 
+use crate::configuration::CANAL_NOM_DEFAUT; 
+use crate::contexte::Contexte; 
 
 /// Fonction permettant de lancer le service d'écoute (socket TCP). A l'avenir, cette fonction retournerait un objet JoinHandle permettant au service d'agir dans un thread dédié et ne pas boucler la fonction 'main'. 
 /// Chaque nouveau client est envoyé dans un nouveau thread, avec un objet "Contexte", qui porte les informations essentielles liées au socket TCP en cours. Les requêtes sont gérées par le thread du client. 
@@ -147,7 +61,7 @@ fn lancement_service( ipport: &str ) -> Result<(), &'static str> {
 	    			break; 
 	    		} 
 	    	}; 
-	    	if DEBUG { 
+	    	if configuration::DEBUG { 
     			match &stream.peer_addr() { 
     				Ok( adresse ) => println!( "! nouvelle connexion: {:?}", adresse ), 
     				_ => continue 
@@ -165,7 +79,7 @@ fn lancement_service( ipport: &str ) -> Result<(), &'static str> {
 			fils.push( 
 				thread::spawn( 
 		        	move || { 
-		        		recevoir( contexte ); 
+		        		client::recevoir( contexte ); 
 		        	} 
 		        ) 
 		    ); 

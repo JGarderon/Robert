@@ -95,7 +95,7 @@ fn resoudre_definir ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) 
 		return Retour::creer_str( false, "aucune valeur fournie ou séparateur clé/valeur non-respecté" ); 
 	}; 
 	let valeur_type = arguments.extraire(); 
-	let mut canal = Canal!( contexte ); 
+	let mut canal = acces_canal!( contexte ); 
 	match grammaire::chemin_extraire( &arg_chemin ) { 
 		Ok( chemin ) => { 
 			if chemin.len() == 1 { 
@@ -129,7 +129,7 @@ fn resoudre_obtenir ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) 
 	} else { 
 		return Retour::creer_str( false, "un chemin vide n'est pas acceptable" ); 
 	}; 
-	let mut canal = Canal!( contexte ); 
+	let mut canal = acces_canal!( contexte ); 
 	match grammaire::chemin_extraire( &arg_chemin ) { 
 		Ok( chemin ) => canal.resoudre( 
 			&chemin, 
@@ -154,7 +154,7 @@ fn resoudre_supprimer ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux 
 	} else { 
 		return Retour::creer_str( false, "un chemin vide n'est pas acceptable" ); 
 	}; 
-	let mut canal = Canal!( contexte ); 
+	let mut canal = acces_canal!( contexte ); 
 	match grammaire::chemin_extraire( &arg_chemin ) { 
 		Ok( chemin ) => canal.resoudre( 
 			&chemin[..chemin.len()-1], 
@@ -180,7 +180,7 @@ fn resoudre_tester ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 	} else { 
 		return Retour::creer_str( false, "un chemin vide n'est pas acceptable" ); 
 	}; 
-	let mut canal = Canal!( contexte ); 
+	let mut canal = acces_canal!( contexte ); 
 	match grammaire::chemin_extraire( &arg_chemin ) { 
 		Ok( chemin ) => canal.resoudre( 
 			&chemin, 
@@ -199,7 +199,7 @@ fn resoudre_lister ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 	} else { 
 		return Retour::creer_str( false, "un chemin vide n'est pas acceptable" ); 
 	}; 
-	let mut canal = Canal!( contexte ); 
+	let mut canal = acces_canal!( contexte ); 
 	let mut stream_copie = match contexte.stream.try_clone() { 
 		Ok( s ) => s, 
 		Err( _ ) => return Retour::creer_str( false, "erreur interne ; copie du stream impossible" ) 
@@ -245,7 +245,7 @@ fn resoudre_alterer ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) 
 	} else { 
 		return Retour::creer_str( false, "vous devez spécifier un type correct pour l'altération" ); 
 	}; 
-	let mut canal = Canal!( contexte ); 
+	let mut canal = acces_canal!( contexte ); 
 	match grammaire::chemin_extraire( &arg_chemin ) { 
 		Ok( chemin ) => canal.resoudre( 
 			&chemin, 

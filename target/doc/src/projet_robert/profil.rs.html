@@ -100,6 +100,10 @@
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
 </pre><div class="example-wrap"><pre class="rust ">
 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>; 
@@ -114,6 +118,10 @@
 
 <span class="comment">// ---------------------------------------------------- </span>
 
+<span class="doccomment">/// # Macro &quot;est authentifié (test)&quot;</span>
+<span class="doccomment">/// </span>
+<span class="doccomment">/// Cette macro ajoute un test d&#39;authentification (avec retour de fonction si négative). Sert comme raccourci pour les modules de résolution qui souhaitent restreindre les droits aux seuls profils reconnus et autorisés. </span>
+<span class="doccomment">/// </span>
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">est_authentifie</span> {
 	( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">contexte</span>:<span class="ident">ident</span> ) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">contexte</span>.<span class="ident">profil</span>.<span class="ident">est_authentifie</span>() { 

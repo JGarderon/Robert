@@ -53,14 +53,14 @@ impl Contexte<'_> {
 
 	pub fn message( &mut self, message: &str ) -> bool { 
 		self.ecrire( 
-			&format!( "\t[@] message {}", message ),  
+			&format!( "[@] {}\n", message ),  
 			false 
 		) 
 	} 
 
 	pub fn erreur( &mut self, message: &str ) -> bool { 
 		self.ecrire( 
-			&format!( "\t[!] message {}", message ),  
+			&format!( "[!] {}\n", message ),  
 			false 
 		) 
 	} 

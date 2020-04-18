@@ -1,29 +1,33 @@
+//! # Sous-module de résolution "administration"
+//! 
+//! Ce module gère les fonctions liées à l'administration du processus. Certaines de ces fonctions peuvent être restreintes aux seuls clients authentifiés. 
+//! 
+
+	// --- --- --- --- --- --- --- --- --- 
+	// (1) Importation des modules internes 
+	// --- --- --- --- --- --- --- --- --- 
 
 use std::mem; 
 use std::collections::HashMap;
 use std::io::BufWriter; 
 use std::fs::File; 
 
-// ---------------------------------------------------- 
+	// --- --- --- --- --- --- --- --- --- 
+	// (2) Importation des modules du projet 
+	// --- --- --- --- --- --- --- --- --- 
 
-use crate::base::Valeurs;
-use crate::base::Canal; 
-use crate::resolution::Contexte; 
+use crate::base::{Canal, Valeurs}; 
+use crate::resolution::{Contexte, Resolveur, Retour}; 
 use crate::grammaire::ArgumentsLocaux; 
+use crate::serie::{Serie, Source}; 
 
-// ---------------------------------------------------- 
+	// --- --- --- --- --- --- --- --- --- 
+	// (3) Constantes du projet 
+	// --- --- --- --- --- --- --- --- --- 
 
-use crate::resolution::Resolveur; 
-use crate::resolution::Retour; 
-// ---------------------------------------------------- 
-
-use crate::serie::Source; 
-
-// ---------------------------------------------------- 
-
-use crate::serie::Serie; 
-
-// ---------------------------------------------------- 
+	// --- --- --- --- --- --- --- --- --- 
+	// (4) Définition des structures, énumérations et leurs implémentations 
+	// --- --- --- --- --- --- --- --- --- 
 
 trait Mesure { 
 	fn mesurer( &self ) -> usize;  
@@ -69,7 +73,9 @@ impl Mesure for Canal {
 	} 
 } 
 
-// ---------------------------------------------------- 
+	// --- --- --- --- --- --- --- --- --- 
+	// (5) Définition des fonctions 
+	// --- --- --- --- --- --- --- --- --- 
 
 /// # Fonction de résolution locale "authentifier son profil" 
 /// 
@@ -163,6 +169,10 @@ fn resoudre_eteindre( contexte: &mut Contexte, _: ArgumentsLocaux ) -> Retour {
 	
 } 
 
+/// # Fonction de résolution locale "sérialiser les valeurs d'un canal" 
+/// 
+/// La sérialisation est stockée dans un fichier dédié. La désérialisation est donc possible, notamment en vue d'un arrêt programmé du processus puis de sa relance. 
+/// 
 fn resoudre_serialiser( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	est_authentifie!( contexte ); 
 	let fid = if let Some( arg ) = arguments.extraire() { 
@@ -176,7 +186,7 @@ fn resoudre_serialiser( contexte: &mut Contexte, mut arguments: ArgumentsLocaux 
 	if fid.len() > 32 { 
 		return Retour::creer_str( false, "l'identifiant de dump doit faire 32 caractères maximum" ); 
 	} 
-	let canal = Canal!( contexte ); 
+	let canal = acces_canal!( contexte ); 
 	let f = if let Ok( f ) = File::create( format!( "./{}.dump", fid ) ) { 
 		f 
 	} else { 
@@ -194,93 +204,105 @@ fn resoudre_serialiser( contexte: &mut Contexte, mut arguments: ArgumentsLocaux 
 	} 
 } 
 
-fn resoudre_mesurer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+/// # Fonction de résolution locale "vider un canal" 
+/// 
+/// Vide de toutes ses valeurs, un canal donné. Si aucune sérialisation n'a été précédemment faite, les données sont perdues. 
+/// 
+fn resoudre_vider( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	est_authentifie!( contexte ); 
-	if let Some( _ ) = arguments.extraire() { 
-		return Retour::creer_str( false, "aucun argument accepté pour cette fonction" ); 
-	} 
-	let canaux = { 
-		match contexte.canauxthread.lock() { 
-			Ok( canaux ) => canaux, 
-			Err( empoisonne ) => empoisonne.into_inner() 
-		} 
+	let nom = if let Some( n ) = arguments.extraire() { 
+		n 
+	} else { 
+		return Retour::creer_str( false, "nom de canal obligatoire" ); 
 	}; 
-	let mut total = 0; 
-	for (_, canalthread) in canaux.liste.iter() { 
-		total += { 
-			match canalthread.lock() { 
-				Ok( canal ) => canal, 
+	if nom.len() > 32 { 
+		Retour::creer_str( false, "nom de canal trop long (max. 32)" ) 
+	} else { 
+		let mut canaux = { 
+			match contexte.canauxthread.lock() { 
+				Ok( canaux ) => canaux, 
 				Err( empoisonne ) => empoisonne.into_inner() 
 			} 
-		}.mesurer(); 
+		}; 
+		if let Some( c ) = canaux.liste.get_mut( &nom ) { 
+			let mut canal = match c.lock() { 
+				Ok( c ) => c, 
+				Err( e ) => e.into_inner() 
+			}; 
+			match &mut canal.liste { 
+				Valeurs::Objet( h ) => { 
+					h.clear(); 
+					Retour::creer_str( true, "base vidée" ) 
+				} 
+				_ => Retour::creer_str( false, "objet racine incorrect ; le canal semble corrompu" ) 
+			} 
+		} else { 
+			Retour::creer_str( false, "nom de canal inconnu" ) 
+		} 
 	} 
-	Retour::creer( true, format!( "total : {}", total ) ) 
 } 
 
-fn resoudre_vider( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+/// # Fonction de résolution locale "résumer l'ensemble des canaux" 
+/// 
+/// Donne pour chaque canal, une paire d'informations : son nom, 
+/// 
+fn resoudre_resumer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	est_authentifie!( contexte ); 
 	if !arguments.est_stop() { 
 		return Retour::creer_str( false, "aucun argument autorisé" ); 
 	} 
-	let mut canal = Canal!( contexte ); 
-	match &mut canal.liste { 
-		Valeurs::Objet( h ) => { 
-			h.clear(); 
-			Retour::creer_str( true, "base vidée" ) 
+	let canauxthread_local = contexte.canauxthread.clone(); 
+	let canaux = { 
+		match canauxthread_local.lock() { 
+			Ok( canaux ) => canaux, 
+			Err( empoisonne ) => empoisonne.into_inner() 
 		} 
-		_ => Retour::creer_str( false, "objet racine incorrect ; le canal semble corrompu" ) 
+	}; 
+	let nbre = canaux.liste.len(); 
+	let mut total = 0; 
+	for (nom, canalthread) in canaux.liste.iter() { 
+		let canal = match canalthread.lock() { 
+			Ok( c ) => c, 
+			Err( e ) => e.into_inner() 
+		}; 
+		let t = canal.mesurer(); 
+		contexte.message( 
+			&format!( 
+				"canal \"{}\" (nbre : {}, taille : {})", 
+				nom, 
+				match &canal.liste { 
+					Valeurs::Objet( o ) => o.len().to_string(), 
+					_ => "?".to_string() 
+				}, 
+				t 
+			) 
+		); 
+		total += t; 
 	} 
+	Retour::creer(  
+		true, 
+		format!( 
+			"nbre total : {} (taille totale : {})", 
+			nbre, 
+			total 
+		) 
+	) 
 } 
 
-// fn resoudre_lister( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-// 	if let Some( _ ) = arguments.extraire() { 
-// 		return Retour::creer_str( false, "aucun argument accepté pour cette fonction" ); 
-// 	} 
-// 	let dicos = contexte.dicos.lock().unwrap(); 
-// 	for (nom, d) in dicos.liste.iter() { 
-// 		let dico = d.lock().unwrap(); 
-// 		if let Err(_) = contexte.stream.write( 
-// 			format!( 
-// 				"\tcanal \"{}\" ({:?})\n", 
-// 				nom, 
-// 				dico.liste.len() 
-// 			).as_bytes() 
-// 		) { 
-// 			contexte.stream.flush().unwrap(); 
-// 			return Retour::creer_str( false, "erreur lors de l'envoi" ); 
-// 		} 
-// 	} 
-// 	contexte.stream.flush().unwrap(); 
-// 	Retour::creer( true, format!( "stop ({})", dicos.liste.len() ) ) 
-// } 
-
-// fn resoudre_resumer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-// 	if !arguments.est_stop() { 
-// 		return Retour::creer_str( false, "aucun argument autorisé" ); 
-// 	} 
-// 	let dico = contexte.dico.lock().unwrap(); 
-// 	let valeurs = &dico.liste; 
-// 	Retour::creer(  
-// 		true, 
-// 		format!( 
-// 			"canal \"{}\" ({})", 
-// 			dico.nom, 
-// 			valeurs.len() 
-// 		) 
-// 	) 
-// } 
-
-
+/// # Fonction de résolution locale - sous-module "administration" 
+/// 
+/// Permet de retourner la fonction désirée en fonction de l'appel. 
+/// 
 pub fn resoudre( appel: &str ) -> Result<Resolveur,Retour> { 
 	match appel { 
 		"authentifier" => Ok( resoudre_authentifier as Resolveur ), 
 		"anonymiser" => Ok( resoudre_anonymiser as Resolveur ), 
 		"profiler" => Ok( resoudre_profiler as Resolveur ), 
 		"éteindre" => Ok( resoudre_eteindre as Resolveur ), 
-		"mesurer" => Ok( resoudre_mesurer as Resolveur ), 
 		"vider" => Ok( resoudre_vider as Resolveur ), 
 		"sérialiser" => Ok( resoudre_serialiser as Resolveur ), 
-		_ => Err( Retour::creer_str( false, "module texte : fonction inconnue" ) ) 
+		"résumer" => Ok( resoudre_resumer as Resolveur ), 
+		_ => Err( Retour::creer_str( false, "module 'administration' : fonction inconnue" ) ) 
 	} 
 } 
 
