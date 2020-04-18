@@ -16,7 +16,8 @@ use std::fs::File;
 	// (2) Importation des modules du projet 
 	// --- --- --- --- --- --- --- --- --- 
 
-use crate::base::{Canal, Valeurs}; 
+use crate::canal::Canal; 
+use crate::valeur::Valeurs; 
 use crate::resolution::{Contexte, Resolveur, Retour}; 
 use crate::grammaire::ArgumentsLocaux; 
 use crate::serie::{Serie, Source}; 

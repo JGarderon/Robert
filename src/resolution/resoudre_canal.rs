@@ -8,9 +8,8 @@ use std::collections::HashMap;
 
 // ---------------------------------------------------- 
 
-use crate::base::CanalThread; 
-use crate::base::Canal; 
-use crate::base::Valeurs; 
+use crate::canal::{Canal, CanalThread}; 
+use crate::valeur::Valeurs; 
 use crate::resolution::Contexte; 
 use crate::grammaire::ArgumentsLocaux; 
 

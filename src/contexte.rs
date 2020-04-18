@@ -4,8 +4,7 @@ use std::io::Write;
 
 // ---------------------------------------------------- 
 
-use crate::base::CanalThread; 
-use crate::base::CanauxThread; 
+use crate::canal::{CanalThread, CanauxThread}; 
 use crate::profil::Profil; 
 
 // ---------------------------------------------------- 

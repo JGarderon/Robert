@@ -25,9 +25,9 @@ mod configuration;
 mod contexte; 
 
 
-#[macro_use]
-mod base; 
-#[macro_use]
+#[macro_use] 
+mod canal; 
+#[macro_use] 
 mod profil; 
 
 mod resolution; 
@@ -38,8 +38,11 @@ mod serie;
 
 mod client; 
 
+mod valeur; 
+
 // --- --- --- --- --- --- --- --- --- 
 
+use crate::canal::creer_racine; 
 use crate::profil::Profil; 
 use crate::configuration::CANAL_NOM_DEFAUT; 
 use crate::contexte::Contexte; 
@@ -48,7 +51,7 @@ use crate::contexte::Contexte;
 /// Chaque nouveau client est envoyé dans un nouveau thread, avec un objet "Contexte", qui porte les informations essentielles liées au socket TCP en cours. Les requêtes sont gérées par le thread du client. 
 fn lancement_service( ipport: &str ) -> Result<(), &'static str> { 
 	static mut ETAT_GENERAL: bool = true; // /!\ UNSAFE / à retirer urgemment 
-	let (canal_thread, canaux_thread) = base::creer_racine( CANAL_NOM_DEFAUT ); 
+	let (canal_thread, canaux_thread) = creer_racine( CANAL_NOM_DEFAUT ); 
     if let Ok( listener ) = TcpListener::bind( ipport ) {
 	    let mut fils: Vec<JoinHandle<_>> = Vec::new(); 
 	    let mut iterateur_connexion = listener.incoming();  
@@ -95,7 +98,10 @@ fn lancement_service( ipport: &str ) -> Result<(), &'static str> {
 
 // --- --- --- --- --- --- --- --- --- 
 
+/// Fonction principal du programme 
+/// 
 /// Ai-je vraiment besoin de documenter à quoi sert cette fonction... ? 
+/// 
 fn main() { 
 
 	if let Err( e ) = lancement_service( "127.0.0.1:8080" ) { 

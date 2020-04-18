@@ -73,16 +73,34 @@
 <span id="73">73</span>
 <span id="74">74</span>
 <span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Module des clients TCP  </span>
 <span class="doccomment">//! </span>
 <span class="doccomment">//! Ce module gère la réception des clients TCP dans le service. Il dépend pour son fonctionnement, principalement de deux autres modules : celui grammatical (&#39;grammaire&#39;) et de contextualisation (&#39;contexte&#39;). </span>
 <span class="doccomment">//! </span>
 
+	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+	<span class="comment">// (1) Importation des modules internes </span>
+	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span>; 
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span>;  
 
-<span class="comment">// ---------------------------------------------------- </span>
+	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+	<span class="comment">// (2) Importation des modules du projet </span>
+	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">contexte</span>::<span class="ident">Contexte</span>; 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">grammaire</span>; 
@@ -90,11 +108,19 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>; 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::<span class="ident">RetourType</span>; 
 
-<span class="comment">// ---------------------------------------------------- </span>
+	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+	<span class="comment">// (3) Constantes du projet </span>
+	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">DEBUG</span>; 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">configuration</span>::<span class="ident">DEBUG</span>; 
 
-<span class="comment">// ---------------------------------------------------- </span>
+	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+	<span class="comment">// (4) Définition des structures, énumérations et leurs implémentations </span>
+	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+
+	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+	<span class="comment">// (5) Définition des fonctions </span>
+	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
 
 <span class="doccomment">/// Fonction recevant un client et le traitant, par le biais d&#39;un objet &#39;Contexte&#39; déjà créé. Principalement une boucle qui reçoit sur texte dans un tampon, l&#39;examine rapidement avec les outils du module &quot;grammaire&quot;, et lancement la fonction de résolution de la requête. </span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recevoir</span>( <span class="kw-2">mut</span> <span class="ident">contexte</span>: <span class="ident">Contexte</span> ) { 
@@ -102,7 +128,7 @@
 		<span class="prelude-val">Ok</span>( <span class="ident">s</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>, 
 		<span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> 
 	}.<span class="ident">bytes</span>(); 
-	<span class="kw">if</span> <span class="op">!</span><span class="ident">contexte</span>.<span class="ident">ecrire</span>( <span class="string">&quot;[!] bonjour\n&quot;</span>, <span class="bool-val">true</span> ) { 
+	<span class="kw">if</span> <span class="op">!</span><span class="ident">contexte</span>.<span class="ident">message</span>( <span class="string">&quot;bonjour&quot;</span> ) { 
 		<span class="kw">return</span>; 
 	} 
 	<span class="kw">while</span> <span class="ident">contexte</span>.<span class="ident">poursuivre</span> { 

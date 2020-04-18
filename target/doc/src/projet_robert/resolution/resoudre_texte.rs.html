@@ -183,7 +183,7 @@
 <span id="183">183</span>
 </pre><div class="example-wrap"><pre class="rust ">
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">base</span>::<span class="ident">Valeurs</span>; 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">valeur</span>::<span class="ident">Valeurs</span>; 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::<span class="ident">Contexte</span>; 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">grammaire</span>; 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">grammaire</span>::<span class="ident">ArgumentsLocaux</span>; 
@@ -195,7 +195,7 @@
 
 <span class="comment">// ---------------------------------------------------- </span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">TAILLE_TEXTE_MAX</span>; 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">configuration</span>::<span class="ident">TAILLE_TEXTE_MAX</span>; 
 
 <span class="comment">// ---------------------------------------------------- </span>
 
@@ -214,7 +214,7 @@
 	} <span class="kw">else</span> { 
 		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;aucun texte supplémentaire fourni&quot;</span> ); 
 	}; 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">canal</span> <span class="op">=</span> <span class="macro">Canal</span><span class="macro">!</span>( <span class="ident">contexte</span> ); 
+	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">canal</span> <span class="op">=</span> <span class="macro">acces_canal</span><span class="macro">!</span>( <span class="ident">contexte</span> ); 
 	<span class="kw">match</span> <span class="ident">grammaire</span>::<span class="ident">chemin_extraire</span>( <span class="kw-2">&amp;</span><span class="ident">arg_chemin</span> ) { 
 		<span class="prelude-val">Ok</span>( <span class="ident">chemin</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">canal</span>.<span class="ident">resoudre</span>( 
 			<span class="kw-2">&amp;</span><span class="ident">chemin</span>, 
@@ -246,7 +246,7 @@
 	} <span class="kw">else</span> { 
 		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;un chemin vide n&#39;est pas acceptable&quot;</span> ); 
 	}; 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">canal</span> <span class="op">=</span> <span class="macro">Canal</span><span class="macro">!</span>( <span class="ident">contexte</span> ); 
+	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">canal</span> <span class="op">=</span> <span class="macro">acces_canal</span><span class="macro">!</span>( <span class="ident">contexte</span> ); 
 	<span class="kw">match</span> <span class="ident">grammaire</span>::<span class="ident">chemin_extraire</span>( <span class="kw-2">&amp;</span><span class="ident">arg_chemin</span> ) { 
 		<span class="prelude-val">Ok</span>( <span class="ident">chemin</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">canal</span>.<span class="ident">resoudre</span>( 
 			<span class="kw-2">&amp;</span><span class="ident">chemin</span>, 
@@ -293,7 +293,7 @@
 		<span class="prelude-val">Err</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;origine =/= entier positif &quot;</span> ) 
 	}; 
 	<span class="kw">let</span> <span class="ident">fin</span> <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>(); 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">canal</span> <span class="op">=</span> <span class="macro">Canal</span><span class="macro">!</span>( <span class="ident">contexte</span> ); 
+	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">canal</span> <span class="op">=</span> <span class="macro">acces_canal</span><span class="macro">!</span>( <span class="ident">contexte</span> ); 
 	<span class="kw">match</span> <span class="ident">grammaire</span>::<span class="ident">chemin_extraire</span>( <span class="kw-2">&amp;</span><span class="ident">arg_chemin</span> ) { 
 		<span class="prelude-val">Ok</span>( <span class="ident">chemin</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">canal</span>.<span class="ident">resoudre</span>( 
 			<span class="kw-2">&amp;</span><span class="ident">chemin</span>, 

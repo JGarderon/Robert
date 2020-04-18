@@ -5,7 +5,7 @@ use std::io::Write;
 
 use crate::grammaire; 
 use crate::grammaire::ArgumentsLocaux; 
-use crate::base::Valeurs; 
+use crate::valeur::Valeurs; 
 use crate::contexte::Contexte; 
 
 // ---------------------------------------------------- 

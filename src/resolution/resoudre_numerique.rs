@@ -1,5 +1,5 @@
 
-use crate::base::Valeurs; 
+use crate::valeur::Valeurs; 
 use crate::resolution::Contexte; 
 use crate::grammaire; 
 
