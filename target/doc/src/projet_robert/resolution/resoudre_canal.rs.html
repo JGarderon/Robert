@@ -409,7 +409,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Cette fonction est un peu particulière, car elle crééra un canal spéficique à un thread &#39;client&#39;. </span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Le client disposera donc de son propre stockage de valeurs, ce qui est son intérêt. La perte de connexion provoque aussi la perte des informations contenues dans ce canal &quot;artificiel&quot;. Il n&#39;est référencé nul part ailleurs : aucune fonction classique sur les canaux n&#39;aura de prise sur lui. </span>
+<span class="doccomment">/// Le client disposera donc de son propre stockage de valeurs, ce qui est son intérêt. La perte de connexion provoque aussi la perte des informations contenues dans ce canal &quot;artificiel&quot;. Il n&#39;est référencé nul part ailleurs : aucune fonction classique sur les canaux n&#39;aura de prise sur lui (y compris, sauf cas particuliers, le module d&#39;administration). </span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Aucun souscripteur ne pourra donc s&#39;y abonner (à part le client lui-même... mais ce dernier étant représenté par un socket, il ne peut pas émettre et recevoir en même temps). </span>
 <span class="doccomment">///</span>
