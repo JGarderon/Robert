@@ -36,11 +36,16 @@ const TAILLE_TEXTE_MAX: usize = TAILLE_LIGNE_MAX*5;
 // ///Nbre maximum admissible de valeurs pour chaque objet. 
 // const NBRE_MAX_OBJETS: usize = 250; 
 
-///Nbre maximum admissible de valeurs pour chaque canal (dictionnaire). 
+/// Nbre maximum admissible de valeurs pour chaque canal (dictionnaire). 
 const NBRE_MAX_VALEURS: usize = 500; 
 
-///Nbre maximum admissible de canaux dans le processus en cours. 
+/// Nbre maximum admissible de canaux dans le processus en cours. 
 const NBRE_MAX_CANAUX: usize = 8; 
+
+/// Chemin vers le fichier des profils 
+const PROFILS_SOURCE: &'static str = "./profils.csv"; 
+
+const PROFILS_PSEUDO_DEFAUT: &'static str = "visiteur anonyme"; 
 
 // --- --- --- --- --- --- --- --- --- 
 
@@ -154,9 +159,7 @@ fn lancement_service( ipport: &str ) -> Result<(), &'static str> {
 				poursuivre: true, 
 				canalthread: canal_thread.clone(), 
 				canauxthread: canaux_thread.clone(), 
-				profil: Profil { 
-					identifie: false 
-				}, 
+				profil: Profil::creer(), 
 				stream: stream, 
 			}; 
 			fils.push( 

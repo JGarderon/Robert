@@ -71,15 +71,88 @@ impl Mesure for Canal {
 
 // ---------------------------------------------------- 
 
-fn resoudre_authentifier( contexte: &mut Contexte, mut _arguments: ArgumentsLocaux ) -> Retour { 
-	if contexte.profil.authentifier( "tmp", "tmp" ) { 
-		Retour::creer_str( true, "authentification réussie" ) 
-	} else { 
-		contexte.poursuivre = false; 
-		Retour::creer_str( false, "authentification échouée ; vous allez être déconnecté" ) 
+/// # Fonction de résolution locale "authentifier son profil" 
+/// 
+/// Permet de s'authentifier, avec un couple "pseudo / mot de passe". 
+/// 
+fn resoudre_authentifier( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	match arguments.tous() { 
+		Ok( v ) => { 
+			if v.len() == 2 { 
+				match contexte.profil.authentifier( &v[0], &v[1] ) { 
+					Ok( true ) => { 
+						contexte.message( &format!( "bonjour {}", contexte.profil ) ); 
+						Retour::creer_str( 
+							true, 
+							"authentification réussie" 
+						) 
+					} 
+					Ok( false ) => { 
+						contexte.poursuivre = false; 
+						Retour::creer_str( 
+							false, 
+							"authentification échouée ; vous allez être déconnecté" 
+						) 
+					} 
+					Err( e ) => { 
+						contexte.erreur( &format!( "erreur interne : {}", e ) ); 
+						Retour::creer_str( 
+							false, 
+							"authentification échouée ; merci de rééssayer ultérieurement" 
+						) 
+					} 
+				} 
+			} else { 
+				Retour::creer_str( 
+					false, 
+					"deux arguments obligatoires : 'pseudo' et 'passe'" 
+				) 
+			} 
+		} 
+		Err( _ ) => return Retour::creer_str( 
+			false, 
+			"arguments invalides" 
+		) 
 	} 
 } 
 
+/// # Fonction de résolution locale "anonymiser son profil" 
+/// 
+/// Recréer un profil vierge, sans aucun droit associé. 
+/// 
+fn resoudre_anonymiser( contexte: &mut Contexte, _: ArgumentsLocaux ) -> Retour { 
+	contexte.message( 
+		if contexte.profil.est_authentifie() { 
+			"vous étiez authentifié" 
+		} else { 
+			"vous n'étiez pas authentifié" 
+		} 
+	); 
+	contexte.profil.anonymiser();  
+	Retour::creer_str( 
+		true, 
+		"anonymisation réussie" 
+	) 
+} 
+
+/// # Fonction de résolution locale "consulter son profil" 
+/// 
+/// Retourne l'état résumé du profil en message. 
+/// 
+fn resoudre_profiler( contexte: &mut Contexte, _: ArgumentsLocaux ) -> Retour { 
+	contexte.message( &format!( "profil : {}", contexte.profil ) ); 
+	Retour::creer_str( 
+		true, 
+		"profilage réussi" 
+	) 
+} 
+
+/// # Fonction de résolution locale "éteindre le programme" 
+/// 
+/// Cette fonction doit être considérée comme avec un effet "prioritaire" : elle va annuler la boucle principale du service, ce qui provoquera l'arrêt de l'écoupe réseau ainsi que du programme. De plus, l'arrêt du service provoquera la fin de toutes les clients TCP actifs. 
+/// 
+/// Une fois l'arrêt enclenché, il n'y a plus aucun moyen de revenir à l'état antérieur (perte des informations non-sauvegardées). 
+/// 
 fn resoudre_eteindre( contexte: &mut Contexte, _: ArgumentsLocaux ) -> Retour { 
 	est_authentifie!( contexte ); 
 	*contexte.service_poursuite = false; // /!\ UNSAFE / à retirer urgemment 
@@ -201,6 +274,8 @@ fn resoudre_vider( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> 
 pub fn resoudre( appel: &str ) -> Result<Resolveur,Retour> { 
 	match appel { 
 		"authentifier" => Ok( resoudre_authentifier as Resolveur ), 
+		"anonymiser" => Ok( resoudre_anonymiser as Resolveur ), 
+		"profiler" => Ok( resoudre_profiler as Resolveur ), 
 		"éteindre" => Ok( resoudre_eteindre as Resolveur ), 
 		"mesurer" => Ok( resoudre_mesurer as Resolveur ), 
 		"vider" => Ok( resoudre_vider as Resolveur ), 

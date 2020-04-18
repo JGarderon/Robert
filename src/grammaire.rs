@@ -99,6 +99,24 @@ impl ArgumentsLocaux {
             false 
         } 
     } 
+    pub fn tous( &mut self ) -> Result<Vec<String>, &'static str> { 
+        let mut r: Vec<String> = Vec::new(); 
+        loop { 
+            match self.suivant() { 
+                ArgumentsLocauxEtat::Suivant( depart, stop ) => { 
+                    r.push( 
+                        String::from_iter( 
+                            &self.source[self.position+depart..self.position+stop] 
+                        ) 
+                    ); 
+                    self.position += stop+1; 
+                } 
+                ArgumentsLocauxEtat::Stop => break, 
+                ArgumentsLocauxEtat::Erreur( e ) => return Err( e ) 
+            } 
+        } 
+        Ok( r ) 
+    } 
 } 
 
 // ---------------------------------------------------- 

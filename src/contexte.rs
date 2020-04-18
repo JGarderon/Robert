@@ -32,7 +32,7 @@ pub struct Contexte<'a> {
 	pub canauxthread: CanauxThread, 
 
 	/// 
-	pub profil: Profil,  
+	pub profil: Profil<'a>,  
 
 	/// Ce champ contient l'objet socket, librement clonable. 
 	pub stream: TcpStream 
@@ -50,6 +50,21 @@ impl Contexte<'_> {
 			Err( _ ) => false 
 		} 
 	} 
+
+	pub fn message( &mut self, message: &str ) -> bool { 
+		self.ecrire( 
+			&format!( "\t[@] message {}", message ),  
+			false 
+		) 
+	} 
+
+	pub fn erreur( &mut self, message: &str ) -> bool { 
+		self.ecrire( 
+			&format!( "\t[!] message {}", message ),  
+			false 
+		) 
+	} 
+
 } 
 
 
