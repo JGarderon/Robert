@@ -7,9 +7,9 @@
 //! 
 //! A ce jour, il gère des clés au format texte et des valeurs de plusieurs types (valeur textuelle, réelle, flottante, boolèenne). D'autres types de valeurs sont attendus et sans attendre (compte tenu du caractère ouvert et libre du code), n'hésitez pas à y ajouter votre grain de sel. 
 //! 
-//! La philosophie de Robert est d'offrir un logiciel appréhendable par le plus grand nombre, simple et rapide, qui ne soit pas un "jouet" de programmation sans être une usine à gaz que seuls une poignée de personnes est capable de développer et maintenir. Robert dans la lignée de la philosophie "KISS" de l'univers Unix : _Keep It Simple, Stupid !_ Ainsi il ne vous fera jamais le café... 
+//! La philosophie de Robert est d'offrir un logiciel appréhendable par le plus grand nombre, simple et rapide, qui ne soit pas un "jouet" de programmation sans être une usine à gaz que seule une poignée de personnes est capable de développer et maintenir (ce qui rend le projet dépendant de ses concepteurs et donc représente un risque d'abandon). Robert dans la lignée de la philosophie "KISS" de l'univers Unix : _Keep It Simple, Stupid !_ Ainsi il ne vous fera jamais le café... 
 //! 
-//! Par l'usage de Rust pour son développement, le logiciel est stable, sûr et son empreinte mémoire est très faible. Rust ne connaît (quasi-)pas les fuites de mémoire : Robert non plus (car il tente d'en suivre au plus près la philosophie). Le projet souhaite aussi s'assoir sur des ressources sûres, et éviter d'utiliser des adjonctions de code extérieur insondable. Aussi Robert n'a aucune autre dépendance à ce jour, que l'usage des modules internes au langage. 
+//! Par l'usage de Rust pour son développement, le logiciel est stable, sûr et son empreinte mémoire est très faible. Rust ne connaît (quasi-)pas les fuites de mémoire : Robert non plus (car il tente d'en suivre au plus près la philosophie). Le projet souhaite aussi s'assoir sur des ressources sûres, et éviter d'utiliser des adjonctions de code extérieur insondable. Aussi Robert n'a aucune autre dépendance à ce jour, que l'usage des modules internes au langage. Cela le restreint certes, mais lui apporte une facilité d'audit supplémentaire. 
 //! 
 //! __D'où sa devise "CCP" : _copier, compiler, profiter !___
 //!  
@@ -28,6 +28,8 @@ mod grammaire;
 mod serie; 
 mod resolution; 
 mod valeur; 
+
+mod script; 
 
 /// Fonction principale du programme 
 /// 

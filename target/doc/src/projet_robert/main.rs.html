@@ -41,6 +41,8 @@
 <span id="41">41</span>
 <span id="42">42</span>
 <span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
 </pre><div class="example-wrap"><pre class="rust ">
 
 <span class="doccomment">//! Robert est un logiciel type &quot;Redis-Like&quot; : un système de gestion de données haute performance, stockée en RAM, qui n&#39;offre cependant comme son illustre grand frère, toutes les finesses d&#39;une base de données SQL classique. </span>
@@ -51,9 +53,9 @@
 <span class="doccomment">//! </span>
 <span class="doccomment">//! A ce jour, il gère des clés au format texte et des valeurs de plusieurs types (valeur textuelle, réelle, flottante, boolèenne). D&#39;autres types de valeurs sont attendus et sans attendre (compte tenu du caractère ouvert et libre du code), n&#39;hésitez pas à y ajouter votre grain de sel. </span>
 <span class="doccomment">//! </span>
-<span class="doccomment">//! La philosophie de Robert est d&#39;offrir un logiciel appréhendable par le plus grand nombre, simple et rapide, qui ne soit pas un &quot;jouet&quot; de programmation sans être une usine à gaz que seuls une poignée de personnes est capable de développer et maintenir. Robert dans la lignée de la philosophie &quot;KISS&quot; de l&#39;univers Unix : _Keep It Simple, Stupid !_ Ainsi il ne vous fera jamais le café... </span>
+<span class="doccomment">//! La philosophie de Robert est d&#39;offrir un logiciel appréhendable par le plus grand nombre, simple et rapide, qui ne soit pas un &quot;jouet&quot; de programmation sans être une usine à gaz que seule une poignée de personnes est capable de développer et maintenir (ce qui rend le projet dépendant de ses concepteurs et donc représente un risque d&#39;abandon). Robert dans la lignée de la philosophie &quot;KISS&quot; de l&#39;univers Unix : _Keep It Simple, Stupid !_ Ainsi il ne vous fera jamais le café... </span>
 <span class="doccomment">//! </span>
-<span class="doccomment">//! Par l&#39;usage de Rust pour son développement, le logiciel est stable, sûr et son empreinte mémoire est très faible. Rust ne connaît (quasi-)pas les fuites de mémoire : Robert non plus (car il tente d&#39;en suivre au plus près la philosophie). Le projet souhaite aussi s&#39;assoir sur des ressources sûres, et éviter d&#39;utiliser des adjonctions de code extérieur insondable. Aussi Robert n&#39;a aucune autre dépendance à ce jour, que l&#39;usage des modules internes au langage. </span>
+<span class="doccomment">//! Par l&#39;usage de Rust pour son développement, le logiciel est stable, sûr et son empreinte mémoire est très faible. Rust ne connaît (quasi-)pas les fuites de mémoire : Robert non plus (car il tente d&#39;en suivre au plus près la philosophie). Le projet souhaite aussi s&#39;assoir sur des ressources sûres, et éviter d&#39;utiliser des adjonctions de code extérieur insondable. Aussi Robert n&#39;a aucune autre dépendance à ce jour, que l&#39;usage des modules internes au langage. Cela le restreint certes, mais lui apporte une facilité d&#39;audit supplémentaire. </span>
 <span class="doccomment">//! </span>
 <span class="doccomment">//! __D&#39;où sa devise &quot;CCP&quot; : _copier, compiler, profiter !___</span>
 <span class="doccomment">//!  </span>
@@ -72,6 +74,8 @@
 <span class="kw">mod</span> <span class="ident">serie</span>; 
 <span class="kw">mod</span> <span class="ident">resolution</span>; 
 <span class="kw">mod</span> <span class="ident">valeur</span>; 
+
+<span class="kw">mod</span> <span class="ident">script</span>; 
 
 <span class="doccomment">/// Fonction principale du programme </span>
 <span class="doccomment">/// </span>

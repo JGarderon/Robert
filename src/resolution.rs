@@ -17,6 +17,8 @@ mod resoudre_texte;
 mod resoudre_canal; 
 mod resoudre_administration; 
 
+mod resoudre_script; 
+
 // ---------------------------------------------------- 
 
 /// Un type spécifique au projet : le type 'Résolveur' est la signature d'une fonction de résolution, quelque soit le module de résolution. 
@@ -282,6 +284,10 @@ pub fn resoudre( contexte: &mut Contexte, appel: &str, arguments: &str ) -> Reto
 				Err( r ) => return r 
 			}, 
 			"administration" => match resoudre_administration::resoudre( &appel[n+1..] ) { 
+				Ok( fct ) => fct, 
+				Err( r ) => return r 
+			}, 
+			"script" => match resoudre_script::resoudre( &appel[n+1..] ) { 
 				Ok( fct ) => fct, 
 				Err( r ) => return r 
 			}, 

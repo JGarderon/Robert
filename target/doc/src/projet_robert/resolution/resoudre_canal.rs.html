@@ -289,6 +289,11 @@
 <span id="289">289</span>
 <span id="290">290</span>
 <span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Sous-module de résolution &quot;canal&quot;</span>
 <span class="doccomment">//! </span>
@@ -332,6 +337,7 @@
 <span class="doccomment">/// # Fonction de résolution locale &quot;créer un nouveau canal&quot; </span>
 <span class="doccomment">///</span>
 <span class="kw">fn</span> <span class="ident">resoudre_creer</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
+	<span class="macro">est_authentifie</span><span class="macro">!</span>( <span class="ident">contexte</span> ); 
 	<span class="kw">let</span> <span class="ident">nom</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">n</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
 		<span class="ident">n</span> 
 	} <span class="kw">else</span> { 
@@ -369,6 +375,7 @@
 <span class="doccomment">/// Cette fonction tentera de supprimer un canal existant mais auparavant, elle avertira tous les éventuels souscripteurs présents de cette action, et les retira de la liste des souscripteurs. </span>
 <span class="doccomment">/// </span>
 <span class="kw">fn</span> <span class="ident">resoudre_supprimer</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
+	<span class="macro">est_authentifie</span><span class="macro">!</span>( <span class="ident">contexte</span> ); 
 	<span class="kw">let</span> <span class="ident">nom</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">n</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
 		<span class="ident">n</span> 
 	} <span class="kw">else</span> { 
@@ -410,6 +417,7 @@
 <span class="doccomment">/// Ai-je vraiment besoin de décrire en détail son intérêt ? :) </span>
 <span class="doccomment">///</span>
 <span class="kw">fn</span> <span class="ident">resoudre_tester</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
+	<span class="macro">est_authentifie</span><span class="macro">!</span>( <span class="ident">contexte</span> ); 
 	<span class="kw">let</span> <span class="ident">nom</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">n</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
 		<span class="ident">n</span> 
 	} <span class="kw">else</span> { 
@@ -460,6 +468,7 @@
 <span class="doccomment">/// Robert évitant à tout prix le code non-sûr et vu la complexité introduite avec les souscripteurs, il est plus aisé qu&#39;un renommage produise l&#39;effet d&#39;une suppression et la réintroduction du canal avec son nouveau nom. </span>
 <span class="doccomment">/// </span>
 <span class="kw">fn</span> <span class="ident">resoudre_renommer</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
+	<span class="macro">est_authentifie</span><span class="macro">!</span>( <span class="ident">contexte</span> ); 
 	<span class="kw">let</span> <span class="ident">ancien_nom</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">n</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
 		<span class="ident">n</span> 
 	} <span class="kw">else</span> { 
@@ -525,7 +534,7 @@
 	} 
 	<span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>( <span class="ident">m</span> ) <span class="op">=</span> <span class="ident">destinaire</span>.<span class="ident">recv</span>() { 
 		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>( <span class="kw">_</span> ) <span class="op">=</span> <span class="ident">contexte</span>.<span class="ident">stream</span>.<span class="ident">write</span>( 
-			<span class="macro">format</span><span class="macro">!</span>( <span class="string">&quot;\t&gt;&gt;&gt; {}\n&quot;</span>, <span class="ident">m</span> ).<span class="ident">as_bytes</span>() 
+			<span class="macro">format</span><span class="macro">!</span>( <span class="string">&quot;[@] {}\n&quot;</span>, <span class="ident">m</span> ).<span class="ident">as_bytes</span>() 
 		) { 
 			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>( <span class="kw">_</span> ) <span class="op">=</span> <span class="ident">contexte</span>.<span class="ident">stream</span>.<span class="ident">flush</span>() { 
 			} <span class="kw">else</span> { 
@@ -539,6 +548,7 @@
 } 
 
 <span class="kw">fn</span> <span class="ident">resoudre_emettre</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
+	<span class="macro">est_authentifie</span><span class="macro">!</span>( <span class="ident">contexte</span> ); 
 	<span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">source</span>.<span class="ident">iter</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>(); 
 	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">contexte</span>.<span class="ident">canalthread</span>.<span class="ident">lock</span>() { 
 		<span class="prelude-val">Ok</span>( <span class="ident">c</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>, 
@@ -571,7 +581,7 @@
 		<span class="string">&quot;renommer&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>( <span class="ident">resoudre_renommer</span> <span class="kw">as</span> <span class="ident">Resolveur</span> ), 
 		<span class="string">&quot;souscrire&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>( <span class="ident">resoudre_souscrire</span> <span class="kw">as</span> <span class="ident">Resolveur</span> ), 
 		<span class="string">&quot;emettre&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>( <span class="ident">resoudre_emettre</span> <span class="kw">as</span> <span class="ident">Resolveur</span> ), 
-		<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>( <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;module texte : fonction inconnue&quot;</span> ) ) 
+		<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>( <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;module &#39;canal&#39; : fonction inconnue&quot;</span> ) ) 
 	} 
 } 
 

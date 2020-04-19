@@ -1,0 +1,8 @@
+
+		+ type:texte 
+		ø afficher 
+		+ afficher "c'est bien un texte" 
+		- afficher "c'est autre chose" 
+		ø ràz 
+
+	

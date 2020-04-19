@@ -40,6 +40,7 @@ use crate::configuration::NBRE_MAX_CANAUX;
 /// # Fonction de résolution locale "créer un nouveau canal" 
 ///
 fn resoudre_creer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	est_authentifie!( contexte ); 
 	let nom = if let Some( n ) = arguments.extraire() { 
 		n 
 	} else { 
@@ -77,6 +78,7 @@ fn resoudre_creer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> 
 /// Cette fonction tentera de supprimer un canal existant mais auparavant, elle avertira tous les éventuels souscripteurs présents de cette action, et les retira de la liste des souscripteurs. 
 /// 
 fn resoudre_supprimer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	est_authentifie!( contexte ); 
 	let nom = if let Some( n ) = arguments.extraire() { 
 		n 
 	} else { 
@@ -118,6 +120,7 @@ fn resoudre_supprimer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux )
 /// Ai-je vraiment besoin de décrire en détail son intérêt ? :) 
 ///
 fn resoudre_tester( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	est_authentifie!( contexte ); 
 	let nom = if let Some( n ) = arguments.extraire() { 
 		n 
 	} else { 
@@ -168,6 +171,7 @@ fn resoudre_capturer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) 
 /// Robert évitant à tout prix le code non-sûr et vu la complexité introduite avec les souscripteurs, il est plus aisé qu'un renommage produise l'effet d'une suppression et la réintroduction du canal avec son nouveau nom. 
 /// 
 fn resoudre_renommer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	est_authentifie!( contexte ); 
 	let ancien_nom = if let Some( n ) = arguments.extraire() { 
 		n 
 	} else { 
@@ -233,7 +237,7 @@ fn resoudre_souscrire( contexte: &mut Contexte, mut arguments: ArgumentsLocaux )
 	} 
 	while let Ok( m ) = destinaire.recv() { 
 		if let Ok( _ ) = contexte.stream.write( 
-			format!( "\t>>> {}\n", m ).as_bytes() 
+			format!( "[@] {}\n", m ).as_bytes() 
 		) { 
 			if let Ok( _ ) = contexte.stream.flush() { 
 			} else { 
@@ -247,6 +251,7 @@ fn resoudre_souscrire( contexte: &mut Contexte, mut arguments: ArgumentsLocaux )
 } 
 
 fn resoudre_emettre( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour { 
+	est_authentifie!( contexte ); 
 	let message = arguments.source.iter().collect::<String>(); 
 	let mut c = match contexte.canalthread.lock() { 
 		Ok( c ) => c, 
@@ -279,7 +284,7 @@ pub fn resoudre( appel: &str ) -> Result<Resolveur,Retour> {
 		"renommer" => Ok( resoudre_renommer as Resolveur ), 
 		"souscrire" => Ok( resoudre_souscrire as Resolveur ), 
 		"emettre" => Ok( resoudre_emettre as Resolveur ), 
-		_ => Err( Retour::creer_str( false, "module texte : fonction inconnue" ) ) 
+		_ => Err( Retour::creer_str( false, "module 'canal' : fonction inconnue" ) ) 
 	} 
 } 
 

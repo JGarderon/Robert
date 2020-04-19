@@ -63,7 +63,7 @@ fn resoudre_incrementer ( contexte: &mut Contexte, mut arguments: grammaire::Arg
 pub fn resoudre( appel: &str ) -> Result<Resolveur,Retour> { 
 	match appel { 
 		"incrémenter" => Ok( resoudre_incrementer as Resolveur ), 
-		_ => Err( Retour::creer_str( false, "module numérique : fonction inconnue" ) ) 
+		_ => Err( Retour::creer_str( false, "module 'numérique' : fonction inconnue" ) ) 
 	} 
 } 
 

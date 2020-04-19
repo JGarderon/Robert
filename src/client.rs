@@ -7,7 +7,8 @@
 	// (1) Importation des modules internes 
 	// --- --- --- --- --- --- --- --- --- 
 
-use std::io::Read;  
+use std::io::Read; 
+use std::io::Write; 
 
 	// --- --- --- --- --- --- --- --- --- 
 	// (2) Importation des modules du projet 
@@ -28,6 +29,40 @@ use crate::configuration::DEBUG;
 	// --- --- --- --- --- --- --- --- --- 
 	// (4) Définition des structures, énumérations et leurs implémentations 
 	// --- --- --- --- --- --- --- --- --- 
+
+pub trait Informer { 
+	fn ecrire( &mut self, texte: &str, flush: bool ) -> bool; 
+	fn message( &mut self, message: &str ) -> bool; 
+	fn erreur( &mut self, erreur: &str ) -> bool; 
+} 
+
+impl Informer for std::net::TcpStream { 
+
+	fn ecrire( &mut self, texte: &str, flush: bool ) -> bool { 
+		match self.write( texte.as_bytes() ) { 
+			Ok( _ ) => if flush { match self.flush() { 
+				Ok( _ ) => true, 
+				Err( _ ) => false 
+			} } else { true } 
+			Err( _ ) => false 
+		} 
+	} 
+
+	fn message( &mut self, message: &str ) -> bool { 
+		self.ecrire( 
+			&format!( "[@] {}\n", message ),  
+			false 
+		) 
+	} 
+
+	fn erreur( &mut self, erreur: &str ) -> bool { 
+		self.ecrire( 
+			&format!( "[!] {}\n", erreur ),  
+			false  
+		) 
+	} 
+
+} 
 
 	// --- --- --- --- --- --- --- --- --- 
 	// (5) Définition des fonctions 
