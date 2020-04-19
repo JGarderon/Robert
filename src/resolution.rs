@@ -1,32 +1,38 @@
 //! # Module de résolution des requêtes de clients 
 //! 
 
+    // --- --- --- --- --- --- --- --- --- 
+    // (1) Importation des modules internes 
+    // --- --- --- --- --- --- --- --- --- 
+
 use std::io::Write; 
 
-// ---------------------------------------------------- 
+    // --- --- --- --- --- --- --- --- --- 
+    // (2) Importation des modules du projet 
+    // --- --- --- --- --- --- --- --- --- 
 
-use crate::grammaire; 
-use crate::grammaire::ArgumentsLocaux; 
-use crate::valeur::Valeurs; 
 use crate::contexte::Contexte; 
+use crate::grammaire::{self, ArgumentsLocaux}; 
+use crate::valeur::Valeurs; 
 
-// ---------------------------------------------------- 
+    // --- --- --- --- --- --- --- --- --- 
+    // (2 bis) Importation des sous-modules dédiés 
+    // --- --- --- --- --- --- --- --- --- 
 
 mod resoudre_numerique; 
 mod resoudre_texte; 
 mod resoudre_canal; 
 mod resoudre_administration; 
 
-mod resoudre_script; 
+mod resoudre_script; // en travaux 
 
-// ---------------------------------------------------- 
+    // --- --- --- --- --- --- --- --- --- 
+    // (3) Constantes du projet 
+    // --- --- --- --- --- --- --- --- --- 
 
-/// Un type spécifique au projet : le type 'Résolveur' est la signature d'une fonction de résolution, quelque soit le module de résolution. 
-/// Elle prend deux paramètres : le contexte du socket ainsi qu'un objet permettant de récupèrer à la demande les arguments dits 'locaux' (propre à une requête). La fonction renvoie un objet "retour", qui sera transmis au client via une série d'octets écrite sur le socket. 
-/// La définition de cette signature a pour principal but de soulager les signatures dans d'autres fonctions de résolution. 
-type Resolveur = fn ( &mut Contexte, ArgumentsLocaux ) -> Retour; 
-
-// ----------------------------------------------------  
+    // --- --- --- --- --- --- --- --- --- 
+    // (4) Définition des structures, énumérations et leurs implémentations 
+    // --- --- --- --- --- --- --- --- --- 
 
 /// Les retours peuvent être soit un texte statique (_&'static str_) - c'est-à-dire invariable et intégré au directement dans le code source du programme (efficacité), soit un texte généré par la fonction de résolution (_String_) - c'est-à-dire variable. 
 pub enum RetourType { 
@@ -71,7 +77,18 @@ impl Retour {
 
 } 
 
-// ---------------------------------------------------- 
+    // --- --- --- --- --- --- --- --- --- 
+    // (4 bis) Définition d'un type spécifique 
+    // --- --- --- --- --- --- --- --- --- 
+
+/// Un type spécifique au projet : le type 'Résolveur' est la signature d'une fonction de résolution, quelque soit le module de résolution. 
+/// Elle prend deux paramètres : le contexte du socket ainsi qu'un objet permettant de récupèrer à la demande les arguments dits 'locaux' (propre à une requête). La fonction renvoie un objet "retour", qui sera transmis au client via une série d'octets écrite sur le socket. 
+/// La définition de cette signature a pour principal but de soulager les signatures dans d'autres fonctions de résolution. 
+type Resolveur = fn ( &mut Contexte, ArgumentsLocaux ) -> Retour; 
+
+    // --- --- --- --- --- --- --- --- --- 
+    // (5) Définition des fonctions 
+    // --- --- --- --- --- --- --- --- --- 
 
 /// Fonction de résolution : arrête la boucle principale du thread du client. 
 /// Ne prend aucun argument (obligatoire). 
@@ -139,7 +156,7 @@ fn resoudre_obtenir ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) 
 			&chemin, 
 			| valeur | { 
 				match valeur { 
-					Valeurs::Boolean( b ) => Retour::creer( true, format!( "(booléen) {}", b ) ), 
+					Valeurs::Booleen( b ) => Retour::creer( true, format!( "(booléen) {}", b ) ), 
 					Valeurs::Texte( t ) => Retour::creer( true, format!( "(texte) \"{}\"", t ) ), 
 					Valeurs::Relatif( n ) => Retour::creer( true, format!( "(réel) {}", n ) ), 
 					Valeurs::Flottant( n ) => Retour::creer( true, format!( "(flottant) {}", n ) ), 

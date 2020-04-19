@@ -30,3 +30,6 @@ pub const PROFILS_SOURCE: &'static str = "./profils.csv";
 /// Nom par défaut ('pseudo') d'un client TCP non-authentifié 
 pub const PROFILS_PSEUDO_DEFAUT: &'static str = "visiteur anonyme"; 
 
+/// Racine par défaut pour trouver les scripts accessibles 
+pub const SCRIPTS_DOSSIER: &'static str = "./scripts"; 
+

@@ -1,8 +1,13 @@
+//! # Module de scripting 
+//! 
+//! Ce module est en cours d'implémentation. Il supportera à l'avenir Cerise, un langage de script (DSL) et Tomate, son implémentation. 
+//! 
+//! __TRAVAUX__ : susceptible d'évoluer fortement 
+//! 
 
 use std::net::TcpStream; 
 
 use crate::client::Informer; 
-
 use crate::valeur::Valeurs; 
 use crate::grammaire::ArgumentsLocaux; 
 
@@ -39,10 +44,10 @@ impl Expressions {
 					"booléen" => { 
 						match &argument[p+1..] { 
 							"vrai" | "1" => r.push( 
-								Valeurs::Boolean( true ) 
+								Valeurs::Booleen( true ) 
 							), 
 							"faux" | "0" => r.push( 
-								Valeurs::Boolean( false ) 
+								Valeurs::Booleen( false ) 
 							), 
 							_ => panic!("valeur booléenne incorrecte") 
 						} 
@@ -165,8 +170,8 @@ fn etat_rendre( contexte: &mut ContexteExecution ) {
 
 fn executer_commande( contexte: &mut ContexteExecution, appel: &str, args: &Vec<Valeurs> ) { 
 	match appel { 
-		"état_sauvegarder" => etat_sauvegarder( contexte ), 
-		"état_rendre" => etat_rendre( contexte ), 
+		"état:sauvegarder" => etat_sauvegarder( contexte ), 
+		"état:recharger" => etat_rendre( contexte ), 
 		"ràz" => contexte.modifier( true ), 
 		"afficher" => afficher( contexte, args ), 
 		"type:texte" => type_texte( contexte, args ), 

@@ -1,6 +1,8 @@
 
 		+ type:texte 
+		ø état:sauvegarder
 		ø afficher 
+		ø état:recharger
 		+ afficher "c'est bien un texte" 
 		- afficher "c'est autre chose" 
 		ø ràz 

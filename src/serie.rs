@@ -11,8 +11,24 @@
 //! La modification du format de taille de la source à un entier non-signé sur 64 bits (u64), résoud ce problème, mais le fichier généré sera bien plus gros. 
 //! 
 
+    // --- --- --- --- --- --- --- --- --- 
+    // (1) Importation des modules internes 
+    // --- --- --- --- --- --- --- --- --- 
+
 use std::io::BufWriter; 
 use std::io::Write; 
+
+    // --- --- --- --- --- --- --- --- --- 
+    // (2) Importation des modules du projet 
+    // --- --- --- --- --- --- --- --- --- 
+
+    // --- --- --- --- --- --- --- --- --- 
+    // (3) Constantes du projet 
+    // --- --- --- --- --- --- --- --- --- 
+
+    // --- --- --- --- --- --- --- --- --- 
+    // (4) Définition des structures, énumérations et leurs implémentations 
+    // --- --- --- --- --- --- --- --- --- 
 
 pub struct Source<T: std::io::Write> { 
 	pub fichier: BufWriter<T>  
@@ -45,6 +61,10 @@ impl<T: std::io::Write> Source<T> {
 pub trait Serie { 
 	fn serialiser<T: std::io::Write>( &self, source: &mut Source<T> ) -> Option<usize>; 
 } 
+
+    // --- --- --- --- --- --- --- --- --- 
+    // (5) Définition des fonctions 
+    // --- --- --- --- --- --- --- --- --- 
 
 
 

@@ -48,7 +48,7 @@ impl Mesure for HashMap<String,Valeurs> {
 impl Mesure for Valeurs { 
 	fn mesurer( &self ) -> usize { 
 		mem::size_of_val( self )+match self { 
-			Valeurs::Boolean( b ) => mem::size_of_val( b ), 
+			Valeurs::Booleen( b ) => mem::size_of_val( b ), 
 			Valeurs::Relatif( n ) => mem::size_of_val( n ), 
 			Valeurs::Flottant( f ) => mem::size_of_val( f ), 
 			Valeurs::Texte( t ) => mem::size_of_val( t )+t.as_bytes().len(), 
