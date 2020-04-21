@@ -5,6 +5,7 @@ use std::io::Read;
 use crate::configuration::SCRIPTS_DOSSIER; 
 use crate::resolution::{Contexte, Resolveur, Retour}; 
 use crate::grammaire::{self, ArgumentsLocaux}; 
+use crate::client::Informer; 
 
 use crate::script; 
 

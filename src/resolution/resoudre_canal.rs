@@ -18,7 +18,7 @@ use std::collections::HashMap;
 	// (2) Importation des modules du projet 
 	// --- --- --- --- --- --- --- --- --- 
 
-use crate::canal::{Canal, CanalThread}; 
+use crate::canal::{Canal, CanalThread, Souscripteur}; 
 use crate::valeur::Valeurs; 
 use crate::resolution::{Contexte, Retour, Resolveur}; 
 use crate::grammaire::ArgumentsLocaux; 
@@ -62,7 +62,7 @@ fn resoudre_creer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> 
 					Arc::new( Mutex::new( Canal { 
 						nom: nom, 
 						liste: Valeurs::Objet( HashMap::new() ), 
-						souscripteurs: Vec::<Sender<String>>::new() 
+						souscripteurs: Vec::<Souscripteur>::new() 
 					} ) ) as CanalThread 
 				); 
 				Retour::creer_str( true, "canal créé" ) 
@@ -99,7 +99,7 @@ fn resoudre_supprimer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux )
 					Err( e ) => e.into_inner() 
 				}.souscripteurs.retain( 
 					| souscripteur | { 
-						souscripteur.send( message.clone() ).unwrap(); 
+						souscripteur.pont.send( message.clone() ).unwrap(); 
 						false 
 					} 
 				); 
@@ -159,7 +159,7 @@ fn resoudre_capturer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) 
 	contexte.canalthread = Arc::new( Mutex::new( Canal { 
 		nom: "".to_string(), 
 		liste: Valeurs::Objet( HashMap::new() ), 
-		souscripteurs: Vec::<Sender<String>>::new() 
+		souscripteurs: Vec::<Souscripteur>::new() 
 	} ) ) as CanalThread ; 
 	Retour::creer_str( true, "canal privé actif" ) 
 } 
@@ -200,7 +200,7 @@ fn resoudre_renommer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) 
 					Err( e ) => e.into_inner() 
 				}.souscripteurs.retain( 
 					| souscripteur | { 
-						souscripteur.send( message.clone() ).unwrap(); 
+						souscripteur.pont.send( message.clone() ).unwrap(); 
 						false 
 					} 
 				); 
@@ -233,7 +233,13 @@ fn resoudre_souscrire( contexte: &mut Contexte, mut arguments: ArgumentsLocaux )
 		match contexte.canalthread.lock() { 
 			Ok( c ) => c, 
 			Err( e ) => e.into_inner() 
-		}.souscripteurs.push( expediteur ); 
+		}.souscripteurs.push( 
+			Souscripteur { 
+				pont: expediteur, 
+				messages: true, 
+				valeurs: false 
+			} 
+		); 
 	} 
 	while let Ok( m ) = destinaire.recv() { 
 		if let Ok( _ ) = contexte.stream.write( 
@@ -259,7 +265,7 @@ fn resoudre_emettre( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Re
 	}; 
 	c.souscripteurs.retain( 
 		| souscripteur | { 
-			if let Ok( _ ) = souscripteur.send( message.clone() ) { 
+			if let Ok( _ ) = souscripteur.pont.send( message.clone() ) { 
 				true 
 			} else { 
 				false 

@@ -28,13 +28,20 @@ macro_rules! acces_canal {
     };
 } 
 
+#[derive(Debug)] 
+pub struct Souscripteur { 
+	pub pont: Sender<String>, 
+	pub messages: bool, 
+	pub valeurs: bool 
+} 
+
 /// Un canal se constitue de trois principaux éléments : son nom, sa liste de valeurs (qui est stockée dans un Objet, un élément de l'énumération des Valeurs) ainsi qu'un vecteur de souscripteurs. 
 /// A partir de la version 1.1, dans l'idéal, la compatibilité devrait être toujours maintenue avec ce minimum. 
 #[derive(Debug)] 
 pub struct Canal { 
 	pub nom: String, 
 	pub liste: Valeurs, 
-	pub souscripteurs: Vec<Sender<String>>  
+	pub souscripteurs: Vec<Souscripteur>  
 } 
 
 impl Canal { 
@@ -71,7 +78,7 @@ pub fn creer_racine( nom_defaut: &str ) -> (CanalThread, CanauxThread) {
 			Canal { 
 				nom: nom.clone(), 
 				liste: Valeurs::Objet( HashMap::new() ), 
-				souscripteurs: Vec::<Sender<String>>::new() 
+				souscripteurs: Vec::<Souscripteur>::new() 
 			} 
 		) 
 	) as CanalThread; 

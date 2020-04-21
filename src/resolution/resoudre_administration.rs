@@ -21,6 +21,7 @@ use crate::valeur::Valeurs;
 use crate::resolution::{Contexte, Resolveur, Retour}; 
 use crate::grammaire::ArgumentsLocaux; 
 use crate::serie::{Serie, Source}; 
+use crate::client::Informer; 
 
 	// --- --- --- --- --- --- --- --- --- 
 	// (3) Constantes du projet 
@@ -160,8 +161,11 @@ fn resoudre_profiler( contexte: &mut Contexte, _: ArgumentsLocaux ) -> Retour {
 /// 
 /// Une fois l'arrêt enclenché, il n'y a plus aucun moyen de revenir à l'état antérieur (perte des informations non-sauvegardées). 
 /// 
-fn resoudre_eteindre( contexte: &mut Contexte, _: ArgumentsLocaux ) -> Retour { 
+fn resoudre_eteindre( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	est_authentifie!( contexte ); 
+	if !arguments.est_stop() { 
+		return Retour::creer_str( false, "aucun argument autorisé" ); 
+	} 
 	*contexte.service_poursuite = false; // /!\ UNSAFE / à retirer urgemment 
 	match std::net::TcpStream::connect( contexte.service_ecoute.local_addr().unwrap() ) { 
 		Ok( _ ) => Retour::creer_str( true, "extinction enclenchée ; les fils vont être progressivement arrêtés" ), 
@@ -290,6 +294,63 @@ fn resoudre_resumer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 	) 
 } 
 
+pub fn resoudre_aide( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	for ligne in if let Some( c ) = arguments.extraire() { 
+		match &c[..] { 
+			"anonymiser" => vec!( 
+				"administration:anonymiser", 
+				"accès public : oui ; accès authentifié : oui", 
+				"aucun argument obligatoire ; aucun facultatif" 
+			),  
+			"authentifier" => vec!( 
+				"administration:authentifier (pseudo) (passe)", 
+				"accès public : oui ; accès authentifié : oui", 
+				"2 arguments obligatoires ; aucun facultatif" 
+			), 
+			"éteindre" =>  vec!( 
+				"administration:éteindre", 
+				"accès public : non ; accès authentifié : oui", 
+				"aucun argument obligatoire ; aucun facultatif" 
+			), 
+			"profiler" =>  vec!( 
+				"administration:profiler", 
+				"accès public : oui ; accès authentifié : oui", 
+				"aucun argument obligatoire ; aucun facultatif" 
+			), 
+			"résumer" =>  vec!( 
+				"administration:résumer", 
+				"accès public : non ; accès authentifié : oui", 
+				"aucun argument obligatoire ; aucun facultatif" 
+			), 
+			"sérialiser" =>  vec!( 
+				"administration:sérialiser (fid) (canal)", 
+				"accès public : non ; accès authentifié : oui", 
+				"2 arguments obligatoires ; aucun facultatif" 
+			), 
+			"vider" =>  vec!( 
+				"administration:vider (canal)", 
+				"accès public : non ; accès authentifié : oui", 
+				"1 argument obligatoire ; aucun facultatif" 
+			), 
+			_ => return Retour::creer_str( false, "cette commande n'existe pas dans le module" ) 
+		}
+	} else { 
+		vec!( 
+			"7 choix possibles (* : profil nécessaire)", 
+			"- anonymiser : fermer une session", 
+			"- authentifier : ouvrir une session authentifiée", 
+			"- éteindre (*) : éteindre le programme", 
+			"- profiler : retourne les informations de profil", 
+			"- résumer (*) : retourne pour chaque canal, des éléments d'information", 
+			"- sérialiser (*) : sérialiser les valeurs d'un canal dans un fichier", 
+			"- vider (*) : vider un canal de ses valeurs", 
+		)
+	} { 
+		contexte.message( ligne ); 
+	} 
+	Retour::creer_str( true, "fin de l'aide" ) 
+} 
+
 /// # Fonction de résolution locale - sous-module "administration" 
 /// 
 /// Permet de retourner la fonction désirée en fonction de l'appel. 
@@ -298,11 +359,13 @@ pub fn resoudre( appel: &str ) -> Result<Resolveur,Retour> {
 	match appel { 
 		"authentifier" => Ok( resoudre_authentifier as Resolveur ), 
 		"anonymiser" => Ok( resoudre_anonymiser as Resolveur ), 
-		"profiler" => Ok( resoudre_profiler as Resolveur ), 
 		"éteindre" => Ok( resoudre_eteindre as Resolveur ), 
+		"profiler" => Ok( resoudre_profiler as Resolveur ), 
 		"vider" => Ok( resoudre_vider as Resolveur ), 
 		"sérialiser" => Ok( resoudre_serialiser as Resolveur ), 
 		"résumer" => Ok( resoudre_resumer as Resolveur ), 
+
+		"aide?" => Ok( resoudre_aide as Resolveur ), 
 		_ => Err( Retour::creer_str( false, "module 'administration' : fonction inconnue" ) ) 
 	} 
 } 

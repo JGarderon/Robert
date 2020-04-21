@@ -2,12 +2,13 @@
 //! 
 
 use std::net::TcpStream; 
-use std::io::Write; 
+// use std::io::Write; 
 
 // ---------------------------------------------------- 
 
 use crate::canal::{CanalThread, CanauxThread}; 
 use crate::profil::Profil; 
+use crate::client::Informer; 
 
 // ---------------------------------------------------- 
 
@@ -32,7 +33,7 @@ pub struct Contexte<'a> {
 	/// Il est d'un type Arc<Mutex<Canaux>> : un CanauxThread est l'origine de tous les canaux, avec sa protection d'usage pour les threads. 
 	pub canauxthread: CanauxThread, 
 
-	/// 
+	/// Ce champ contient la structure 'Profil', contenant le nécessaire à l'authenfication et aux droits du client. 
 	pub profil: Profil<'a>,  
 
 	/// Ce champ contient l'objet socket, librement clonable. 
@@ -40,30 +41,18 @@ pub struct Contexte<'a> {
 
 } 
 
-impl Contexte<'_> { 
+impl Informer for Contexte<'_> { 
 
-	pub fn ecrire( &mut self, texte: &str, flush: bool ) -> bool { 
-		match self.stream.write( texte.as_bytes() ) { 
-			Ok( _ ) => if flush { match self.stream.flush() { 
-				Ok( _ ) => true, 
-				Err( _ ) => false 
-			} } else { true } 
-			Err( _ ) => false 
-		} 
+	fn ecrire( &mut self, texte: &str, flush: bool ) -> bool { 
+		self.stream.ecrire( texte, flush ) 
 	} 
 
-	pub fn message( &mut self, message: &str ) -> bool { 
-		self.ecrire( 
-			&format!( "[@] {}\n", message ),  
-			false 
-		) 
+	fn message( &mut self, message: &str ) -> bool { 
+		self.stream.message( message ) 
 	} 
 
-	pub fn erreur( &mut self, message: &str ) -> bool { 
-		self.ecrire( 
-			&format!( "[!] {}\n", message ),  
-			false 
-		) 
+	fn erreur( &mut self, erreur: &str ) -> bool { 
+		self.stream.erreur( erreur ) 
 	} 
 
 } 
