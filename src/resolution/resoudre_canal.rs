@@ -262,29 +262,30 @@ fn resoudre_souscrire( contexte: &mut Contexte, mut arguments: ArgumentsLocaux )
 	Retour::creer_str( true, "diffusion terminée" ) 
 } 
 
-fn resoudre_emettre( contexte: &mut Contexte, arguments: ArgumentsLocaux ) -> Retour { 
+fn resoudre_emettre( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	est_authentifie!( contexte ); 
-	let message = arguments.source.iter().collect::<String>(); 
-	let mut c = match contexte.canalthread.lock() { 
-		Ok( c ) => c, 
-		Err( e ) => e.into_inner() 
-	}; 
-	c.souscripteurs.retain( 
-		| souscripteur | { 
-			if let Ok( _ ) = souscripteur.pont.send( message.clone() ) { 
-				true 
-			} else { 
-				false 
+	if let Ok( messages ) = arguments.tous() { 
+		if messages.len() == 0 { 
+			Retour::creer_str( false, "vous devez indiquer au moins un message en argument" ) 
+		} else { 
+			let mut canal = acces_canal!( contexte ); 
+			for message in messages { 
+				canal.notifier( 
+					&contexte.profil, 
+					message 
+				) 
 			} 
+			Retour::creer( 
+				true, 
+				format!( 
+					"diffusion émise aux souscripteurs ({})", 
+					canal.souscripteurs.len() 
+				) 
+			) 
 		} 
-	); 
-	Retour::creer( 
-		true, 
-		format!( 
-			"diffusion émise aux souscripteurs ({})", 
-			c.souscripteurs.len() 
-		) 
-	) 
+	} else { 
+		Retour::creer_str( false, "les arguments fournis sont invalides" ) 
+	} 
 } 
 
 pub fn resoudre( appel: &str ) -> Result<Resolveur,Retour> { 
