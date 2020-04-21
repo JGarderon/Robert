@@ -8,6 +8,7 @@ use std::sync::Mutex;
 
 // ---------------------------------------------------- 
 
+use crate::profil::Profil; 
 use crate::resolution::Retour; 
 use crate::valeur::Valeurs; 
 
@@ -45,10 +46,23 @@ pub struct Canal {
 } 
 
 impl Canal { 
-	pub fn resoudre<F>( &mut self, chemin: &[&str], fct: F )  -> Retour 
+	pub fn resoudre<F>( &mut self, chemin: &[&str], fct: F ) -> Retour 
 		where F: FnOnce( &mut Valeurs ) -> Retour
 	{ 
 		self.liste.resoudre( chemin, fct ) 
+	} 
+	pub fn notifier( &mut self, emetteur: &Profil, mut message: String ) { 
+		message = format!( "{} >> {}", emetteur, message ); 
+		self.souscripteurs.retain( 
+			| souscripteur | { 
+				match souscripteur.pont.send( 
+					message.clone() 
+				) { 
+					Ok( _ ) => true, 
+					Err( _ ) => false 
+				} 
+			} 
+		); 
 	} 
 } 
 

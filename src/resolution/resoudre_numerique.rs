@@ -18,6 +18,8 @@ use crate::resolution::Retour;
 /// 
 /// Ainsi il n'est pas nécessaire d'ajouter une autre fonction de décrémentation ou de gestion des additions pour le projet Robert dans sa version par défaut car toutes les situations sont déjà couvertes. 
 /// 
+/// La fonction notifie les souscripteurs qui demandent les opérations sur les valeurs du canal. 
+/// 
 fn resoudre_incrementer ( contexte: &mut Contexte, mut arguments: grammaire::ArgumentsLocaux ) -> Retour { 
 	let arg_chemin = if let Some( c ) = arguments.extraire() { 
 		c 
@@ -29,7 +31,7 @@ fn resoudre_incrementer ( contexte: &mut Contexte, mut arguments: grammaire::Arg
 		None => "1".to_string() 
 	}; 
 	let mut canal = acces_canal!( contexte ); 
-	match grammaire::chemin_extraire( &arg_chemin ) { 
+	let r = match grammaire::chemin_extraire( &arg_chemin ) { 
 		Ok( chemin ) => canal.resoudre( 
 			&chemin, 
 			| valeur | { 
@@ -57,7 +59,14 @@ fn resoudre_incrementer ( contexte: &mut Contexte, mut arguments: grammaire::Arg
 			} 
 		), 
 		Err( _ ) => Retour::creer_str( true, "ce chemin n'existe pas" ) 
+	}; 
+	if r.etat { 
+		canal.notifier( 
+			&contexte.profil, 
+			format!( "(module numérique) incrément : {}", arg_chemin ) 
+		); 
 	} 
+	r 
 } 
 
 pub fn resoudre( appel: &str ) -> Result<Resolveur,Retour> { 

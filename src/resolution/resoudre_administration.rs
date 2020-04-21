@@ -209,44 +209,6 @@ fn resoudre_serialiser( contexte: &mut Contexte, mut arguments: ArgumentsLocaux 
 	} 
 } 
 
-/// # Fonction de résolution locale "vider un canal" 
-/// 
-/// Vide de toutes ses valeurs, un canal donné. Si aucune sérialisation n'a été précédemment faite, les données sont perdues. 
-/// 
-fn resoudre_vider( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-	est_authentifie!( contexte ); 
-	let nom = if let Some( n ) = arguments.extraire() { 
-		n 
-	} else { 
-		return Retour::creer_str( false, "nom de canal obligatoire" ); 
-	}; 
-	if nom.len() > 32 { 
-		Retour::creer_str( false, "nom de canal trop long (max. 32)" ) 
-	} else { 
-		let mut canaux = { 
-			match contexte.canauxthread.lock() { 
-				Ok( canaux ) => canaux, 
-				Err( empoisonne ) => empoisonne.into_inner() 
-			} 
-		}; 
-		if let Some( c ) = canaux.liste.get_mut( &nom ) { 
-			let mut canal = match c.lock() { 
-				Ok( c ) => c, 
-				Err( e ) => e.into_inner() 
-			}; 
-			match &mut canal.liste { 
-				Valeurs::Objet( h ) => { 
-					h.clear(); 
-					Retour::creer_str( true, "base vidée" ) 
-				} 
-				_ => Retour::creer_str( false, "objet racine incorrect ; le canal semble corrompu" ) 
-			} 
-		} else { 
-			Retour::creer_str( false, "nom de canal inconnu" ) 
-		} 
-	} 
-} 
-
 /// # Fonction de résolution locale "résumer l'ensemble des canaux" 
 /// 
 /// Donne pour chaque canal, une paire d'informations : son nom, 
@@ -294,43 +256,95 @@ fn resoudre_resumer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 	) 
 } 
 
+/// # Fonction de résolution locale "vider un canal" 
+/// 
+/// Vide de toutes ses valeurs, un canal donné. Si aucune sérialisation n'a été précédemment faite, les données sont perdues. 
+/// 
+fn resoudre_vider( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
+	est_authentifie!( contexte ); 
+	let nom = if let Some( n ) = arguments.extraire() { 
+		n 
+	} else { 
+		return Retour::creer_str( false, "nom de canal obligatoire" ); 
+	}; 
+	if nom.len() > 32 { 
+		Retour::creer_str( false, "nom de canal trop long (max. 32)" ) 
+	} else { 
+		let mut canaux = { 
+			match contexte.canauxthread.lock() { 
+				Ok( canaux ) => canaux, 
+				Err( empoisonne ) => empoisonne.into_inner() 
+			} 
+		}; 
+		if let Some( c ) = canaux.liste.get_mut( &nom ) { 
+			let mut canal = match c.lock() { 
+				Ok( c ) => c, 
+				Err( e ) => e.into_inner() 
+			}; 
+			let r = match &mut canal.liste { 
+				Valeurs::Objet( h ) => { 
+					h.clear(); 
+					Retour::creer_str( true, "base vidée" ) 
+				} 
+				_ => Retour::creer_str( false, "objet racine incorrect ; le canal semble corrompu" ) 
+			}; 
+			if r.etat { 
+				canal.notifier( 
+					&contexte.profil, 
+					"(administration) vidange du canal".to_string() 
+				); 
+			} 
+			r 
+		} else { 
+			Retour::creer_str( false, "nom de canal inconnu" ) 
+		} 
+	} 
+} 
+
 pub fn resoudre_aide( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	for ligne in if let Some( c ) = arguments.extraire() { 
 		match &c[..] { 
 			"anonymiser" => vec!( 
 				"administration:anonymiser", 
 				"accès public : oui ; accès authentifié : oui", 
-				"aucun argument obligatoire ; aucun facultatif" 
+				"aucun argument obligatoire ; aucun facultatif", 
+				"cette fonction n'informe jamais les souscripteurs du canal" 
 			),  
 			"authentifier" => vec!( 
 				"administration:authentifier (pseudo) (passe)", 
 				"accès public : oui ; accès authentifié : oui", 
-				"2 arguments obligatoires ; aucun facultatif" 
+				"2 arguments obligatoires ; aucun facultatif", 
+				"cette fonction n'informe jamais les souscripteurs du canal" 
 			), 
 			"éteindre" =>  vec!( 
 				"administration:éteindre", 
 				"accès public : non ; accès authentifié : oui", 
-				"aucun argument obligatoire ; aucun facultatif" 
+				"aucun argument obligatoire ; aucun facultatif", 
+				"cette fonction n'informe jamais les souscripteurs du canal" 
 			), 
 			"profiler" =>  vec!( 
 				"administration:profiler", 
 				"accès public : oui ; accès authentifié : oui", 
-				"aucun argument obligatoire ; aucun facultatif" 
+				"aucun argument obligatoire ; aucun facultatif", 
+				"cette fonction n'informe jamais les souscripteurs du canal" 
 			), 
 			"résumer" =>  vec!( 
 				"administration:résumer", 
 				"accès public : non ; accès authentifié : oui", 
-				"aucun argument obligatoire ; aucun facultatif" 
+				"aucun argument obligatoire ; aucun facultatif", 
+				"cette fonction n'informe jamais les souscripteurs du canal" 
 			), 
 			"sérialiser" =>  vec!( 
 				"administration:sérialiser (fid) (canal)", 
 				"accès public : non ; accès authentifié : oui", 
-				"2 arguments obligatoires ; aucun facultatif" 
+				"2 arguments obligatoires ; aucun facultatif", 
+				"cette fonction n'informe jamais les souscripteurs du canal" 
 			), 
 			"vider" =>  vec!( 
 				"administration:vider (canal)", 
 				"accès public : non ; accès authentifié : oui", 
-				"1 argument obligatoire ; aucun facultatif" 
+				"1 argument obligatoire ; aucun facultatif", 
+				"cette fonction informe les souscripteurs du canal" 
 			), 
 			_ => return Retour::creer_str( false, "cette commande n'existe pas dans le module" ) 
 		}

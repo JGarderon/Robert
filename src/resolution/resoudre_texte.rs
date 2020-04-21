@@ -18,7 +18,9 @@ use crate::configuration::TAILLE_TEXTE_MAX;
 /// # Fonction de résolution locale "ajouter du texte" 
 ///
 /// Cette fonction ajoutera le texte fourni en argument, en respectant la taille maximale autorisée. Le texte doit être valide UTF-8. 
-///
+/// 
+/// La fonction notifie les souscripteurs qui demandent les opérations sur les valeurs du canal. 
+/// 
 fn resoudre_ajouter( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	let arg_chemin = if let Some( c ) = arguments.extraire() { 
 		c 
@@ -31,7 +33,7 @@ fn resoudre_ajouter( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 		return Retour::creer_str( false, "aucun texte supplémentaire fourni" ); 
 	}; 
 	let mut canal = acces_canal!( contexte ); 
-	match grammaire::chemin_extraire( &arg_chemin ) { 
+	let r = match grammaire::chemin_extraire( &arg_chemin ) { 
 		Ok( chemin ) => canal.resoudre( 
 			&chemin, 
 			| valeur | { 
@@ -49,7 +51,14 @@ fn resoudre_ajouter( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 			} 
 		), 
 		Err( _ ) => Retour::creer_str( false, "ce chemin n'existe pas" ) 
+	}; 
+	if r.etat { 
+		canal.notifier( 
+			&contexte.profil, 
+			format!( "(module 'texte') ajout : {}", arg_chemin ) 
+		); 
 	} 
+	r 
 } 
 
 /// # Fonction de résolution locale "compter le texte (octets + caractères)" 
@@ -91,7 +100,9 @@ fn resoudre_compter( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -
 /// Cette fonction utilise une origine obligatoire (borne inférieure) et optionnellement une limite (borne supérieure), pour ne garder que la partie désirée. 
 ///
 /// Attention : la borne supérieure est l'indication de position d'un caractère valide UTF-8 (pas d'un octet), et ne représente __donc pas__ le nombre de caractères à garder depuis l'origine. 
-///
+///  
+/// La fonction notifie les souscripteurs qui demandent les opérations sur les valeurs du canal. 
+/// 
 fn resoudre_decouper( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
 	let arg_chemin = if let Some( c ) = arguments.extraire() { 
 		c 
@@ -110,7 +121,7 @@ fn resoudre_decouper( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) 
 	}; 
 	let fin = arguments.extraire(); 
 	let mut canal = acces_canal!( contexte ); 
-	match grammaire::chemin_extraire( &arg_chemin ) { 
+	let r = match grammaire::chemin_extraire( &arg_chemin ) { 
 		Ok( chemin ) => canal.resoudre( 
 			&chemin, 
 			| valeur | { 
@@ -162,7 +173,14 @@ fn resoudre_decouper( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) 
 			} 
 		), 
 		Err( _ ) => Retour::creer_str( false, "ce chemin n'existe pas" ) 
+	}; 
+	if r.etat { 
+		canal.notifier( 
+			&contexte.profil, 
+			format!( "(module 'texte') ajout : {}", arg_chemin ) 
+		); 
 	} 
+	r 
 } 
 
 pub fn resoudre( appel: &str ) -> Result<Resolveur,Retour> { 

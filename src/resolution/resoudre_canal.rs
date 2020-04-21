@@ -7,7 +7,6 @@
 	// (1) Importation des modules internes 
 	// --- --- --- --- --- --- --- --- --- 
 
-use std::io::Write; 
 use std::sync::mpsc::{Sender, Receiver}; 
 use std::sync::mpsc; 
 use std::sync::Arc; 
@@ -18,6 +17,7 @@ use std::collections::HashMap;
 	// (2) Importation des modules du projet 
 	// --- --- --- --- --- --- --- --- --- 
 
+use crate::client::Informer; 
 use crate::canal::{Canal, CanalThread, Souscripteur}; 
 use crate::valeur::Valeurs; 
 use crate::resolution::{Contexte, Retour, Resolveur}; 
@@ -225,9 +225,14 @@ fn resoudre_renommer( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) 
 } 
 
 fn resoudre_souscrire( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) -> Retour { 
-	if let Some( _ ) = arguments.extraire() { 
-		return Retour::creer_str( false, "aucun argument accepté pour cette fonction" ); 
-	} 
+	let args = if let Ok( a ) = arguments.tous() { 
+		if a.len() < 2 { 
+			return Retour::creer_str( false, "deux arguments obligatoires" ); 
+		} 
+		a 
+	} else { 
+		return Retour::creer_str( false, "les arguments fournis sont incorrects" ); 
+	}; 
 	let (expediteur, destinaire): ( Sender<String>, Receiver<String> ) = mpsc::channel(); 
 	{ 
 		match contexte.canalthread.lock() { 
@@ -236,22 +241,23 @@ fn resoudre_souscrire( contexte: &mut Contexte, mut arguments: ArgumentsLocaux )
 		}.souscripteurs.push( 
 			Souscripteur { 
 				pont: expediteur, 
-				messages: true, 
-				valeurs: false 
+				messages: match &args[0][..] { 
+					"vrai" | "1" => true, 
+					"false" | "0" => false, 
+					_ => return Retour::creer_str( false, "arguments 'messages' invalide" ) 
+				}, 
+				valeurs: match &args[0][..] { 
+					"vrai" | "1" => true, 
+					"false" | "0" => false, 
+					_ => return Retour::creer_str( false, "arguments 'valeurs' invalide" ) 
+				},  
 			} 
 		); 
 	} 
 	while let Ok( m ) = destinaire.recv() { 
-		if let Ok( _ ) = contexte.stream.write( 
-			format!( "[@] {}\n", m ).as_bytes() 
-		) { 
-			if let Ok( _ ) = contexte.stream.flush() { 
-			} else { 
-				break; 
-			} 
-		} else { 
+		if !contexte.message( &m ) { 
 			break; 
-		}  
+		} 
 	} 
 	Retour::creer_str( true, "diffusion terminée" ) 
 } 
@@ -289,7 +295,7 @@ pub fn resoudre( appel: &str ) -> Result<Resolveur,Retour> {
 		"capturer" => Ok( resoudre_capturer as Resolveur ), 
 		"renommer" => Ok( resoudre_renommer as Resolveur ), 
 		"souscrire" => Ok( resoudre_souscrire as Resolveur ), 
-		"emettre" => Ok( resoudre_emettre as Resolveur ), 
+		"émettre" => Ok( resoudre_emettre as Resolveur ), 
 		_ => Err( Retour::creer_str( false, "module 'canal' : fonction inconnue" ) ) 
 	} 
 } 

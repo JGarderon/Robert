@@ -35,6 +35,7 @@ mod resoudre_script; // en travaux
     // --- --- --- --- --- --- --- --- --- 
 
 /// Les retours peuvent être soit un texte statique (_&'static str_) - c'est-à-dire invariable et intégré au directement dans le code source du programme (efficacité), soit un texte généré par la fonction de résolution (_String_) - c'est-à-dire variable. 
+#[derive(Debug)] 
 pub enum RetourType { 
 
 	/// Est de type _&'static str_ 
@@ -46,6 +47,7 @@ pub enum RetourType {
 } 
 
 /// Structure définissant un 'Retour', afin d'uniformiser les messages à destination du client et l'état de résolution. 
+#[derive(Debug)] 
 pub struct Retour { 
 
 	/// Permet de signaler au thread maître, lors du renvoi vers le client, si la fonction se déclare aboutie correctement ou en erreur. 
@@ -116,18 +118,19 @@ fn resoudre_definir ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) 
 		return Retour::creer_str( false, "aucune valeur fournie ou séparateur clé/valeur non-respecté" ); 
 	}; 
 	let valeur_type = arguments.extraire(); 
+	let v_type = valeur_type.clone(); 
 	let mut canal = acces_canal!( contexte ); 
-	match grammaire::chemin_extraire( &arg_chemin ) { 
+	let r = match grammaire::chemin_extraire( &arg_chemin ) { 
 		Ok( chemin ) => { 
 			if chemin.len() == 1 { 
-				return canal.liste.creer_valeur( 
+				canal.liste.creer_valeur( 
 					chemin[0].to_string(), 
 					valeur, 
 					valeur_type 
-				); 
+				) 
 			} else { 
 				let cle = chemin[chemin.len()-1].to_string(); 
-				return canal.resoudre( 
+				canal.resoudre( 
 					&chemin[..chemin.len()-1], 
 					move | parent | { 
  						parent.creer_valeur( 
@@ -136,11 +139,25 @@ fn resoudre_definir ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) 
  							valeur_type 
  						) 
  					} 
-				); 
+				) 
 			} 
 		} 
 		Err( e ) => Retour::creer_str( false, e ) 
+	}; 
+	if r.etat { 
+		canal.notifier( 
+			&contexte.profil, 
+			format!( 
+				"(général) définition : {} ({})", 
+				arg_chemin, 
+				match v_type { 
+					Some( t ) => t, 
+					None => "texte".to_string() 
+				} 
+			) 
+		); 
 	} 
+	r 
 } 
 
 /// # Fonction de résolution "obtenir une valeur existante" 
@@ -176,7 +193,7 @@ fn resoudre_supprimer ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux 
 		return Retour::creer_str( false, "un chemin vide n'est pas acceptable" ); 
 	}; 
 	let mut canal = acces_canal!( contexte ); 
-	match grammaire::chemin_extraire( &arg_chemin ) { 
+	let r = match grammaire::chemin_extraire( &arg_chemin ) { 
 		Ok( chemin ) => canal.resoudre( 
 			&chemin[..chemin.len()-1], 
 			| parent | { 
@@ -191,7 +208,14 @@ fn resoudre_supprimer ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux 
 			} 
 		), 
 		Err( e ) => Retour::creer_str( false, e ) 
+	}; 
+	if r.etat { 
+		canal.notifier( 
+			&contexte.profil, 
+			format!( "(général) suppression : {}", arg_chemin ) 
+		); 
 	} 
+	r 
 } 
 
 /// # Fonction de résolution "tester l'existence d'un chemin" 
@@ -267,7 +291,7 @@ fn resoudre_alterer ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) 
 		return Retour::creer_str( false, "vous devez spécifier un type correct pour l'altération" ); 
 	}; 
 	let mut canal = acces_canal!( contexte ); 
-	match grammaire::chemin_extraire( &arg_chemin ) { 
+	let r = match grammaire::chemin_extraire( &arg_chemin ) { 
 		Ok( chemin ) => canal.resoudre( 
 			&chemin, 
 			| valeur | { 
@@ -279,7 +303,18 @@ fn resoudre_alterer ( contexte: &mut Contexte, mut arguments: ArgumentsLocaux ) 
 			} 
 		), 
 		Err( _ ) => Retour::creer_str( true, "ce chemin n'existe pas" ) 
+	}; 
+	if r.etat { 
+		canal.notifier( 
+			&contexte.profil, 
+			format!( 
+				"(général) altération : {} ({})", 
+				arg_chemin, 
+				valeur_type 
+			) 
+		); 
 	} 
+	r 
 } 
 
 /// # Fonction de résolution centrale 
