@@ -109,6 +109,14 @@
 <span id="109">109</span>
 <span id="110">110</span>
 <span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Module des clients TCP</span>
 <span class="doccomment">//!</span>
@@ -178,6 +186,13 @@
 <span class="comment">// (5) Définition des fonctions</span>
 <span class="comment">// --- --- --- --- --- --- --- --- ---</span>
 
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nettoyer</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span> ) { 
+    <span class="kw">match</span> <span class="ident">contexte</span>.<span class="ident">existence</span>.<span class="ident">try_recv</span>() { 
+        <span class="prelude-val">Ok</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> (), 
+        <span class="prelude-val">Err</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> () 
+    }; 
+} 
+
 <span class="doccomment">/// Fonction recevant un client et le traitant, par le biais d&#39;un objet &#39;Contexte&#39; déjà créé. Principalement une boucle qui reçoit sur texte dans un tampon, l&#39;examine rapidement avec les outils du module &quot;grammaire&quot;, et lancement la fonction de résolution de la requête.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recevoir</span>(<span class="kw-2">mut</span> <span class="ident">contexte</span>: <span class="ident">Contexte</span>) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iterateur</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">contexte</span>.<span class="ident">stream</span>.<span class="ident">try_clone</span>() {
@@ -188,7 +203,8 @@
     <span class="kw">if</span> <span class="op">!</span><span class="ident">contexte</span>.<span class="ident">message</span>(<span class="string">&quot;bonjour&quot;</span>) {
         <span class="kw">return</span>;
     }
-    <span class="kw">while</span> <span class="ident">contexte</span>.<span class="ident">poursuivre</span> {
+    <span class="kw">while</span> <span class="ident">contexte</span>.<span class="ident">poursuivre</span> { 
+        <span class="ident">nettoyer</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">contexte</span> ); 
         <span class="kw">if</span> <span class="op">!</span><span class="kw-2">*</span><span class="ident">contexte</span>.<span class="ident">service_poursuite</span> {
             <span class="ident">contexte</span>.<span class="ident">ecrire</span>(
 				<span class="string">&quot;[!] le service est en cours d&#39;extinction ; vous allez être déconnecté immédiatement\n&quot;</span>,

@@ -10,6 +10,8 @@
 //!
 //! Par l'usage de Rust pour son développement, le logiciel est stable, sûr et son empreinte mémoire est très faible. Rust ne connaît (quasi-)pas les fuites de mémoire : Robert non plus (car il tente d'en suivre au plus près la philosophie). Le projet souhaite aussi s'assoir sur des ressources sûres, et éviter d'utiliser des adjonctions de code extérieur insondable. Aussi Robert n'a aucune autre dépendance à ce jour, que l'usage des modules internes au langage. Cela le restreint certes, mais lui apporte une facilité d'audit supplémentaire.
 //!
+//! Exceptions notables : certaines "crates" [des développeurs de Rust](https://crates.io/teams/github:rust-lang:libs), [notamment pour la gestion des expressions régulières](https://crates.io/crates/regex). 
+//!
 //! __D'où sa devise "CCP" : _copier, compiler, profiter !___
 //!  
 
