@@ -65,81 +65,73 @@
 <span id="65">65</span>
 <span id="66">66</span>
 <span id="67">67</span>
-<span id="68">68</span>
-<span id="69">69</span>
-<span id="70">70</span>
-<span id="71">71</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="doccomment">//! # Module de sérialisation des canaux </span>
-<span class="doccomment">//! </span>
-<span class="doccomment">//! Ce module sert à implémenter les fonctions de sérialisation et désérialisation des valeurs, vers des données binaires. </span>
-<span class="doccomment">//! </span>
-<span class="doccomment">//! Ainsi au démarrage pour amorcer des canaux ou en cours de fonctionnement du logiciel vers des points de sauvegarde, les standards utilisés seront définis. </span>
-<span class="doccomment">//! </span>
-<span class="doccomment">//! Ce module est indépendant du module grammatical, qui est lisible l&#39;humain. Le format supporté ici, est strictement binaire. </span>
-<span class="doccomment">//! </span>
-<span class="doccomment">//! Par défaut, le champ de taille de chaque objet stocké est représenté par un entier non-signé sur 32 bits, soit au maximum 4,3 Go. Ce point est indispensable à prendre en compte avant la compilation car si votre base se rapproche de cette taille, la valeur totale stockée pour être largement supérieure et la sérialisation être impossible (ou plus grave, l&#39;erreur reste silencieuse mais le fichier est corrompu). </span>
-<span class="doccomment">//! </span>
-<span class="doccomment">//! La modification du format de taille de la source à un entier non-signé sur 64 bits (u64), résoud ce problème, mais le fichier généré sera bien plus gros. </span>
-<span class="doccomment">//! </span>
+<span class="doccomment">//! # Module de sérialisation des canaux</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Ce module sert à implémenter les fonctions de sérialisation et désérialisation des valeurs, vers des données binaires.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Ainsi au démarrage pour amorcer des canaux ou en cours de fonctionnement du logiciel vers des points de sauvegarde, les standards utilisés seront définis.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Ce module est indépendant du module grammatical, qui est lisible l&#39;humain. Le format supporté ici, est strictement binaire.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Par défaut, le champ de taille de chaque objet stocké est représenté par un entier non-signé sur 32 bits, soit au maximum 4,3 Go. Ce point est indispensable à prendre en compte avant la compilation car si votre base se rapproche de cette taille, la valeur totale stockée pour être largement supérieure et la sérialisation être impossible (ou plus grave, l&#39;erreur reste silencieuse mais le fichier est corrompu).</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! La modification du format de taille de la source à un entier non-signé sur 64 bits (u64), résoud ce problème, mais le fichier généré sera bien plus gros.</span>
+<span class="doccomment">//!</span>
 
-    <span class="comment">// --- --- --- --- --- --- --- --- --- </span>
-    <span class="comment">// (1) Importation des modules internes </span>
-    <span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
+<span class="comment">// (1) Importation des modules internes</span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">BufWriter</span>; 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>; 
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">BufWriter</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>;
 
-    <span class="comment">// --- --- --- --- --- --- --- --- --- </span>
-    <span class="comment">// (2) Importation des modules du projet </span>
-    <span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
+<span class="comment">// (2) Importation des modules du projet</span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
 
-    <span class="comment">// --- --- --- --- --- --- --- --- --- </span>
-    <span class="comment">// (3) Constantes du projet </span>
-    <span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
+<span class="comment">// (3) Constantes du projet</span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
 
-    <span class="comment">// --- --- --- --- --- --- --- --- --- </span>
-    <span class="comment">// (4) Définition des structures, énumérations et leurs implémentations </span>
-    <span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
+<span class="comment">// (4) Définition des structures, énumérations et leurs implémentations</span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Source</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span><span class="op">&gt;</span> { 
-	<span class="kw">pub</span> <span class="ident">fichier</span>: <span class="ident">BufWriter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>  
-} 
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Source</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="ident">fichier</span>: <span class="ident">BufWriter</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span><span class="op">&gt;</span> <span class="ident">Source</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> { 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ecrire</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">contenu_type</span>: <span class="ident">u8</span>, <span class="ident">contenu_valeur</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> { 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span> <span class="op">=</span> <span class="number">0</span>; 
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>( <span class="ident">t</span> ) <span class="op">=</span> <span class="self">self</span>.<span class="ident">fichier</span>.<span class="ident">write</span>( <span class="kw-2">&amp;</span><span class="macro">vec</span><span class="macro">!</span>( <span class="ident">contenu_type</span> ) ) { 
-			<span class="ident">n</span> <span class="op">+</span><span class="op">=</span> <span class="ident">t</span>; 
-		} <span class="kw">else</span> { 
-			<span class="kw">return</span> <span class="prelude-val">None</span>; 
-		} 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tableau</span>: [<span class="ident">u8</span>;<span class="number">4</span>] <span class="op">=</span> [<span class="number">0</span>;<span class="number">4</span>]; 
-		<span class="ident">tableau</span>.<span class="ident">copy_from_slice</span>( <span class="kw-2">&amp;</span>(<span class="ident">contenu_valeur</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">to_be_bytes</span>() ); 
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>( <span class="ident">t</span> ) <span class="op">=</span> <span class="self">self</span>.<span class="ident">fichier</span>.<span class="ident">write</span>( <span class="kw-2">&amp;</span><span class="ident">tableau</span> ) { 
-			<span class="ident">n</span> <span class="op">+</span><span class="op">=</span> <span class="ident">t</span>; 
-		} <span class="kw">else</span> { 
-			<span class="kw">return</span> <span class="prelude-val">None</span>; 
-		} 
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>( <span class="ident">t</span> ) <span class="op">=</span> <span class="self">self</span>.<span class="ident">fichier</span>.<span class="ident">write</span>( <span class="kw-2">&amp;</span><span class="ident">contenu_valeur</span> ) { 
-			<span class="ident">n</span> <span class="op">+</span><span class="op">=</span> <span class="ident">t</span>; 
-		} <span class="kw">else</span> { 
-			<span class="kw">return</span> <span class="prelude-val">None</span>; 
-		} 
-		<span class="prelude-val">Some</span>( <span class="ident">n</span> ) 
-	} 
-} 
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span><span class="op">&gt;</span> <span class="ident">Source</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ecrire</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">contenu_type</span>: <span class="ident">u8</span>, <span class="ident">contenu_valeur</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">fichier</span>.<span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="macro">vec</span><span class="macro">!</span>[<span class="ident">contenu_type</span>]) {
+            <span class="ident">n</span> <span class="op">+</span><span class="op">=</span> <span class="ident">t</span>;
+        } <span class="kw">else</span> {
+            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        }
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tableau</span>: [<span class="ident">u8</span>; <span class="number">4</span>] <span class="op">=</span> [<span class="number">0</span>; <span class="number">4</span>];
+        <span class="ident">tableau</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span>(<span class="ident">contenu_valeur</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">to_be_bytes</span>());
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">fichier</span>.<span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="ident">tableau</span>) {
+            <span class="ident">n</span> <span class="op">+</span><span class="op">=</span> <span class="ident">t</span>;
+        } <span class="kw">else</span> {
+            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        }
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">fichier</span>.<span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="ident">contenu_valeur</span>) {
+            <span class="ident">n</span> <span class="op">+</span><span class="op">=</span> <span class="ident">t</span>;
+        } <span class="kw">else</span> {
+            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        }
+        <span class="prelude-val">Some</span>(<span class="ident">n</span>)
+    }
+}
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Serie</span> { 
-	<span class="kw">fn</span> <span class="ident">serialiser</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span><span class="op">&gt;</span>( <span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Source</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>; 
-} 
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Serie</span> {
+    <span class="kw">fn</span> <span class="ident">serialiser</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Source</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>;
+}
 
-    <span class="comment">// --- --- --- --- --- --- --- --- --- </span>
-    <span class="comment">// (5) Définition des fonctions </span>
-    <span class="comment">// --- --- --- --- --- --- --- --- --- </span>
-
-
-
-
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
+<span class="comment">// (5) Définition des fonctions</span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "projet_robert";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

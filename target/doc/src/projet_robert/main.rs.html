@@ -38,56 +38,46 @@
 <span id="38">38</span>
 <span id="39">39</span>
 <span id="40">40</span>
-<span id="41">41</span>
-<span id="42">42</span>
-<span id="43">43</span>
-<span id="44">44</span>
-<span id="45">45</span>
 </pre><div class="example-wrap"><pre class="rust ">
-
-<span class="doccomment">//! Robert est un logiciel type &quot;Redis-Like&quot; : un système de gestion de données haute performance, stockée en RAM, qui n&#39;offre cependant comme son illustre grand frère, toutes les finesses d&#39;une base de données SQL classique. </span>
-<span class="doccomment">//! </span>
-<span class="doccomment">//! Robert est donc à classer dans la famille des No-SQL &quot;naïfs&quot;. Les requêtes des utilisateurs ne sont pas à proprement parler un langage de programmation, mais un DSL - un langage spécifique (une API en réalité). Avec cette spécificité : il est intégralement francophone (commentaires dans le code, la documentation, mais aussi les commandes elles-mêmes). </span>
-<span class="doccomment">//! </span>
-<span class="doccomment">//! Vous vous demandez d&#39;où vient son nom ? Bonne question : comme il fonctionne sur un système &quot;clé/valeur&quot;, stocké dans ce qu&#39;il convient d&#39;appeler des &quot;dictionnaires&quot;, il semblait assez logique que ce petit logiciel sans prétention, qui se veut simple, facilement extensible et efficace s&#39;appelle... le (petit) Robert. Comme un illustre ancêtre papier ! Et puis Redis et Rust commencent tous les deux par un &#39;R&#39; alors... </span>
-<span class="doccomment">//! </span>
-<span class="doccomment">//! A ce jour, il gère des clés au format texte et des valeurs de plusieurs types (valeur textuelle, réelle, flottante, boolèenne). D&#39;autres types de valeurs sont attendus et sans attendre (compte tenu du caractère ouvert et libre du code), n&#39;hésitez pas à y ajouter votre grain de sel. </span>
-<span class="doccomment">//! </span>
-<span class="doccomment">//! La philosophie de Robert est d&#39;offrir un logiciel appréhendable par le plus grand nombre, simple et rapide, qui ne soit pas un &quot;jouet&quot; de programmation sans être une usine à gaz que seule une poignée de personnes est capable de développer et maintenir (ce qui rend le projet dépendant de ses concepteurs et donc représente un risque d&#39;abandon). Robert dans la lignée de la philosophie &quot;KISS&quot; de l&#39;univers Unix : _Keep It Simple, Stupid !_ Ainsi il ne vous fera jamais le café... </span>
-<span class="doccomment">//! </span>
-<span class="doccomment">//! Par l&#39;usage de Rust pour son développement, le logiciel est stable, sûr et son empreinte mémoire est très faible. Rust ne connaît (quasi-)pas les fuites de mémoire : Robert non plus (car il tente d&#39;en suivre au plus près la philosophie). Le projet souhaite aussi s&#39;assoir sur des ressources sûres, et éviter d&#39;utiliser des adjonctions de code extérieur insondable. Aussi Robert n&#39;a aucune autre dépendance à ce jour, que l&#39;usage des modules internes au langage. Cela le restreint certes, mais lui apporte une facilité d&#39;audit supplémentaire. </span>
-<span class="doccomment">//! </span>
+<span class="doccomment">//! Robert est un logiciel type &quot;Redis-Like&quot; : un système de gestion de données haute performance, stockée en RAM, qui n&#39;offre cependant comme son illustre grand frère, toutes les finesses d&#39;une base de données SQL classique.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Robert est donc à classer dans la famille des No-SQL &quot;naïfs&quot;. Les requêtes des utilisateurs ne sont pas à proprement parler un langage de programmation, mais un DSL - un langage spécifique (une API en réalité). Avec cette spécificité : il est intégralement francophone (commentaires dans le code, la documentation, mais aussi les commandes elles-mêmes).</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Vous vous demandez d&#39;où vient son nom ? Bonne question : comme il fonctionne sur un système &quot;clé/valeur&quot;, stocké dans ce qu&#39;il convient d&#39;appeler des &quot;dictionnaires&quot;, il semblait assez logique que ce petit logiciel sans prétention, qui se veut simple, facilement extensible et efficace s&#39;appelle... le (petit) Robert. Comme un illustre ancêtre papier ! Et puis Redis et Rust commencent tous les deux par un &#39;R&#39; alors...</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! A ce jour, il gère des clés au format texte et des valeurs de plusieurs types (valeur textuelle, réelle, flottante, boolèenne). D&#39;autres types de valeurs sont attendus et sans attendre (compte tenu du caractère ouvert et libre du code), n&#39;hésitez pas à y ajouter votre grain de sel.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! La philosophie de Robert est d&#39;offrir un logiciel appréhendable par le plus grand nombre, simple et rapide, qui ne soit pas un &quot;jouet&quot; de programmation sans être une usine à gaz que seule une poignée de personnes est capable de développer et maintenir (ce qui rend le projet dépendant de ses concepteurs et donc représente un risque d&#39;abandon). Robert dans la lignée de la philosophie &quot;KISS&quot; de l&#39;univers Unix : _Keep It Simple, Stupid !_ Ainsi il ne vous fera jamais le café...</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Par l&#39;usage de Rust pour son développement, le logiciel est stable, sûr et son empreinte mémoire est très faible. Rust ne connaît (quasi-)pas les fuites de mémoire : Robert non plus (car il tente d&#39;en suivre au plus près la philosophie). Le projet souhaite aussi s&#39;assoir sur des ressources sûres, et éviter d&#39;utiliser des adjonctions de code extérieur insondable. Aussi Robert n&#39;a aucune autre dépendance à ce jour, que l&#39;usage des modules internes au langage. Cela le restreint certes, mais lui apporte une facilité d&#39;audit supplémentaire.</span>
+<span class="doccomment">//!</span>
 <span class="doccomment">//! __D&#39;où sa devise &quot;CCP&quot; : _copier, compiler, profiter !___</span>
 <span class="doccomment">//!  </span>
 
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<span class="kw">mod</span> <span class="ident">canal</span>;
+<span class="attribute">#[<span class="ident">macro_use</span>]</span>
+<span class="kw">mod</span> <span class="ident">profil</span>;
 
-<span class="attribute">#[<span class="ident">macro_use</span>]</span> 
-<span class="kw">mod</span> <span class="ident">canal</span>; 
-<span class="attribute">#[<span class="ident">macro_use</span>]</span> 
-<span class="kw">mod</span> <span class="ident">profil</span>; 
+<span class="kw">mod</span> <span class="ident">client</span>;
+<span class="kw">mod</span> <span class="ident">configuration</span>;
+<span class="kw">mod</span> <span class="ident">contexte</span>;
+<span class="kw">mod</span> <span class="ident">grammaire</span>;
+<span class="kw">mod</span> <span class="ident">resolution</span>;
+<span class="kw">mod</span> <span class="ident">serie</span>;
+<span class="kw">mod</span> <span class="ident">service</span>;
+<span class="kw">mod</span> <span class="ident">valeur</span>;
 
-<span class="kw">mod</span> <span class="ident">configuration</span>; 
-<span class="kw">mod</span> <span class="ident">contexte</span>; 
-<span class="kw">mod</span> <span class="ident">service</span>; 
-<span class="kw">mod</span> <span class="ident">client</span>; 
-<span class="kw">mod</span> <span class="ident">grammaire</span>; 
-<span class="kw">mod</span> <span class="ident">serie</span>; 
-<span class="kw">mod</span> <span class="ident">resolution</span>; 
-<span class="kw">mod</span> <span class="ident">valeur</span>; 
+<span class="kw">mod</span> <span class="ident">script</span>;
 
-<span class="kw">mod</span> <span class="ident">script</span>; 
-
-<span class="doccomment">/// Fonction principale du programme </span>
-<span class="doccomment">/// </span>
-<span class="doccomment">/// Ai-je vraiment besoin de documenter à quoi sert cette fonction... ? </span>
-<span class="doccomment">/// </span>
-<span class="kw">fn</span> <span class="ident">main</span>() { 
-
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>( <span class="ident">e</span> ) <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">service</span>::<span class="ident">lancement_service</span>( <span class="string">&quot;127.0.0.1:8080&quot;</span> ) { 
-        <span class="macro">println</span><span class="macro">!</span>( <span class="string">&quot;démarrage impossible : {:?}&quot;</span>, <span class="ident">e</span> );
-    } 
-
-} 
-
+<span class="doccomment">/// Fonction principale du programme</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Ai-je vraiment besoin de documenter à quoi sert cette fonction... ?</span>
+<span class="doccomment">///</span>
+<span class="kw">fn</span> <span class="ident">main</span>() {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">service</span>::<span class="ident">lancement_service</span>(<span class="string">&quot;127.0.0.1:8080&quot;</span>) {
+        <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;démarrage impossible : {:?}&quot;</span>, <span class="ident">e</span>);
+    }
+}
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "projet_robert";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

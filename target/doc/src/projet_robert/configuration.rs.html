@@ -32,42 +32,40 @@
 <span id="32">32</span>
 <span id="33">33</span>
 <span id="34">34</span>
-<span id="35">35</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="doccomment">//! # Module de configuration </span>
-<span class="doccomment">//! </span>
-<span class="doccomment">//! Tout ce qui permet de définir des paramêtres lors de sa compilation, se situe ici. </span>
-<span class="doccomment">//! </span>
+<span class="doccomment">//! # Module de configuration</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Tout ce qui permet de définir des paramêtres lors de sa compilation, se situe ici.</span>
+<span class="doccomment">//!</span>
 
-<span class="doccomment">/// Définit sur le mode &quot;débug&quot; est actif (renvoi sur la console par défaut). </span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DEBUG</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="bool-val">true</span>; 
+<span class="doccomment">/// Définit sur le mode &quot;débug&quot; est actif (renvoi sur la console par défaut).</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DEBUG</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="bool-val">true</span>;
 
-<span class="doccomment">/// Nom du dictionnaire par défaut, créé par le programme et qui sert aussi de canal par défaut. Il ne peut et ne doit être jamais supprimé lors de l&#39;exécution des requêtes des utilisateurs. </span>
+<span class="doccomment">/// Nom du dictionnaire par défaut, créé par le programme et qui sert aussi de canal par défaut. Il ne peut et ne doit être jamais supprimé lors de l&#39;exécution des requêtes des utilisateurs.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CANAL_NOM_DEFAUT</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;défaut&quot;</span>;
 
-<span class="doccomment">/// Taille maximale admissible par ligne reçue sur un socket. Cette taille fournie donc la taille maximum admissible des requêtes pour le reste du programme. </span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TAILLE_LIGNE_MAX</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1024</span>; 
+<span class="doccomment">/// Taille maximale admissible par ligne reçue sur un socket. Cette taille fournie donc la taille maximum admissible des requêtes pour le reste du programme.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TAILLE_LIGNE_MAX</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1024</span>;
 
-<span class="doccomment">/// Taille maximale admissible pour le texte contenu dans les dictionnaires. </span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TAILLE_TEXTE_MAX</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">TAILLE_LIGNE_MAX</span><span class="kw-2">*</span><span class="number">5</span>; 
+<span class="doccomment">/// Taille maximale admissible pour le texte contenu dans les dictionnaires.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TAILLE_TEXTE_MAX</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">TAILLE_LIGNE_MAX</span> <span class="op">*</span> <span class="number">5</span>;
 
-<span class="comment">// ///Nbre maximum admissible de valeurs pour chaque objet. </span>
-<span class="comment">// const NBRE_MAX_OBJETS: usize = 250; </span>
+<span class="comment">// ///Nbre maximum admissible de valeurs pour chaque objet.</span>
+<span class="comment">// const NBRE_MAX_OBJETS: usize = 250;</span>
 
-<span class="doccomment">/// Nbre maximum admissible de valeurs pour chaque canal (dictionnaire). </span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NBRE_MAX_VALEURS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">500</span>; 
+<span class="doccomment">/// Nbre maximum admissible de valeurs pour chaque canal (dictionnaire).</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NBRE_MAX_VALEURS</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">500</span>;
 
-<span class="doccomment">/// Nbre maximum admissible de canaux dans le processus en cours. </span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NBRE_MAX_CANAUX</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">8</span>; 
+<span class="doccomment">/// Nbre maximum admissible de canaux dans le processus en cours.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NBRE_MAX_CANAUX</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">8</span>;
 
-<span class="doccomment">/// Chemin vers le fichier des profils </span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PROFILS_SOURCE</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;./profils.csv&quot;</span>; 
+<span class="doccomment">/// Chemin vers le fichier des profils</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PROFILS_SOURCE</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;./profils.csv&quot;</span>;
 
-<span class="doccomment">/// Nom par défaut (&#39;pseudo&#39;) d&#39;un client TCP non-authentifié </span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PROFILS_PSEUDO_DEFAUT</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;visiteur anonyme&quot;</span>; 
+<span class="doccomment">/// Nom par défaut (&#39;pseudo&#39;) d&#39;un client TCP non-authentifié</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PROFILS_PSEUDO_DEFAUT</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;visiteur anonyme&quot;</span>;
 
-<span class="doccomment">/// Racine par défaut pour trouver les scripts accessibles </span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SCRIPTS_DOSSIER</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;./scripts&quot;</span>; 
-
+<span class="doccomment">/// Racine par défaut pour trouver les scripts accessibles</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SCRIPTS_DOSSIER</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;./scripts&quot;</span>;
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "projet_robert";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

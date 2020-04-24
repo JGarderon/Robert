@@ -92,98 +92,98 @@
 <span id="92">92</span>
 <span id="93">93</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="doccomment">//! # Module des canaux </span>
-<span class="doccomment">//! </span>
+<span class="doccomment">//! # Module des canaux</span>
+<span class="doccomment">//!</span>
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">mpsc</span>::<span class="ident">Sender</span>; 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>; 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>; 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Mutex</span>; 
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">mpsc</span>::<span class="ident">Sender</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Mutex</span>;
 
-<span class="comment">// ---------------------------------------------------- </span>
+<span class="comment">// ----------------------------------------------------</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::<span class="ident">Retour</span>; 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">valeur</span>::<span class="ident">Valeurs</span>; 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">profil</span>::<span class="ident">Profil</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::<span class="ident">Retour</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">valeur</span>::<span class="ident">Valeurs</span>;
 
-<span class="comment">// ---------------------------------------------------- </span>
+<span class="comment">// ----------------------------------------------------</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">configuration</span>::<span class="ident">DEBUG</span>; 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">configuration</span>::<span class="ident">DEBUG</span>;
 
-<span class="comment">// ---------------------------------------------------- </span>
+<span class="comment">// ----------------------------------------------------</span>
 
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">acces_canal</span> {
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">contexte</span>:<span class="ident">ident</span> ) <span class="op">=</span><span class="op">&gt;</span> {
-        { 
-        	<span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">contexte</span>.<span class="ident">canalthread</span>.<span class="ident">lock</span>() { 
-        		<span class="prelude-val">Ok</span>( <span class="ident">c</span> )	<span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>, 
-        		<span class="prelude-val">Err</span>( <span class="ident">empoisonne</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">empoisonne</span>.<span class="ident">into_inner</span>() 
-        	} 
-        } 
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">contexte</span>:<span class="ident">ident</span> ) <span class="op">=</span><span class="op">&gt;</span> {{
+        <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">contexte</span>.<span class="ident">canalthread</span>.<span class="ident">lock</span>() {
+            <span class="prelude-val">Ok</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">empoisonne</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">empoisonne</span>.<span class="ident">into_inner</span>(),
+        }
+    }};
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Souscripteur</span> {
+    <span class="kw">pub</span> <span class="ident">pont</span>: <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">messages</span>: <span class="ident">bool</span>,
+    <span class="kw">pub</span> <span class="ident">valeurs</span>: <span class="ident">bool</span>,
+}
+
+<span class="doccomment">/// Un canal se constitue de trois principaux éléments : son nom, sa liste de valeurs (qui est stockée dans un Objet, un élément de l&#39;énumération des Valeurs) ainsi qu&#39;un vecteur de souscripteurs.</span>
+<span class="doccomment">/// A partir de la version 1.1, dans l&#39;idéal, la compatibilité devrait être toujours maintenue avec ce minimum.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Canal</span> {
+    <span class="kw">pub</span> <span class="ident">nom</span>: <span class="ident">String</span>,
+    <span class="kw">pub</span> <span class="ident">liste</span>: <span class="ident">Valeurs</span>,
+    <span class="kw">pub</span> <span class="ident">souscripteurs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Souscripteur</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">Canal</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resoudre</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">chemin</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>], <span class="ident">fct</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Valeurs</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span>,
+    {
+        <span class="self">self</span>.<span class="ident">liste</span>.<span class="ident">resoudre</span>(<span class="ident">chemin</span>, <span class="ident">fct</span>)
+    }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notifier</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">emetteur</span>: <span class="kw-2">&amp;</span><span class="ident">Profil</span>, <span class="kw-2">mut</span> <span class="ident">message</span>: <span class="ident">String</span>) {
+        <span class="ident">message</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} &gt;&gt; {}&quot;</span>, <span class="ident">emetteur</span>, <span class="ident">message</span>);
+        <span class="self">self</span>.<span class="ident">souscripteurs</span>.<span class="ident">retain</span>(
+            <span class="op">|</span><span class="ident">souscripteur</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">souscripteur</span>.<span class="ident">pont</span>.<span class="ident">send</span>(<span class="ident">message</span>.<span class="ident">clone</span>()) {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            },
+        );
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Canal</span> {
+    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
+        <span class="kw">if</span> <span class="ident">DEBUG</span> {
+            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;! suppression &#39;Canal&#39; : {:?}&quot;</span>, <span class="self">self</span>);
+        }
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CanalThread</span> <span class="op">=</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Canal</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Canaux</span> {
+    <span class="kw">pub</span> <span class="ident">liste</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">CanalThread</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CanauxThread</span> <span class="op">=</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Canaux</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">creer_racine</span>(<span class="ident">nom_defaut</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">CanalThread</span>, <span class="ident">CanauxThread</span>) {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp</span> <span class="op">=</span> <span class="ident">Canaux</span> {
+        <span class="ident">liste</span>: <span class="ident">HashMap</span>::<span class="ident">new</span>(),
     };
-} 
-
-<span class="doccomment">/// Un canal se constitue de trois principaux éléments : son nom, sa liste de valeurs (qui est stockée dans un Objet, un élément de l&#39;énumération des Valeurs) ainsi qu&#39;un vecteur de souscripteurs. </span>
-<span class="doccomment">/// A partir de la version 1.1, dans l&#39;idéal, la compatibilité devrait être toujours maintenue avec ce minimum. </span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span> 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Canal</span> { 
-	<span class="kw">pub</span> <span class="ident">nom</span>: <span class="ident">String</span>, 
-	<span class="kw">pub</span> <span class="ident">liste</span>: <span class="ident">Valeurs</span>, 
-	<span class="kw">pub</span> <span class="ident">souscripteurs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>  
-} 
-
-<span class="kw">impl</span> <span class="ident">Canal</span> { 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resoudre</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">chemin</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>], <span class="ident">fct</span>: <span class="ident">F</span> )  <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> 
-		<span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnOnce</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Valeurs</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span>
-	{ 
-		<span class="self">self</span>.<span class="ident">liste</span>.<span class="ident">resoudre</span>( <span class="ident">chemin</span>, <span class="ident">fct</span> ) 
-	} 
-} 
-
-<span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Canal</span> { 
-    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) { 
-    	<span class="kw">if</span> <span class="ident">DEBUG</span> { 
-        	<span class="macro">println</span><span class="macro">!</span>( <span class="string">&quot;! suppression &#39;Canal&#39; : {:?}&quot;</span>, <span class="self">self</span> ); 
-    	}
-    } 
-} 
-
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CanalThread</span> <span class="op">=</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Canal</span><span class="op">&gt;</span><span class="op">&gt;</span>; 
-
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Canaux</span> { 
-	<span class="kw">pub</span> <span class="ident">liste</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>,<span class="ident">CanalThread</span><span class="op">&gt;</span> 
-} 
-
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CanauxThread</span> <span class="op">=</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">Canaux</span><span class="op">&gt;</span><span class="op">&gt;</span>; 
-
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">creer_racine</span>( <span class="ident">nom_defaut</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> ) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">CanalThread</span>, <span class="ident">CanauxThread</span>) { 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp</span> <span class="op">=</span> <span class="ident">Canaux</span> { 
-		<span class="ident">liste</span>: <span class="ident">HashMap</span>::<span class="ident">new</span>() 
-	}; 
-	<span class="kw">let</span> <span class="ident">nom</span> <span class="op">=</span> <span class="ident">nom_defaut</span>.<span class="ident">to_string</span>(); 
-	<span class="kw">let</span> <span class="ident">canal</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>( 
-		<span class="ident">Mutex</span>::<span class="ident">new</span>( 
-			<span class="ident">Canal</span> { 
-				<span class="ident">nom</span>: <span class="ident">nom</span>.<span class="ident">clone</span>(), 
-				<span class="ident">liste</span>: <span class="ident">Valeurs</span>::<span class="ident">Objet</span>( <span class="ident">HashMap</span>::<span class="ident">new</span>() ), 
-				<span class="ident">souscripteurs</span>: <span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">new</span>() 
-			} 
-		) 
-	) <span class="kw">as</span> <span class="ident">CanalThread</span>; 
-	<span class="ident">tmp</span>.<span class="ident">liste</span>.<span class="ident">insert</span>( 
-		<span class="ident">nom</span>, 
-		<span class="ident">canal</span>.<span class="ident">clone</span>() 
-	); 
-	<span class="kw">let</span> <span class="ident">canaux</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>( 
-		<span class="ident">Mutex</span>::<span class="ident">new</span>( 
-			<span class="ident">tmp</span> 
-		) 
-	) <span class="kw">as</span> <span class="ident">CanauxThread</span>; 
-	( 
-		<span class="ident">canal</span>, 
-		<span class="ident">canaux</span> 
-	) 
-} 
-
-
+    <span class="kw">let</span> <span class="ident">nom</span> <span class="op">=</span> <span class="ident">nom_defaut</span>.<span class="ident">to_string</span>();
+    <span class="kw">let</span> <span class="ident">canal</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">Canal</span> {
+        <span class="ident">nom</span>: <span class="ident">nom</span>.<span class="ident">clone</span>(),
+        <span class="ident">liste</span>: <span class="ident">Valeurs</span>::<span class="ident">Objet</span>(<span class="ident">HashMap</span>::<span class="ident">new</span>()),
+        <span class="ident">souscripteurs</span>: <span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">Souscripteur</span><span class="op">&gt;</span>::<span class="ident">new</span>(),
+    })) <span class="kw">as</span> <span class="ident">CanalThread</span>;
+    <span class="ident">tmp</span>.<span class="ident">liste</span>.<span class="ident">insert</span>(<span class="ident">nom</span>, <span class="ident">canal</span>.<span class="ident">clone</span>());
+    <span class="kw">let</span> <span class="ident">canaux</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(<span class="ident">tmp</span>)) <span class="kw">as</span> <span class="ident">CanauxThread</span>;
+    (<span class="ident">canal</span>, <span class="ident">canaux</span>)
+}
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "projet_robert";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

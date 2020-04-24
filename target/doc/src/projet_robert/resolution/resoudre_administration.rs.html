@@ -313,321 +313,427 @@
 <span id="313">313</span>
 <span id="314">314</span>
 <span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Sous-module de résolution &quot;administration&quot;</span>
-<span class="doccomment">//! </span>
-<span class="doccomment">//! Ce module gère les fonctions liées à l&#39;administration du processus. Certaines de ces fonctions peuvent être restreintes aux seuls clients authentifiés. </span>
-<span class="doccomment">//! </span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Ce module gère les fonctions liées à l&#39;administration du processus. Certaines de ces fonctions peuvent être restreintes aux seuls clients authentifiés.</span>
+<span class="doccomment">//!</span>
 
-	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
-	<span class="comment">// (1) Importation des modules internes </span>
-	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
+<span class="comment">// (1) Importation des modules internes</span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>; 
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">BufWriter</span>; 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>; 
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">BufWriter</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>;
 
-	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
-	<span class="comment">// (2) Importation des modules du projet </span>
-	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
+<span class="comment">// (2) Importation des modules du projet</span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">canal</span>::<span class="ident">Canal</span>; 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">valeur</span>::<span class="ident">Valeurs</span>; 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::{<span class="ident">Contexte</span>, <span class="ident">Resolveur</span>, <span class="ident">Retour</span>}; 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">grammaire</span>::<span class="ident">ArgumentsLocaux</span>; 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serie</span>::{<span class="ident">Serie</span>, <span class="ident">Source</span>}; 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">canal</span>::<span class="ident">Canal</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">client</span>::<span class="ident">Informer</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">grammaire</span>::<span class="ident">ArgumentsLocaux</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::{<span class="ident">Contexte</span>, <span class="ident">Resolveur</span>, <span class="ident">Retour</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serie</span>::{<span class="ident">Serie</span>, <span class="ident">Source</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">valeur</span>::<span class="ident">Valeurs</span>;
 
-	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
-	<span class="comment">// (3) Constantes du projet </span>
-	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
+<span class="comment">// (3) Constantes du projet</span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
 
-	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
-	<span class="comment">// (4) Définition des structures, énumérations et leurs implémentations </span>
-	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
+<span class="comment">// (4) Définition des structures, énumérations et leurs implémentations</span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
 
-<span class="kw">trait</span> <span class="ident">Mesure</span> { 
-	<span class="kw">fn</span> <span class="ident">mesurer</span>( <span class="kw-2">&amp;</span><span class="self">self</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;  
-} 
+<span class="kw">trait</span> <span class="ident">Mesure</span> {
+    <span class="kw">fn</span> <span class="ident">mesurer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
+}
 
-<span class="kw">impl</span> <span class="ident">Mesure</span> <span class="kw">for</span> <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>,<span class="ident">Valeurs</span><span class="op">&gt;</span> { 
-	<span class="kw">fn</span> <span class="ident">mesurer</span>( <span class="kw-2">&amp;</span><span class="self">self</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> { 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total</span> <span class="op">=</span> <span class="number">0</span>; 
-		<span class="kw">for</span> (<span class="ident">cle</span>, <span class="ident">valeur</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">iter</span>() { 
-			<span class="ident">total</span> <span class="op">+</span><span class="op">=</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>( <span class="ident">cle</span> )<span class="op">+</span><span class="ident">cle</span>.<span class="ident">as_bytes</span>().<span class="ident">len</span>(); 
-			<span class="ident">total</span> <span class="op">+</span><span class="op">=</span> <span class="ident">valeur</span>.<span class="ident">mesurer</span>(); 
-		} 
-		<span class="ident">total</span> 
-	} 
-} 
+<span class="kw">impl</span> <span class="ident">Mesure</span> <span class="kw">for</span> <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Valeurs</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">mesurer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">for</span> (<span class="ident">cle</span>, <span class="ident">valeur</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">iter</span>() {
+            <span class="ident">total</span> <span class="op">+</span><span class="op">=</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>(<span class="ident">cle</span>) <span class="op">+</span> <span class="ident">cle</span>.<span class="ident">as_bytes</span>().<span class="ident">len</span>();
+            <span class="ident">total</span> <span class="op">+</span><span class="op">=</span> <span class="ident">valeur</span>.<span class="ident">mesurer</span>();
+        }
+        <span class="ident">total</span>
+    }
+}
 
-<span class="kw">impl</span> <span class="ident">Mesure</span> <span class="kw">for</span> <span class="ident">Valeurs</span> { 
-	<span class="kw">fn</span> <span class="ident">mesurer</span>( <span class="kw-2">&amp;</span><span class="self">self</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> { 
-		<span class="ident">mem</span>::<span class="ident">size_of_val</span>( <span class="self">self</span> )<span class="op">+</span><span class="kw">match</span> <span class="self">self</span> { 
-			<span class="ident">Valeurs</span>::<span class="ident">Booleen</span>( <span class="ident">b</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>( <span class="ident">b</span> ), 
-			<span class="ident">Valeurs</span>::<span class="ident">Relatif</span>( <span class="ident">n</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>( <span class="ident">n</span> ), 
-			<span class="ident">Valeurs</span>::<span class="ident">Flottant</span>( <span class="ident">f</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>( <span class="ident">f</span> ), 
-			<span class="ident">Valeurs</span>::<span class="ident">Texte</span>( <span class="ident">t</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>( <span class="ident">t</span> )<span class="op">+</span><span class="ident">t</span>.<span class="ident">as_bytes</span>().<span class="ident">len</span>(), 
-			<span class="ident">Valeurs</span>::<span class="ident">Objet</span>( <span class="ident">h</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>( <span class="ident">h</span> )<span class="op">+</span><span class="ident">h</span>.<span class="ident">mesurer</span>()  
-		} 
-	} 
-} 
+<span class="kw">impl</span> <span class="ident">Mesure</span> <span class="kw">for</span> <span class="ident">Valeurs</span> {
+    <span class="kw">fn</span> <span class="ident">mesurer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+        <span class="ident">mem</span>::<span class="ident">size_of_val</span>(<span class="self">self</span>)
+            <span class="op">+</span> <span class="kw">match</span> <span class="self">self</span> {
+                <span class="ident">Valeurs</span>::<span class="ident">Booleen</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>(<span class="ident">b</span>),
+                <span class="ident">Valeurs</span>::<span class="ident">Relatif</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>(<span class="ident">n</span>),
+                <span class="ident">Valeurs</span>::<span class="ident">Flottant</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>(<span class="ident">f</span>),
+                <span class="ident">Valeurs</span>::<span class="ident">Texte</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>(<span class="ident">t</span>) <span class="op">+</span> <span class="ident">t</span>.<span class="ident">as_bytes</span>().<span class="ident">len</span>(),
+                <span class="ident">Valeurs</span>::<span class="ident">Objet</span>(<span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>(<span class="ident">h</span>) <span class="op">+</span> <span class="ident">h</span>.<span class="ident">mesurer</span>(),
+            }
+    }
+}
 
-<span class="kw">impl</span> <span class="ident">Mesure</span> <span class="kw">for</span> <span class="ident">Canal</span> { 
-	<span class="kw">fn</span> <span class="ident">mesurer</span>( <span class="kw-2">&amp;</span><span class="self">self</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> { 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total</span> <span class="op">=</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>( <span class="kw-2">&amp;</span><span class="self">self</span> ) 
-			<span class="op">+</span><span class="ident">mem</span>::<span class="ident">size_of_val</span>( <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">nom</span> ) 
-			<span class="op">+</span><span class="self">self</span>.<span class="ident">nom</span>.<span class="ident">as_bytes</span>().<span class="ident">len</span>() 
-			<span class="op">+</span><span class="ident">mem</span>::<span class="ident">size_of_val</span>( <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">liste</span> ); 
-		<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">liste</span> { 
-			<span class="ident">Valeurs</span>::<span class="ident">Objet</span>( <span class="ident">h</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">for</span> (<span class="ident">cle</span>, <span class="ident">valeur</span>) <span class="kw">in</span> <span class="ident">h</span>.<span class="ident">iter</span>() { 
-				<span class="ident">total</span> <span class="op">+</span><span class="op">=</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>( <span class="kw-2">&amp;</span><span class="ident">cle</span> )<span class="op">+</span><span class="ident">cle</span>.<span class="ident">as_bytes</span>().<span class="ident">len</span>(); 
-				<span class="ident">total</span> <span class="op">+</span><span class="op">=</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>( <span class="kw-2">&amp;</span><span class="ident">valeur</span> )<span class="op">+</span><span class="ident">valeur</span>.<span class="ident">mesurer</span>(); 
-			} 
-			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>( <span class="string">&quot;le canal &#39;{}&#39; est corrompu&quot;</span>, <span class="self">self</span>.<span class="ident">nom</span> ) 
-		} 
-		<span class="ident">total</span> 
-	} 
-} 
+<span class="kw">impl</span> <span class="ident">Mesure</span> <span class="kw">for</span> <span class="ident">Canal</span> {
+    <span class="kw">fn</span> <span class="ident">mesurer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total</span> <span class="op">=</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>(<span class="kw-2">&amp;</span><span class="self">self</span>)
+            <span class="op">+</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">nom</span>)
+            <span class="op">+</span> <span class="self">self</span>.<span class="ident">nom</span>.<span class="ident">as_bytes</span>().<span class="ident">len</span>()
+            <span class="op">+</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">liste</span>);
+        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">liste</span> {
+            <span class="ident">Valeurs</span>::<span class="ident">Objet</span>(<span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">for</span> (<span class="ident">cle</span>, <span class="ident">valeur</span>) <span class="kw">in</span> <span class="ident">h</span>.<span class="ident">iter</span>() {
+                    <span class="ident">total</span> <span class="op">+</span><span class="op">=</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>(<span class="kw-2">&amp;</span><span class="ident">cle</span>) <span class="op">+</span> <span class="ident">cle</span>.<span class="ident">as_bytes</span>().<span class="ident">len</span>();
+                    <span class="ident">total</span> <span class="op">+</span><span class="op">=</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>(<span class="kw-2">&amp;</span><span class="ident">valeur</span>) <span class="op">+</span> <span class="ident">valeur</span>.<span class="ident">mesurer</span>();
+                }
+            }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;le canal &#39;{}&#39; est corrompu&quot;</span>, <span class="self">self</span>.<span class="ident">nom</span>),
+        }
+        <span class="ident">total</span>
+    }
+}
 
-	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
-	<span class="comment">// (5) Définition des fonctions </span>
-	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
+<span class="comment">// (5) Définition des fonctions</span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
 
-<span class="doccomment">/// # Fonction de résolution locale &quot;authentifier son profil&quot; </span>
-<span class="doccomment">/// </span>
-<span class="doccomment">/// Permet de s&#39;authentifier, avec un couple &quot;pseudo / mot de passe&quot;. </span>
-<span class="doccomment">/// </span>
-<span class="kw">fn</span> <span class="ident">resoudre_authentifier</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
-	<span class="kw">match</span> <span class="ident">arguments</span>.<span class="ident">tous</span>() { 
-		<span class="prelude-val">Ok</span>( <span class="ident">v</span> ) <span class="op">=</span><span class="op">&gt;</span> { 
-			<span class="kw">if</span> <span class="ident">v</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">2</span> { 
-				<span class="kw">match</span> <span class="ident">contexte</span>.<span class="ident">profil</span>.<span class="ident">authentifier</span>( <span class="kw-2">&amp;</span><span class="ident">v</span>[<span class="number">0</span>], <span class="kw-2">&amp;</span><span class="ident">v</span>[<span class="number">1</span>] ) { 
-					<span class="prelude-val">Ok</span>( <span class="bool-val">true</span> ) <span class="op">=</span><span class="op">&gt;</span> { 
-						<span class="ident">contexte</span>.<span class="ident">message</span>( <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>( <span class="string">&quot;bonjour {}&quot;</span>, <span class="ident">contexte</span>.<span class="ident">profil</span> ) ); 
-						<span class="ident">Retour</span>::<span class="ident">creer_str</span>( 
-							<span class="bool-val">true</span>, 
-							<span class="string">&quot;authentification réussie&quot;</span> 
-						) 
-					} 
-					<span class="prelude-val">Ok</span>( <span class="bool-val">false</span> ) <span class="op">=</span><span class="op">&gt;</span> { 
-						<span class="ident">contexte</span>.<span class="ident">poursuivre</span> <span class="op">=</span> <span class="bool-val">false</span>; 
-						<span class="ident">Retour</span>::<span class="ident">creer_str</span>( 
-							<span class="bool-val">false</span>, 
-							<span class="string">&quot;authentification échouée ; vous allez être déconnecté&quot;</span> 
-						) 
-					} 
-					<span class="prelude-val">Err</span>( <span class="ident">e</span> ) <span class="op">=</span><span class="op">&gt;</span> { 
-						<span class="ident">contexte</span>.<span class="ident">erreur</span>( <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>( <span class="string">&quot;erreur interne : {}&quot;</span>, <span class="ident">e</span> ) ); 
-						<span class="ident">Retour</span>::<span class="ident">creer_str</span>( 
-							<span class="bool-val">false</span>, 
-							<span class="string">&quot;authentification échouée ; merci de rééssayer ultérieurement&quot;</span> 
-						) 
-					} 
-				} 
-			} <span class="kw">else</span> { 
-				<span class="ident">Retour</span>::<span class="ident">creer_str</span>( 
-					<span class="bool-val">false</span>, 
-					<span class="string">&quot;deux arguments obligatoires : &#39;pseudo&#39; et &#39;passe&#39;&quot;</span> 
-				) 
-			} 
-		} 
-		<span class="prelude-val">Err</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( 
-			<span class="bool-val">false</span>, 
-			<span class="string">&quot;arguments invalides&quot;</span> 
-		) 
-	} 
-} 
+<span class="doccomment">/// # Fonction de résolution locale &quot;authentifier son profil&quot;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Permet de s&#39;authentifier, avec un couple &quot;pseudo / mot de passe&quot;.</span>
+<span class="doccomment">///</span>
+<span class="kw">fn</span> <span class="ident">resoudre_authentifier</span>(<span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> {
+    <span class="kw">match</span> <span class="ident">arguments</span>.<span class="ident">tous</span>() {
+        <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">if</span> <span class="ident">v</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">2</span> {
+                <span class="kw">match</span> <span class="ident">contexte</span>.<span class="ident">profil</span>.<span class="ident">authentifier</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>[<span class="number">0</span>], <span class="kw-2">&amp;</span><span class="ident">v</span>[<span class="number">1</span>]) {
+                    <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">contexte</span>.<span class="ident">message</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;bonjour {}&quot;</span>, <span class="ident">contexte</span>.<span class="ident">profil</span>));
+                        <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">true</span>, <span class="string">&quot;authentification réussie&quot;</span>)
+                    }
+                    <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">contexte</span>.<span class="ident">poursuivre</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                        <span class="ident">Retour</span>::<span class="ident">creer_str</span>(
+                            <span class="bool-val">false</span>,
+                            <span class="string">&quot;authentification échouée ; vous allez être déconnecté&quot;</span>,
+                        )
+                    }
+                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">contexte</span>.<span class="ident">erreur</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;erreur interne : {}&quot;</span>, <span class="ident">e</span>));
+                        <span class="ident">Retour</span>::<span class="ident">creer_str</span>(
+                            <span class="bool-val">false</span>,
+                            <span class="string">&quot;authentification échouée ; merci de rééssayer ultérieurement&quot;</span>,
+                        )
+                    }
+                }
+            } <span class="kw">else</span> {
+                <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;deux arguments obligatoires : &#39;pseudo&#39; et &#39;passe&#39;&quot;</span>)
+            }
+        }
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;arguments invalides&quot;</span>),
+    }
+}
 
-<span class="doccomment">/// # Fonction de résolution locale &quot;anonymiser son profil&quot; </span>
-<span class="doccomment">/// </span>
-<span class="doccomment">/// Recréer un profil vierge, sans aucun droit associé. </span>
-<span class="doccomment">/// </span>
-<span class="kw">fn</span> <span class="ident">resoudre_anonymiser</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw">_</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
-	<span class="ident">contexte</span>.<span class="ident">message</span>( 
-		<span class="kw">if</span> <span class="ident">contexte</span>.<span class="ident">profil</span>.<span class="ident">est_authentifie</span>() { 
-			<span class="string">&quot;vous étiez authentifié&quot;</span> 
-		} <span class="kw">else</span> { 
-			<span class="string">&quot;vous n&#39;étiez pas authentifié&quot;</span> 
-		} 
-	); 
-	<span class="ident">contexte</span>.<span class="ident">profil</span>.<span class="ident">anonymiser</span>();  
-	<span class="ident">Retour</span>::<span class="ident">creer_str</span>( 
-		<span class="bool-val">true</span>, 
-		<span class="string">&quot;anonymisation réussie&quot;</span> 
-	) 
-} 
+<span class="doccomment">/// # Fonction de résolution locale &quot;anonymiser son profil&quot;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Recréer un profil vierge, sans aucun droit associé.</span>
+<span class="doccomment">///</span>
+<span class="kw">fn</span> <span class="ident">resoudre_anonymiser</span>(<span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw">_</span>: <span class="ident">ArgumentsLocaux</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> {
+    <span class="ident">contexte</span>.<span class="ident">message</span>(<span class="kw">if</span> <span class="ident">contexte</span>.<span class="ident">profil</span>.<span class="ident">est_authentifie</span>() {
+        <span class="string">&quot;vous étiez authentifié&quot;</span>
+    } <span class="kw">else</span> {
+        <span class="string">&quot;vous n&#39;étiez pas authentifié&quot;</span>
+    });
+    <span class="ident">contexte</span>.<span class="ident">profil</span>.<span class="ident">anonymiser</span>();
+    <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">true</span>, <span class="string">&quot;anonymisation réussie&quot;</span>)
+}
 
-<span class="doccomment">/// # Fonction de résolution locale &quot;consulter son profil&quot; </span>
-<span class="doccomment">/// </span>
-<span class="doccomment">/// Retourne l&#39;état résumé du profil en message. </span>
-<span class="doccomment">/// </span>
-<span class="kw">fn</span> <span class="ident">resoudre_profiler</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw">_</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
-	<span class="ident">contexte</span>.<span class="ident">message</span>( <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>( <span class="string">&quot;profil : {}&quot;</span>, <span class="ident">contexte</span>.<span class="ident">profil</span> ) ); 
-	<span class="ident">Retour</span>::<span class="ident">creer_str</span>( 
-		<span class="bool-val">true</span>, 
-		<span class="string">&quot;profilage réussi&quot;</span> 
-	) 
-} 
+<span class="doccomment">/// # Fonction de résolution locale &quot;consulter son profil&quot;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Retourne l&#39;état résumé du profil en message.</span>
+<span class="doccomment">///</span>
+<span class="kw">fn</span> <span class="ident">resoudre_profiler</span>(<span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw">_</span>: <span class="ident">ArgumentsLocaux</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> {
+    <span class="ident">contexte</span>.<span class="ident">message</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;profil : {}&quot;</span>, <span class="ident">contexte</span>.<span class="ident">profil</span>));
+    <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">true</span>, <span class="string">&quot;profilage réussi&quot;</span>)
+}
 
-<span class="doccomment">/// # Fonction de résolution locale &quot;éteindre le programme&quot; </span>
-<span class="doccomment">/// </span>
-<span class="doccomment">/// Cette fonction doit être considérée comme avec un effet &quot;prioritaire&quot; : elle va annuler la boucle principale du service, ce qui provoquera l&#39;arrêt de l&#39;écoupe réseau ainsi que du programme. De plus, l&#39;arrêt du service provoquera la fin de toutes les clients TCP actifs. </span>
-<span class="doccomment">/// </span>
-<span class="doccomment">/// Une fois l&#39;arrêt enclenché, il n&#39;y a plus aucun moyen de revenir à l&#39;état antérieur (perte des informations non-sauvegardées). </span>
-<span class="doccomment">/// </span>
-<span class="kw">fn</span> <span class="ident">resoudre_eteindre</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw">_</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
-	<span class="macro">est_authentifie</span><span class="macro">!</span>( <span class="ident">contexte</span> ); 
-	<span class="kw-2">*</span><span class="ident">contexte</span>.<span class="ident">service_poursuite</span> <span class="op">=</span> <span class="bool-val">false</span>; <span class="comment">// /!\ UNSAFE / à retirer urgemment </span>
-	<span class="kw">match</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">TcpStream</span>::<span class="ident">connect</span>( <span class="ident">contexte</span>.<span class="ident">service_ecoute</span>.<span class="ident">local_addr</span>().<span class="ident">unwrap</span>() ) { 
-		<span class="prelude-val">Ok</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;extinction enclenchée ; les fils vont être progressivement arrêtés&quot;</span> ), 
-		<span class="prelude-val">Err</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;extinction enclenchée ; attention, la nouvelle connexion nécessaire n&#39;a pas pu être enclenchée (l&#39;écoute d&#39;un nouveau client est bloquante)&quot;</span> ) 
-	} 
-	
-} 
+<span class="doccomment">/// # Fonction de résolution locale &quot;éteindre le programme&quot;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Cette fonction doit être considérée comme avec un effet &quot;prioritaire&quot; : elle va annuler la boucle principale du service, ce qui provoquera l&#39;arrêt de l&#39;écoupe réseau ainsi que du programme. De plus, l&#39;arrêt du service provoquera la fin de toutes les clients TCP actifs.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Une fois l&#39;arrêt enclenché, il n&#39;y a plus aucun moyen de revenir à l&#39;état antérieur (perte des informations non-sauvegardées).</span>
+<span class="doccomment">///</span>
+<span class="kw">fn</span> <span class="ident">resoudre_eteindre</span>(<span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> {
+    <span class="macro">est_authentifie</span><span class="macro">!</span>(<span class="ident">contexte</span>);
+    <span class="kw">if</span> <span class="op">!</span><span class="ident">arguments</span>.<span class="ident">est_stop</span>() {
+        <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;aucun argument autorisé&quot;</span>);
+    }
+    <span class="kw-2">*</span><span class="ident">contexte</span>.<span class="ident">service_poursuite</span> <span class="op">=</span> <span class="bool-val">false</span>; <span class="comment">// /!\ UNSAFE / à retirer urgemment</span>
+    <span class="kw">match</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">TcpStream</span>::<span class="ident">connect</span>( <span class="ident">contexte</span>.<span class="ident">service_ecoute</span>.<span class="ident">local_addr</span>().<span class="ident">unwrap</span>() ) {
+		<span class="prelude-val">Ok</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;extinction enclenchée ; les fils vont être progressivement arrêtés&quot;</span> ),
+		<span class="prelude-val">Err</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;extinction enclenchée ; attention, la nouvelle connexion nécessaire n&#39;a pas pu être enclenchée (l&#39;écoute d&#39;un nouveau client est bloquante)&quot;</span> )
+	}
+}
 
-<span class="doccomment">/// # Fonction de résolution locale &quot;sérialiser les valeurs d&#39;un canal&quot; </span>
-<span class="doccomment">/// </span>
-<span class="doccomment">/// La sérialisation est stockée dans un fichier dédié. La désérialisation est donc possible, notamment en vue d&#39;un arrêt programmé du processus puis de sa relance. </span>
-<span class="doccomment">/// </span>
-<span class="kw">fn</span> <span class="ident">resoudre_serialiser</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
-	<span class="macro">est_authentifie</span><span class="macro">!</span>( <span class="ident">contexte</span> ); 
-	<span class="kw">let</span> <span class="ident">fid</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">arg</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
-		<span class="ident">arg</span> 
-	} <span class="kw">else</span> { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;identifiant de dump obligatoire&quot;</span> ); 
-	}; 
-	<span class="kw">if</span> <span class="op">!</span><span class="ident">fid</span>.<span class="ident">is_ascii</span>() { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;seuls les caractères ASCII sont autorisés&quot;</span> ); 
-	} 
-	<span class="kw">if</span> <span class="ident">fid</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">32</span> { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;l&#39;identifiant de dump doit faire 32 caractères maximum&quot;</span> ); 
-	} 
-	<span class="kw">let</span> <span class="ident">canal</span> <span class="op">=</span> <span class="macro">acces_canal</span><span class="macro">!</span>( <span class="ident">contexte</span> ); 
-	<span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>( <span class="ident">f</span> ) <span class="op">=</span> <span class="ident">File</span>::<span class="ident">create</span>( <span class="macro">format</span><span class="macro">!</span>( <span class="string">&quot;./{}.dump&quot;</span>, <span class="ident">fid</span> ) ) { 
-		<span class="ident">f</span> 
-	} <span class="kw">else</span> { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;impossible de créer le fichier de dump&quot;</span> ); 
-	}; 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">Source</span> { 
-		<span class="ident">fichier</span>: <span class="ident">BufWriter</span>::<span class="ident">new</span>( <span class="ident">f</span> ) 
-	}; 
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">n</span> ) <span class="op">=</span> <span class="ident">canal</span>.<span class="ident">liste</span>.<span class="ident">serialiser</span>( 
-		<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span> 
-	) { 
-		<span class="ident">Retour</span>::<span class="ident">creer</span>( <span class="bool-val">true</span>, <span class="macro">format</span><span class="macro">!</span>( <span class="string">&quot;sérialisation terminée : {} octets&quot;</span>, <span class="ident">n</span> ) ) 
-	} <span class="kw">else</span> { 
-		<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;sérialisation en erreur&quot;</span> ) 
-	} 
-} 
+<span class="doccomment">/// # Fonction de résolution locale &quot;sérialiser les valeurs d&#39;un canal&quot;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// La sérialisation est stockée dans un fichier dédié. La désérialisation est donc possible, notamment en vue d&#39;un arrêt programmé du processus puis de sa relance.</span>
+<span class="doccomment">///</span>
+<span class="kw">fn</span> <span class="ident">resoudre_serialiser</span>(<span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> {
+    <span class="macro">est_authentifie</span><span class="macro">!</span>(<span class="ident">contexte</span>);
+    <span class="kw">let</span> <span class="ident">fid</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">arg</span>) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() {
+        <span class="ident">arg</span>
+    } <span class="kw">else</span> {
+        <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;identifiant de dump obligatoire&quot;</span>);
+    };
+    <span class="kw">if</span> <span class="op">!</span><span class="ident">fid</span>.<span class="ident">is_ascii</span>() {
+        <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;seuls les caractères ASCII sont autorisés&quot;</span>);
+    }
+    <span class="kw">if</span> <span class="ident">fid</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">32</span> {
+        <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(
+            <span class="bool-val">false</span>,
+            <span class="string">&quot;l&#39;identifiant de dump doit faire 32 caractères maximum&quot;</span>,
+        );
+    }
+    <span class="kw">let</span> <span class="ident">canal</span> <span class="op">=</span> <span class="macro">acces_canal</span><span class="macro">!</span>(<span class="ident">contexte</span>);
+    <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="ident">File</span>::<span class="ident">create</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;./{}.dump&quot;</span>, <span class="ident">fid</span>)) {
+        <span class="ident">f</span>
+    } <span class="kw">else</span> {
+        <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;impossible de créer le fichier de dump&quot;</span>);
+    };
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">Source</span> {
+        <span class="ident">fichier</span>: <span class="ident">BufWriter</span>::<span class="ident">new</span>(<span class="ident">f</span>),
+    };
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span> <span class="ident">canal</span>.<span class="ident">liste</span>.<span class="ident">serialiser</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>) {
+        <span class="ident">Retour</span>::<span class="ident">creer</span>(<span class="bool-val">true</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;sérialisation terminée : {} octets&quot;</span>, <span class="ident">n</span>))
+    } <span class="kw">else</span> {
+        <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">true</span>, <span class="string">&quot;sérialisation en erreur&quot;</span>)
+    }
+}
 
-<span class="doccomment">/// # Fonction de résolution locale &quot;vider un canal&quot; </span>
-<span class="doccomment">/// </span>
-<span class="doccomment">/// Vide de toutes ses valeurs, un canal donné. Si aucune sérialisation n&#39;a été précédemment faite, les données sont perdues. </span>
-<span class="doccomment">/// </span>
-<span class="kw">fn</span> <span class="ident">resoudre_vider</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
-	<span class="macro">est_authentifie</span><span class="macro">!</span>( <span class="ident">contexte</span> ); 
-	<span class="kw">let</span> <span class="ident">nom</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">n</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
-		<span class="ident">n</span> 
-	} <span class="kw">else</span> { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;nom de canal obligatoire&quot;</span> ); 
-	}; 
-	<span class="kw">if</span> <span class="ident">nom</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">32</span> { 
-		<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;nom de canal trop long (max. 32)&quot;</span> ) 
-	} <span class="kw">else</span> { 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">canaux</span> <span class="op">=</span> { 
-			<span class="kw">match</span> <span class="ident">contexte</span>.<span class="ident">canauxthread</span>.<span class="ident">lock</span>() { 
-				<span class="prelude-val">Ok</span>( <span class="ident">canaux</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">canaux</span>, 
-				<span class="prelude-val">Err</span>( <span class="ident">empoisonne</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">empoisonne</span>.<span class="ident">into_inner</span>() 
-			} 
-		}; 
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">c</span> ) <span class="op">=</span> <span class="ident">canaux</span>.<span class="ident">liste</span>.<span class="ident">get_mut</span>( <span class="kw-2">&amp;</span><span class="ident">nom</span> ) { 
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">canal</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">c</span>.<span class="ident">lock</span>() { 
-				<span class="prelude-val">Ok</span>( <span class="ident">c</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>, 
-				<span class="prelude-val">Err</span>( <span class="ident">e</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">into_inner</span>() 
-			}; 
-			<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">canal</span>.<span class="ident">liste</span> { 
-				<span class="ident">Valeurs</span>::<span class="ident">Objet</span>( <span class="ident">h</span> ) <span class="op">=</span><span class="op">&gt;</span> { 
-					<span class="ident">h</span>.<span class="ident">clear</span>(); 
-					<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;base vidée&quot;</span> ) 
-				} 
-				<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;objet racine incorrect ; le canal semble corrompu&quot;</span> ) 
-			} 
-		} <span class="kw">else</span> { 
-			<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;nom de canal inconnu&quot;</span> ) 
-		} 
-	} 
-} 
+<span class="doccomment">/// # Fonction de résolution locale &quot;résumer l&#39;ensemble des canaux&quot;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Donne pour chaque canal, une paire d&#39;informations : son nom,</span>
+<span class="doccomment">///</span>
+<span class="kw">fn</span> <span class="ident">resoudre_resumer</span>(<span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> {
+    <span class="macro">est_authentifie</span><span class="macro">!</span>(<span class="ident">contexte</span>);
+    <span class="kw">if</span> <span class="op">!</span><span class="ident">arguments</span>.<span class="ident">est_stop</span>() {
+        <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;aucun argument autorisé&quot;</span>);
+    }
+    <span class="kw">let</span> <span class="ident">canauxthread_local</span> <span class="op">=</span> <span class="ident">contexte</span>.<span class="ident">canauxthread</span>.<span class="ident">clone</span>();
+    <span class="kw">let</span> <span class="ident">canaux</span> <span class="op">=</span> {
+        <span class="kw">match</span> <span class="ident">canauxthread_local</span>.<span class="ident">lock</span>() {
+            <span class="prelude-val">Ok</span>(<span class="ident">canaux</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">canaux</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">empoisonne</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">empoisonne</span>.<span class="ident">into_inner</span>(),
+        }
+    };
+    <span class="kw">let</span> <span class="ident">nbre</span> <span class="op">=</span> <span class="ident">canaux</span>.<span class="ident">liste</span>.<span class="ident">len</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total</span> <span class="op">=</span> <span class="number">0</span>;
+    <span class="kw">for</span> (<span class="ident">nom</span>, <span class="ident">canalthread</span>) <span class="kw">in</span> <span class="ident">canaux</span>.<span class="ident">liste</span>.<span class="ident">iter</span>() {
+        <span class="kw">let</span> <span class="ident">canal</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">canalthread</span>.<span class="ident">lock</span>() {
+            <span class="prelude-val">Ok</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">into_inner</span>(),
+        };
+        <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">canal</span>.<span class="ident">mesurer</span>();
+        <span class="ident">contexte</span>.<span class="ident">message</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
+            <span class="string">&quot;canal \&quot;{}\&quot; (nbre : {}, taille : {})&quot;</span>,
+            <span class="ident">nom</span>,
+            <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">canal</span>.<span class="ident">liste</span> {
+                <span class="ident">Valeurs</span>::<span class="ident">Objet</span>(<span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">o</span>.<span class="ident">len</span>().<span class="ident">to_string</span>(),
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;?&quot;</span>.<span class="ident">to_string</span>(),
+            },
+            <span class="ident">t</span>
+        ));
+        <span class="ident">total</span> <span class="op">+</span><span class="op">=</span> <span class="ident">t</span>;
+    }
+    <span class="ident">Retour</span>::<span class="ident">creer</span>(
+        <span class="bool-val">true</span>,
+        <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;nbre total : {} (taille totale : {})&quot;</span>, <span class="ident">nbre</span>, <span class="ident">total</span>),
+    )
+}
 
-<span class="doccomment">/// # Fonction de résolution locale &quot;résumer l&#39;ensemble des canaux&quot; </span>
-<span class="doccomment">/// </span>
-<span class="doccomment">/// Donne pour chaque canal, une paire d&#39;informations : son nom, </span>
-<span class="doccomment">/// </span>
-<span class="kw">fn</span> <span class="ident">resoudre_resumer</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
-	<span class="macro">est_authentifie</span><span class="macro">!</span>( <span class="ident">contexte</span> ); 
-	<span class="kw">if</span> <span class="op">!</span><span class="ident">arguments</span>.<span class="ident">est_stop</span>() { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;aucun argument autorisé&quot;</span> ); 
-	} 
-	<span class="kw">let</span> <span class="ident">canauxthread_local</span> <span class="op">=</span> <span class="ident">contexte</span>.<span class="ident">canauxthread</span>.<span class="ident">clone</span>(); 
-	<span class="kw">let</span> <span class="ident">canaux</span> <span class="op">=</span> { 
-		<span class="kw">match</span> <span class="ident">canauxthread_local</span>.<span class="ident">lock</span>() { 
-			<span class="prelude-val">Ok</span>( <span class="ident">canaux</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">canaux</span>, 
-			<span class="prelude-val">Err</span>( <span class="ident">empoisonne</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">empoisonne</span>.<span class="ident">into_inner</span>() 
-		} 
-	}; 
-	<span class="kw">let</span> <span class="ident">nbre</span> <span class="op">=</span> <span class="ident">canaux</span>.<span class="ident">liste</span>.<span class="ident">len</span>(); 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">total</span> <span class="op">=</span> <span class="number">0</span>; 
-	<span class="kw">for</span> (<span class="ident">nom</span>, <span class="ident">canalthread</span>) <span class="kw">in</span> <span class="ident">canaux</span>.<span class="ident">liste</span>.<span class="ident">iter</span>() { 
-		<span class="kw">let</span> <span class="ident">canal</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">canalthread</span>.<span class="ident">lock</span>() { 
-			<span class="prelude-val">Ok</span>( <span class="ident">c</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>, 
-			<span class="prelude-val">Err</span>( <span class="ident">e</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">into_inner</span>() 
-		}; 
-		<span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">canal</span>.<span class="ident">mesurer</span>(); 
-		<span class="ident">contexte</span>.<span class="ident">message</span>( 
-			<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>( 
-				<span class="string">&quot;canal \&quot;{}\&quot; (nbre : {}, taille : {})&quot;</span>, 
-				<span class="ident">nom</span>, 
-				<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">canal</span>.<span class="ident">liste</span> { 
-					<span class="ident">Valeurs</span>::<span class="ident">Objet</span>( <span class="ident">o</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">o</span>.<span class="ident">len</span>().<span class="ident">to_string</span>(), 
-					<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;?&quot;</span>.<span class="ident">to_string</span>() 
-				}, 
-				<span class="ident">t</span> 
-			) 
-		); 
-		<span class="ident">total</span> <span class="op">+</span><span class="op">=</span> <span class="ident">t</span>; 
-	} 
-	<span class="ident">Retour</span>::<span class="ident">creer</span>(  
-		<span class="bool-val">true</span>, 
-		<span class="macro">format</span><span class="macro">!</span>( 
-			<span class="string">&quot;nbre total : {} (taille totale : {})&quot;</span>, 
-			<span class="ident">nbre</span>, 
-			<span class="ident">total</span> 
-		) 
-	) 
-} 
+<span class="doccomment">/// # Fonction de résolution locale &quot;vider un canal&quot;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Vide de toutes ses valeurs, un canal donné. Si aucune sérialisation n&#39;a été précédemment faite, les données sont perdues.</span>
+<span class="doccomment">///</span>
+<span class="kw">fn</span> <span class="ident">resoudre_vider</span>(<span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> {
+    <span class="macro">est_authentifie</span><span class="macro">!</span>(<span class="ident">contexte</span>);
+    <span class="kw">let</span> <span class="ident">nom</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() {
+        <span class="ident">n</span>
+    } <span class="kw">else</span> {
+        <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;nom de canal obligatoire&quot;</span>);
+    };
+    <span class="kw">if</span> <span class="ident">nom</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">32</span> {
+        <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;nom de canal trop long (max. 32)&quot;</span>)
+    } <span class="kw">else</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">canaux</span> <span class="op">=</span> {
+            <span class="kw">match</span> <span class="ident">contexte</span>.<span class="ident">canauxthread</span>.<span class="ident">lock</span>() {
+                <span class="prelude-val">Ok</span>(<span class="ident">canaux</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">canaux</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">empoisonne</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">empoisonne</span>.<span class="ident">into_inner</span>(),
+            }
+        };
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="ident">canaux</span>.<span class="ident">liste</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">nom</span>) {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">canal</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">c</span>.<span class="ident">lock</span>() {
+                <span class="prelude-val">Ok</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>.<span class="ident">into_inner</span>(),
+            };
+            <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">canal</span>.<span class="ident">liste</span> {
+                <span class="ident">Valeurs</span>::<span class="ident">Objet</span>(<span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">h</span>.<span class="ident">clear</span>();
+                    <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">true</span>, <span class="string">&quot;base vidée&quot;</span>)
+                }
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;objet racine incorrect ; le canal semble corrompu&quot;</span>),
+            };
+            <span class="kw">if</span> <span class="ident">r</span>.<span class="ident">etat</span> {
+                <span class="ident">canal</span>.<span class="ident">notifier</span>(
+                    <span class="kw-2">&amp;</span><span class="ident">contexte</span>.<span class="ident">profil</span>,
+                    <span class="string">&quot;(administration) vidange du canal&quot;</span>.<span class="ident">to_string</span>(),
+                );
+            }
+            <span class="ident">r</span>
+        } <span class="kw">else</span> {
+            <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;nom de canal inconnu&quot;</span>)
+        }
+    }
+}
 
-<span class="doccomment">/// # Fonction de résolution locale - sous-module &quot;administration&quot; </span>
-<span class="doccomment">/// </span>
-<span class="doccomment">/// Permet de retourner la fonction désirée en fonction de l&#39;appel. </span>
-<span class="doccomment">/// </span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resoudre</span>( <span class="ident">appel</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Resolveur</span>,<span class="ident">Retour</span><span class="op">&gt;</span> { 
-	<span class="kw">match</span> <span class="ident">appel</span> { 
-		<span class="string">&quot;authentifier&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>( <span class="ident">resoudre_authentifier</span> <span class="kw">as</span> <span class="ident">Resolveur</span> ), 
-		<span class="string">&quot;anonymiser&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>( <span class="ident">resoudre_anonymiser</span> <span class="kw">as</span> <span class="ident">Resolveur</span> ), 
-		<span class="string">&quot;profiler&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>( <span class="ident">resoudre_profiler</span> <span class="kw">as</span> <span class="ident">Resolveur</span> ), 
-		<span class="string">&quot;éteindre&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>( <span class="ident">resoudre_eteindre</span> <span class="kw">as</span> <span class="ident">Resolveur</span> ), 
-		<span class="string">&quot;vider&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>( <span class="ident">resoudre_vider</span> <span class="kw">as</span> <span class="ident">Resolveur</span> ), 
-		<span class="string">&quot;sérialiser&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>( <span class="ident">resoudre_serialiser</span> <span class="kw">as</span> <span class="ident">Resolveur</span> ), 
-		<span class="string">&quot;résumer&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>( <span class="ident">resoudre_resumer</span> <span class="kw">as</span> <span class="ident">Resolveur</span> ), 
-		<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>( <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;module &#39;administration&#39; : fonction inconnue&quot;</span> ) ) 
-	} 
-} 
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resoudre_aide</span>(<span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> {
+    <span class="kw">for</span> <span class="ident">ligne</span> <span class="kw">in</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() {
+        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">c</span>[..] {
+            <span class="string">&quot;anonymiser&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="string">&quot;administration:anonymiser&quot;</span>,
+                <span class="string">&quot;accès public : oui ; accès authentifié : oui&quot;</span>,
+                <span class="string">&quot;aucun argument obligatoire ; aucun facultatif&quot;</span>,
+                <span class="string">&quot;cette fonction n&#39;informe jamais les souscripteurs du canal&quot;</span>,
+            ],
+            <span class="string">&quot;authentifier&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="string">&quot;administration:authentifier (pseudo) (passe)&quot;</span>,
+                <span class="string">&quot;accès public : oui ; accès authentifié : oui&quot;</span>,
+                <span class="string">&quot;2 arguments obligatoires ; aucun facultatif&quot;</span>,
+                <span class="string">&quot;cette fonction n&#39;informe jamais les souscripteurs du canal&quot;</span>,
+            ],
+            <span class="string">&quot;éteindre&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="string">&quot;administration:éteindre&quot;</span>,
+                <span class="string">&quot;accès public : non ; accès authentifié : oui&quot;</span>,
+                <span class="string">&quot;aucun argument obligatoire ; aucun facultatif&quot;</span>,
+                <span class="string">&quot;cette fonction n&#39;informe jamais les souscripteurs du canal&quot;</span>,
+            ],
+            <span class="string">&quot;profiler&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="string">&quot;administration:profiler&quot;</span>,
+                <span class="string">&quot;accès public : oui ; accès authentifié : oui&quot;</span>,
+                <span class="string">&quot;aucun argument obligatoire ; aucun facultatif&quot;</span>,
+                <span class="string">&quot;cette fonction n&#39;informe jamais les souscripteurs du canal&quot;</span>,
+            ],
+            <span class="string">&quot;résumer&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="string">&quot;administration:résumer&quot;</span>,
+                <span class="string">&quot;accès public : non ; accès authentifié : oui&quot;</span>,
+                <span class="string">&quot;aucun argument obligatoire ; aucun facultatif&quot;</span>,
+                <span class="string">&quot;cette fonction n&#39;informe jamais les souscripteurs du canal&quot;</span>,
+            ],
+            <span class="string">&quot;sérialiser&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="string">&quot;administration:sérialiser (fid) (canal)&quot;</span>,
+                <span class="string">&quot;accès public : non ; accès authentifié : oui&quot;</span>,
+                <span class="string">&quot;2 arguments obligatoires ; aucun facultatif&quot;</span>,
+                <span class="string">&quot;cette fonction n&#39;informe jamais les souscripteurs du canal&quot;</span>,
+            ],
+            <span class="string">&quot;vider&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="string">&quot;administration:vider (canal)&quot;</span>,
+                <span class="string">&quot;accès public : non ; accès authentifié : oui&quot;</span>,
+                <span class="string">&quot;1 argument obligatoire ; aucun facultatif&quot;</span>,
+                <span class="string">&quot;cette fonction informe les souscripteurs du canal&quot;</span>,
+            ],
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;cette commande n&#39;existe pas dans le module&quot;</span>),
+        }
+    } <span class="kw">else</span> {
+        <span class="macro">vec</span><span class="macro">!</span>[
+            <span class="string">&quot;7 choix possibles (* : profil nécessaire)&quot;</span>,
+            <span class="string">&quot;- anonymiser : fermer une session&quot;</span>,
+            <span class="string">&quot;- authentifier : ouvrir une session authentifiée&quot;</span>,
+            <span class="string">&quot;- éteindre (*) : éteindre le programme&quot;</span>,
+            <span class="string">&quot;- profiler : retourne les informations de profil&quot;</span>,
+            <span class="string">&quot;- résumer (*) : retourne pour chaque canal, des éléments d&#39;information&quot;</span>,
+            <span class="string">&quot;- sérialiser (*) : sérialiser les valeurs d&#39;un canal dans un fichier&quot;</span>,
+            <span class="string">&quot;- vider (*) : vider un canal de ses valeurs&quot;</span>,
+        ]
+    } {
+        <span class="ident">contexte</span>.<span class="ident">message</span>(<span class="ident">ligne</span>);
+    }
+    <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">true</span>, <span class="string">&quot;fin de l&#39;aide&quot;</span>)
+}
 
+<span class="doccomment">/// # Fonction de résolution locale - sous-module &quot;administration&quot;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Permet de retourner la fonction désirée en fonction de l&#39;appel.</span>
+<span class="doccomment">///</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resoudre</span>(<span class="ident">appel</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Resolveur</span>, <span class="ident">Retour</span><span class="op">&gt;</span> {
+    <span class="kw">match</span> <span class="ident">appel</span> {
+        <span class="string">&quot;authentifier&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">resoudre_authentifier</span> <span class="kw">as</span> <span class="ident">Resolveur</span>),
+        <span class="string">&quot;anonymiser&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">resoudre_anonymiser</span> <span class="kw">as</span> <span class="ident">Resolveur</span>),
+        <span class="string">&quot;éteindre&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">resoudre_eteindre</span> <span class="kw">as</span> <span class="ident">Resolveur</span>),
+        <span class="string">&quot;profiler&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">resoudre_profiler</span> <span class="kw">as</span> <span class="ident">Resolveur</span>),
+        <span class="string">&quot;vider&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">resoudre_vider</span> <span class="kw">as</span> <span class="ident">Resolveur</span>),
+        <span class="string">&quot;sérialiser&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">resoudre_serialiser</span> <span class="kw">as</span> <span class="ident">Resolveur</span>),
+        <span class="string">&quot;résumer&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">resoudre_resumer</span> <span class="kw">as</span> <span class="ident">Resolveur</span>),
 
-
-
-
-
-
+        <span class="string">&quot;aide?&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">resoudre_aide</span> <span class="kw">as</span> <span class="ident">Resolveur</span>),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Retour</span>::<span class="ident">creer_str</span>(
+            <span class="bool-val">false</span>,
+            <span class="string">&quot;module &#39;administration&#39; : fonction inconnue&quot;</span>,
+        )),
+    }
+}
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "projet_robert";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

@@ -174,196 +174,182 @@
 <span id="174">174</span>
 <span id="175">175</span>
 <span id="176">176</span>
-<span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">grammaire</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">grammaire</span>::<span class="ident">ArgumentsLocaux</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::<span class="ident">Contexte</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">valeur</span>::<span class="ident">Valeurs</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">valeur</span>::<span class="ident">Valeurs</span>; 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::<span class="ident">Contexte</span>; 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">grammaire</span>; 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">grammaire</span>::<span class="ident">ArgumentsLocaux</span>; 
+<span class="comment">// ----------------------------------------------------</span>
 
-<span class="comment">// ---------------------------------------------------- </span>
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::<span class="ident">Resolveur</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::<span class="ident">Retour</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::<span class="ident">Resolveur</span>; 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::<span class="ident">Retour</span>; 
+<span class="comment">// ----------------------------------------------------</span>
 
-<span class="comment">// ---------------------------------------------------- </span>
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">configuration</span>::<span class="ident">TAILLE_TEXTE_MAX</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">configuration</span>::<span class="ident">TAILLE_TEXTE_MAX</span>; 
+<span class="comment">// ----------------------------------------------------</span>
 
-<span class="comment">// ---------------------------------------------------- </span>
-
-<span class="doccomment">/// # Fonction de résolution locale &quot;ajouter du texte&quot; </span>
+<span class="doccomment">/// # Fonction de résolution locale &quot;ajouter du texte&quot;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Cette fonction ajoutera le texte fourni en argument, en respectant la taille maximale autorisée. Le texte doit être valide UTF-8. </span>
+<span class="doccomment">/// Cette fonction ajoutera le texte fourni en argument, en respectant la taille maximale autorisée. Le texte doit être valide UTF-8.</span>
 <span class="doccomment">///</span>
-<span class="kw">fn</span> <span class="ident">resoudre_ajouter</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
-	<span class="kw">let</span> <span class="ident">arg_chemin</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">c</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
-		<span class="ident">c</span> 
-	} <span class="kw">else</span> { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;un chemin vide n&#39;est pas acceptable&quot;</span> ); 
-	}; 
-	<span class="kw">let</span> <span class="ident">ajout</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">c</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
-		<span class="ident">c</span> 
-	} <span class="kw">else</span> { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;aucun texte supplémentaire fourni&quot;</span> ); 
-	}; 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">canal</span> <span class="op">=</span> <span class="macro">acces_canal</span><span class="macro">!</span>( <span class="ident">contexte</span> ); 
-	<span class="kw">match</span> <span class="ident">grammaire</span>::<span class="ident">chemin_extraire</span>( <span class="kw-2">&amp;</span><span class="ident">arg_chemin</span> ) { 
-		<span class="prelude-val">Ok</span>( <span class="ident">chemin</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">canal</span>.<span class="ident">resoudre</span>( 
-			<span class="kw-2">&amp;</span><span class="ident">chemin</span>, 
-			<span class="op">|</span> <span class="ident">valeur</span> <span class="op">|</span> { 
-				<span class="kw">match</span> <span class="ident">valeur</span> { 
-					<span class="ident">Valeurs</span>::<span class="ident">Texte</span>( <span class="ident">t</span> ) <span class="op">=</span><span class="op">&gt;</span> { 
-						<span class="kw">if</span> <span class="ident">t</span>.<span class="ident">len</span>()<span class="op">+</span><span class="ident">ajout</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">TAILLE_TEXTE_MAX</span> { 
-							<span class="ident">t</span>.<span class="ident">push_str</span>( <span class="kw-2">&amp;</span><span class="ident">ajout</span> ); 
-							<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;texte ajouté&quot;</span> ) 
-						} <span class="kw">else</span> { 
-							<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;texte final trop long&quot;</span> ) 
-						}
-					} 
-					<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;le type de valeur cible n&#39;est pas conforme&quot;</span> ) 
-				} 
-			} 
-		), 
-		<span class="prelude-val">Err</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;ce chemin n&#39;existe pas&quot;</span> ) 
-	} 
-} 
-
-<span class="doccomment">/// # Fonction de résolution locale &quot;compter le texte (octets + caractères)&quot; </span>
+<span class="doccomment">/// La fonction notifie les souscripteurs qui demandent les opérations sur les valeurs du canal.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Cette fonction retournera sur deux lignes, le nombre de caractères (UTF-8) de la valeur textuelle puis du nombre d&#39;octets correspondants. Les deux nombres ne doivent pas varier pour du texte qui se retreint à ASCII. </span>
+<span class="kw">fn</span> <span class="ident">resoudre_ajouter</span>(<span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> {
+    <span class="kw">let</span> <span class="ident">arg_chemin</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() {
+        <span class="ident">c</span>
+    } <span class="kw">else</span> {
+        <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;un chemin vide n&#39;est pas acceptable&quot;</span>);
+    };
+    <span class="kw">let</span> <span class="ident">ajout</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() {
+        <span class="ident">c</span>
+    } <span class="kw">else</span> {
+        <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;aucun texte supplémentaire fourni&quot;</span>);
+    };
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">canal</span> <span class="op">=</span> <span class="macro">acces_canal</span><span class="macro">!</span>(<span class="ident">contexte</span>);
+    <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">grammaire</span>::<span class="ident">chemin_extraire</span>(<span class="kw-2">&amp;</span><span class="ident">arg_chemin</span>) {
+        <span class="prelude-val">Ok</span>(<span class="ident">chemin</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">canal</span>.<span class="ident">resoudre</span>(<span class="kw-2">&amp;</span><span class="ident">chemin</span>, <span class="op">|</span><span class="ident">valeur</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">valeur</span> {
+            <span class="ident">Valeurs</span>::<span class="ident">Texte</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="ident">t</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">ajout</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">TAILLE_TEXTE_MAX</span> {
+                    <span class="ident">t</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">ajout</span>);
+                    <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">true</span>, <span class="string">&quot;texte ajouté&quot;</span>)
+                } <span class="kw">else</span> {
+                    <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">true</span>, <span class="string">&quot;texte final trop long&quot;</span>)
+                }
+            }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;le type de valeur cible n&#39;est pas conforme&quot;</span>),
+        }),
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;ce chemin n&#39;existe pas&quot;</span>),
+    };
+    <span class="kw">if</span> <span class="ident">r</span>.<span class="ident">etat</span> {
+        <span class="ident">canal</span>.<span class="ident">notifier</span>(
+            <span class="kw-2">&amp;</span><span class="ident">contexte</span>.<span class="ident">profil</span>,
+            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;(module &#39;texte&#39;) ajout : {}&quot;</span>, <span class="ident">arg_chemin</span>),
+        );
+    }
+    <span class="ident">r</span>
+}
+
+<span class="doccomment">/// # Fonction de résolution locale &quot;compter le texte (octets + caractères)&quot;</span>
 <span class="doccomment">///</span>
-<span class="kw">fn</span> <span class="ident">resoudre_compter</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
-	<span class="kw">let</span> <span class="ident">arg_chemin</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">c</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
-		<span class="ident">c</span> 
-	} <span class="kw">else</span> { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;un chemin vide n&#39;est pas acceptable&quot;</span> ); 
-	}; 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">canal</span> <span class="op">=</span> <span class="macro">acces_canal</span><span class="macro">!</span>( <span class="ident">contexte</span> ); 
-	<span class="kw">match</span> <span class="ident">grammaire</span>::<span class="ident">chemin_extraire</span>( <span class="kw-2">&amp;</span><span class="ident">arg_chemin</span> ) { 
-		<span class="prelude-val">Ok</span>( <span class="ident">chemin</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">canal</span>.<span class="ident">resoudre</span>( 
-			<span class="kw-2">&amp;</span><span class="ident">chemin</span>, 
-			<span class="op">|</span> <span class="ident">valeur</span> <span class="op">|</span> { 
-				<span class="kw">match</span> <span class="ident">valeur</span> { 
-					<span class="ident">Valeurs</span>::<span class="ident">Texte</span>( <span class="ident">t</span> ) <span class="op">=</span><span class="op">&gt;</span> { 
-						<span class="ident">Retour</span>::<span class="ident">creer</span>( 
-							<span class="bool-val">true</span>, 
-							<span class="macro">format</span><span class="macro">!</span>( 
-								<span class="string">&quot;\t{} caractère(s)\n\t{} octet(s)&quot;</span>, 
-								<span class="ident">t</span>.<span class="ident">chars</span>().<span class="ident">count</span>(), 
-								<span class="ident">t</span>.<span class="ident">len</span>() 
-							) 
-						) 
-					} 
-					<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;le type de valeur cible n&#39;est pas conforme&quot;</span> ) 
-				} 
-			} 
-		), 
-		<span class="prelude-val">Err</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;ce chemin n&#39;existe pas&quot;</span> ) 
-	} 
-} 
-
-<span class="doccomment">/// # Fonction de résolution locale &quot;découper du texte (caractères)&quot; </span>
+<span class="doccomment">/// Cette fonction retournera sur deux lignes, le nombre de caractères (UTF-8) de la valeur textuelle puis du nombre d&#39;octets correspondants. Les deux nombres ne doivent pas varier pour du texte qui se retreint à ASCII.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Cette fonction utilise une origine obligatoire (borne inférieure) et optionnellement une limite (borne supérieure), pour ne garder que la partie désirée. </span>
+<span class="kw">fn</span> <span class="ident">resoudre_compter</span>(<span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> {
+    <span class="kw">let</span> <span class="ident">arg_chemin</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() {
+        <span class="ident">c</span>
+    } <span class="kw">else</span> {
+        <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;un chemin vide n&#39;est pas acceptable&quot;</span>);
+    };
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">canal</span> <span class="op">=</span> <span class="macro">acces_canal</span><span class="macro">!</span>(<span class="ident">contexte</span>);
+    <span class="kw">match</span> <span class="ident">grammaire</span>::<span class="ident">chemin_extraire</span>(<span class="kw-2">&amp;</span><span class="ident">arg_chemin</span>) {
+        <span class="prelude-val">Ok</span>(<span class="ident">chemin</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">canal</span>.<span class="ident">resoudre</span>(<span class="kw-2">&amp;</span><span class="ident">chemin</span>, <span class="op">|</span><span class="ident">valeur</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">valeur</span> {
+            <span class="ident">Valeurs</span>::<span class="ident">Texte</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer</span>(
+                <span class="bool-val">true</span>,
+                <span class="macro">format</span><span class="macro">!</span>(
+                    <span class="string">&quot;\t{} caractère(s)\n\t{} octet(s)&quot;</span>,
+                    <span class="ident">t</span>.<span class="ident">chars</span>().<span class="ident">count</span>(),
+                    <span class="ident">t</span>.<span class="ident">len</span>()
+                ),
+            ),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;le type de valeur cible n&#39;est pas conforme&quot;</span>),
+        }),
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;ce chemin n&#39;existe pas&quot;</span>),
+    }
+}
+
+<span class="doccomment">/// # Fonction de résolution locale &quot;découper du texte (caractères)&quot;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Attention : la borne supérieure est l&#39;indication de position d&#39;un caractère valide UTF-8 (pas d&#39;un octet), et ne représente __donc pas__ le nombre de caractères à garder depuis l&#39;origine. </span>
+<span class="doccomment">/// Cette fonction utilise une origine obligatoire (borne inférieure) et optionnellement une limite (borne supérieure), pour ne garder que la partie désirée.</span>
 <span class="doccomment">///</span>
-<span class="kw">fn</span> <span class="ident">resoudre_decouper</span>( <span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> { 
-	<span class="kw">let</span> <span class="ident">arg_chemin</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">c</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
-		<span class="ident">c</span> 
-	} <span class="kw">else</span> { 
-		<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;un chemin vide n&#39;est pas acceptable&quot;</span> ); 
-	}; 
-	<span class="kw">let</span> <span class="ident">debut</span> <span class="op">=</span> <span class="kw">match</span> {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">d</span> ) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() { 
-			<span class="ident">d</span> 
-		} <span class="kw">else</span> { 
-			<span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;l&#39;origine est impérative&quot;</span> ); 
-		} 
-	}.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>() { 
-		<span class="prelude-val">Ok</span>( <span class="ident">n</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span>, 
-		<span class="prelude-val">Err</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;origine =/= entier positif &quot;</span> ) 
-	}; 
-	<span class="kw">let</span> <span class="ident">fin</span> <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>(); 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">canal</span> <span class="op">=</span> <span class="macro">acces_canal</span><span class="macro">!</span>( <span class="ident">contexte</span> ); 
-	<span class="kw">match</span> <span class="ident">grammaire</span>::<span class="ident">chemin_extraire</span>( <span class="kw-2">&amp;</span><span class="ident">arg_chemin</span> ) { 
-		<span class="prelude-val">Ok</span>( <span class="ident">chemin</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">canal</span>.<span class="ident">resoudre</span>( 
-			<span class="kw-2">&amp;</span><span class="ident">chemin</span>, 
-			<span class="op">|</span> <span class="ident">valeur</span> <span class="op">|</span> { 
-				<span class="kw">match</span> <span class="ident">valeur</span> { 
-					<span class="ident">Valeurs</span>::<span class="ident">Texte</span>( <span class="ident">t</span> ) <span class="op">=</span><span class="op">&gt;</span> { 
-						<span class="kw">if</span> <span class="ident">debut</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">t</span>.<span class="ident">len</span>() { 
-							<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;origine hors borne&quot;</span> ) 
-						} <span class="kw">else</span> { 
-							<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">position</span> <span class="op">=</span> <span class="number">0</span>; 
-							<span class="kw">match</span> <span class="ident">fin</span> { 
-								<span class="prelude-val">Some</span>( <span class="ident">f</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">f</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>() { 
-									<span class="prelude-val">Ok</span>( <span class="ident">n</span> ) <span class="op">=</span><span class="op">&gt;</span> { 
-										<span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">len</span>() { 
-											<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;fin hors borne&quot;</span> ) 
-										} <span class="kw">else</span> { 
-											<span class="ident">t</span>.<span class="ident">retain</span>( 
-												<span class="op">|</span> <span class="kw">_</span> <span class="op">|</span> { 
-													<span class="ident">position</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>; 
-													<span class="kw">if</span> <span class="ident">position</span><span class="op">-</span><span class="number">1</span> <span class="op">&lt;</span> <span class="ident">debut</span> <span class="op">|</span><span class="op">|</span> <span class="ident">position</span><span class="op">-</span><span class="number">1</span> <span class="op">&gt;</span> <span class="ident">n</span> { 
-														<span class="bool-val">false</span> 
-													} <span class="kw">else</span> { 
-														<span class="bool-val">true</span> 
-													} 
-												} 
-											); 
-											<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;texte découpé&quot;</span> ) 
-										} 
-									} 
-									<span class="prelude-val">Err</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;fin =/= entier positif &quot;</span> ) 
-								} 
-								<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> { 
-									<span class="ident">t</span>.<span class="ident">retain</span>( 
-										<span class="op">|</span> <span class="kw">_</span> <span class="op">|</span> { 
-											<span class="ident">position</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>; 
-											<span class="kw">if</span> <span class="ident">position</span><span class="op">-</span><span class="number">1</span> <span class="op">&lt;</span> <span class="ident">debut</span> { 
-												<span class="bool-val">false</span> 
-											} <span class="kw">else</span> { 
-												<span class="bool-val">true</span> 
-											} 
-										} 
-									); 
-									<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">true</span>, <span class="string">&quot;texte découpé&quot;</span> ) 
-								} 
-							} 
-						} 
-					} 
-					<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;le type de valeur cible n&#39;est pas conforme&quot;</span> ) 
-				} 
-			} 
-		), 
-		<span class="prelude-val">Err</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;ce chemin n&#39;existe pas&quot;</span> ) 
-	} 
-} 
+<span class="doccomment">/// Attention : la borne supérieure est l&#39;indication de position d&#39;un caractère valide UTF-8 (pas d&#39;un octet), et ne représente __donc pas__ le nombre de caractères à garder depuis l&#39;origine.</span>
+<span class="doccomment">///  </span>
+<span class="doccomment">/// La fonction notifie les souscripteurs qui demandent les opérations sur les valeurs du canal.</span>
+<span class="doccomment">///</span>
+<span class="kw">fn</span> <span class="ident">resoudre_decouper</span>(<span class="ident">contexte</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Contexte</span>, <span class="kw-2">mut</span> <span class="ident">arguments</span>: <span class="ident">ArgumentsLocaux</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Retour</span> {
+    <span class="kw">let</span> <span class="ident">arg_chemin</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() {
+        <span class="ident">c</span>
+    } <span class="kw">else</span> {
+        <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;un chemin vide n&#39;est pas acceptable&quot;</span>);
+    };
+    <span class="kw">let</span> <span class="ident">debut</span> <span class="op">=</span> <span class="kw">match</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">d</span>) <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>() {
+            <span class="ident">d</span>
+        } <span class="kw">else</span> {
+            <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;l&#39;origine est impérative&quot;</span>);
+        }
+    }
+    .<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>()
+    {
+        <span class="prelude-val">Ok</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span>,
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;origine =/= entier positif &quot;</span>),
+    };
+    <span class="kw">let</span> <span class="ident">fin</span> <span class="op">=</span> <span class="ident">arguments</span>.<span class="ident">extraire</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">canal</span> <span class="op">=</span> <span class="macro">acces_canal</span><span class="macro">!</span>(<span class="ident">contexte</span>);
+    <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">grammaire</span>::<span class="ident">chemin_extraire</span>(<span class="kw-2">&amp;</span><span class="ident">arg_chemin</span>) {
+        <span class="prelude-val">Ok</span>(<span class="ident">chemin</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">canal</span>.<span class="ident">resoudre</span>(<span class="kw-2">&amp;</span><span class="ident">chemin</span>, <span class="op">|</span><span class="ident">valeur</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">valeur</span> {
+            <span class="ident">Valeurs</span>::<span class="ident">Texte</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="ident">debut</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">t</span>.<span class="ident">len</span>() {
+                    <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;origine hors borne&quot;</span>)
+                } <span class="kw">else</span> {
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">position</span> <span class="op">=</span> <span class="number">0</span>;
+                    <span class="kw">match</span> <span class="ident">fin</span> {
+                        <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">f</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>() {
+                            <span class="prelude-val">Ok</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                                <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">len</span>() {
+                                    <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;fin hors borne&quot;</span>)
+                                } <span class="kw">else</span> {
+                                    <span class="ident">t</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                                        <span class="ident">position</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                                        <span class="kw">if</span> <span class="ident">position</span> <span class="op">-</span> <span class="number">1</span> <span class="op">&lt;</span> <span class="ident">debut</span> <span class="op">|</span><span class="op">|</span> <span class="ident">position</span> <span class="op">-</span> <span class="number">1</span> <span class="op">&gt;</span> <span class="ident">n</span> {
+                                            <span class="bool-val">false</span>
+                                        } <span class="kw">else</span> {
+                                            <span class="bool-val">true</span>
+                                        }
+                                    });
+                                    <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">true</span>, <span class="string">&quot;texte découpé&quot;</span>)
+                                }
+                            }
+                            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;fin =/= entier positif &quot;</span>),
+                        },
+                        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="ident">t</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                                <span class="ident">position</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                                <span class="kw">if</span> <span class="ident">position</span> <span class="op">-</span> <span class="number">1</span> <span class="op">&lt;</span> <span class="ident">debut</span> {
+                                    <span class="bool-val">false</span>
+                                } <span class="kw">else</span> {
+                                    <span class="bool-val">true</span>
+                                }
+                            });
+                            <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">true</span>, <span class="string">&quot;texte découpé&quot;</span>)
+                        }
+                    }
+                }
+            }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;le type de valeur cible n&#39;est pas conforme&quot;</span>),
+        }),
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;ce chemin n&#39;existe pas&quot;</span>),
+    };
+    <span class="kw">if</span> <span class="ident">r</span>.<span class="ident">etat</span> {
+        <span class="ident">canal</span>.<span class="ident">notifier</span>(
+            <span class="kw-2">&amp;</span><span class="ident">contexte</span>.<span class="ident">profil</span>,
+            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;(module &#39;texte&#39;) ajout : {}&quot;</span>, <span class="ident">arg_chemin</span>),
+        );
+    }
+    <span class="ident">r</span>
+}
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resoudre</span>( <span class="ident">appel</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Resolveur</span>,<span class="ident">Retour</span><span class="op">&gt;</span> { 
-	<span class="kw">match</span> <span class="ident">appel</span> { 
-		<span class="string">&quot;ajouter&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>( <span class="ident">resoudre_ajouter</span> <span class="kw">as</span> <span class="ident">Resolveur</span> ), 
-		<span class="string">&quot;compter&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>( <span class="ident">resoudre_compter</span> <span class="kw">as</span> <span class="ident">Resolveur</span> ), 
-		<span class="string">&quot;découper&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>( <span class="ident">resoudre_decouper</span> <span class="kw">as</span> <span class="ident">Resolveur</span> ), 
-		<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>( <span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;module numérique : fonction inconnue&quot;</span> ) ) 
-	} 
-} 
-
-
-
-
-
-
-
-
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resoudre</span>(<span class="ident">appel</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Resolveur</span>, <span class="ident">Retour</span><span class="op">&gt;</span> {
+    <span class="kw">match</span> <span class="ident">appel</span> {
+        <span class="string">&quot;ajouter&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">resoudre_ajouter</span> <span class="kw">as</span> <span class="ident">Resolveur</span>),
+        <span class="string">&quot;compter&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">resoudre_compter</span> <span class="kw">as</span> <span class="ident">Resolveur</span>),
+        <span class="string">&quot;découper&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">resoudre_decouper</span> <span class="kw">as</span> <span class="ident">Resolveur</span>),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Retour</span>::<span class="ident">creer_str</span>(
+            <span class="bool-val">false</span>,
+            <span class="string">&quot;module numérique : fonction inconnue&quot;</span>,
+        )),
+    }
+}
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../";window.currentCrate = "projet_robert";</script><script src="../../../aliases.js"></script><script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script><script defer src="../../../search-index.js"></script></body></html>

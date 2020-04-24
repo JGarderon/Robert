@@ -109,141 +109,117 @@
 <span id="109">109</span>
 <span id="110">110</span>
 <span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
-<span id="114">114</span>
-<span id="115">115</span>
-<span id="116">116</span>
-<span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
-<span id="122">122</span>
-<span id="123">123</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="doccomment">//! # Module des clients TCP  </span>
-<span class="doccomment">//! </span>
-<span class="doccomment">//! Ce module gère la réception des clients TCP dans le service. Il dépend pour son fonctionnement, principalement de deux autres modules : celui grammatical (&#39;grammaire&#39;) et de contextualisation (&#39;contexte&#39;). </span>
-<span class="doccomment">//! </span>
+<span class="doccomment">//! # Module des clients TCP</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Ce module gère la réception des clients TCP dans le service. Il dépend pour son fonctionnement, principalement de deux autres modules : celui grammatical (&#39;grammaire&#39;) et de contextualisation (&#39;contexte&#39;).</span>
+<span class="doccomment">//!</span>
 
-	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
-	<span class="comment">// (1) Importation des modules internes </span>
-	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
+<span class="comment">// (1) Importation des modules internes</span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span>; 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>; 
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>;
 
-	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
-	<span class="comment">// (2) Importation des modules du projet </span>
-	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
+<span class="comment">// (2) Importation des modules du projet</span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">contexte</span>::<span class="ident">Contexte</span>; 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">grammaire</span>; 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">grammaire</span>::<span class="ident">ExtractionLigne</span>; 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>; 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::<span class="ident">RetourType</span>; 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">contexte</span>::<span class="ident">Contexte</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">grammaire</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">grammaire</span>::<span class="ident">ExtractionLigne</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::<span class="ident">RetourType</span>;
 
-	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
-	<span class="comment">// (3) Constantes du projet </span>
-	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
+<span class="comment">// (3) Constantes du projet</span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">configuration</span>::<span class="ident">DEBUG</span>; 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">configuration</span>::<span class="ident">DEBUG</span>;
 
-	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
-	<span class="comment">// (4) Définition des structures, énumérations et leurs implémentations </span>
-	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
+<span class="comment">// (4) Définition des structures, énumérations et leurs implémentations</span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Informer</span> { 
-	<span class="kw">fn</span> <span class="ident">ecrire</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">texte</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">flush</span>: <span class="ident">bool</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>; 
-	<span class="kw">fn</span> <span class="ident">message</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>; 
-	<span class="kw">fn</span> <span class="ident">erreur</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">erreur</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>; 
-} 
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Informer</span> {
+    <span class="kw">fn</span> <span class="ident">ecrire</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">texte</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">flush</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">message</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">erreur</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">erreur</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
+}
 
-<span class="kw">impl</span> <span class="ident">Informer</span> <span class="kw">for</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">TcpStream</span> { 
+<span class="kw">impl</span> <span class="ident">Informer</span> <span class="kw">for</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">TcpStream</span> {
+    <span class="kw">fn</span> <span class="ident">ecrire</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">texte</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">flush</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">write</span>(<span class="ident">texte</span>.<span class="ident">as_bytes</span>()) {
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="ident">flush</span> {
+                    <span class="kw">match</span> <span class="self">self</span>.<span class="ident">flush</span>() {
+                        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+                        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+                    }
+                } <span class="kw">else</span> {
+                    <span class="bool-val">true</span>
+                }
+            }
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+        }
+    }
 
-	<span class="kw">fn</span> <span class="ident">ecrire</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">texte</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">flush</span>: <span class="ident">bool</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> { 
-		<span class="kw">match</span> <span class="self">self</span>.<span class="ident">write</span>( <span class="ident">texte</span>.<span class="ident">as_bytes</span>() ) { 
-			<span class="prelude-val">Ok</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">if</span> <span class="ident">flush</span> { <span class="kw">match</span> <span class="self">self</span>.<span class="ident">flush</span>() { 
-				<span class="prelude-val">Ok</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>, 
-				<span class="prelude-val">Err</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span> 
-			} } <span class="kw">else</span> { <span class="bool-val">true</span> } 
-			<span class="prelude-val">Err</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span> 
-		} 
-	} 
+    <span class="kw">fn</span> <span class="ident">message</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">ecrire</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;[@] {}\n&quot;</span>, <span class="ident">message</span>), <span class="bool-val">false</span>)
+    }
 
-	<span class="kw">fn</span> <span class="ident">message</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> { 
-		<span class="self">self</span>.<span class="ident">ecrire</span>( 
-			<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>( <span class="string">&quot;[@] {}\n&quot;</span>, <span class="ident">message</span> ),  
-			<span class="bool-val">false</span> 
-		) 
-	} 
+    <span class="kw">fn</span> <span class="ident">erreur</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">erreur</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">ecrire</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;[!] {}\n&quot;</span>, <span class="ident">erreur</span>), <span class="bool-val">false</span>)
+    }
+}
 
-	<span class="kw">fn</span> <span class="ident">erreur</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">erreur</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> { 
-		<span class="self">self</span>.<span class="ident">ecrire</span>( 
-			<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>( <span class="string">&quot;[!] {}\n&quot;</span>, <span class="ident">erreur</span> ),  
-			<span class="bool-val">false</span>  
-		) 
-	} 
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
+<span class="comment">// (5) Définition des fonctions</span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
 
-} 
-
-	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
-	<span class="comment">// (5) Définition des fonctions </span>
-	<span class="comment">// --- --- --- --- --- --- --- --- --- </span>
-
-<span class="doccomment">/// Fonction recevant un client et le traitant, par le biais d&#39;un objet &#39;Contexte&#39; déjà créé. Principalement une boucle qui reçoit sur texte dans un tampon, l&#39;examine rapidement avec les outils du module &quot;grammaire&quot;, et lancement la fonction de résolution de la requête. </span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recevoir</span>( <span class="kw-2">mut</span> <span class="ident">contexte</span>: <span class="ident">Contexte</span> ) { 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iterateur</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">contexte</span>.<span class="ident">stream</span>.<span class="ident">try_clone</span>() { 
-		<span class="prelude-val">Ok</span>( <span class="ident">s</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>, 
-		<span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> 
-	}.<span class="ident">bytes</span>(); 
-	<span class="kw">if</span> <span class="op">!</span><span class="ident">contexte</span>.<span class="ident">message</span>( <span class="string">&quot;bonjour&quot;</span> ) { 
-		<span class="kw">return</span>; 
-	} 
-	<span class="kw">while</span> <span class="ident">contexte</span>.<span class="ident">poursuivre</span> { 
-		<span class="kw">if</span> <span class="op">!</span><span class="kw-2">*</span><span class="ident">contexte</span>.<span class="ident">service_poursuite</span> { 
-			<span class="ident">contexte</span>.<span class="ident">ecrire</span>( 
-				<span class="string">&quot;[!] le service est en cours d&#39;extinction ; vous allez être déconnecté immédiatement\n&quot;</span>, 
-				<span class="bool-val">true</span> 
-			); 
-			<span class="kw">break</span>; 
-		} 
-		<span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">grammaire</span>::<span class="ident">extraire_ligne</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">iterateur</span> ) { 
-			<span class="ident">ExtractionLigne</span>::<span class="ident">Commande</span>( <span class="ident">s</span> ) <span class="op">=</span><span class="op">&gt;</span> { 
-				<span class="kw">let</span> <span class="ident">appel</span> <span class="op">=</span> <span class="ident">grammaire</span>::<span class="ident">extraction_commande</span>( <span class="ident">s</span>.<span class="ident">trim</span>() ); 
-				<span class="ident">resolution</span>::<span class="ident">resoudre</span>( 
-					<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">contexte</span>, 
-					<span class="ident">appel</span>.<span class="number">0</span>, 
-					<span class="ident">appel</span>.<span class="number">1</span> 
-				) 
-			} 
-			<span class="ident">ExtractionLigne</span>::<span class="ident">Erreur</span>( <span class="ident">m</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">m</span>, 
-			<span class="ident">ExtractionLigne</span>::<span class="ident">Stop</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span> 
-		}; 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">contexte</span>.<span class="ident">ecrire</span>( 
-			<span class="kw">if</span> <span class="ident">r</span>.<span class="ident">etat</span> { <span class="string">&quot;[+] &quot;</span> } <span class="kw">else</span> { <span class="string">&quot;[-] &quot;</span> }, 
-			<span class="bool-val">false</span> 
-		); 
-		<span class="ident">e</span> <span class="kw-2">&amp;</span><span class="op">=</span> <span class="kw">match</span> <span class="ident">r</span>.<span class="ident">message</span> { 
-			<span class="ident">RetourType</span>::<span class="ident">Statique</span>( <span class="ident">m</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">contexte</span>.<span class="ident">ecrire</span>( <span class="ident">m</span>, <span class="bool-val">false</span> ), 
-			<span class="ident">RetourType</span>::<span class="ident">Dynamique</span>( <span class="ident">m</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">contexte</span>.<span class="ident">ecrire</span>( <span class="kw-2">&amp;</span><span class="ident">m</span>, <span class="bool-val">false</span> ) 
-		}; 
-		<span class="ident">e</span> <span class="kw-2">&amp;</span><span class="op">=</span> <span class="ident">contexte</span>.<span class="ident">ecrire</span>( 
-			<span class="string">&quot;\n&quot;</span>, 
-			<span class="bool-val">true</span> 
-		); 
-		<span class="kw">if</span> <span class="op">!</span><span class="ident">e</span> { 
-			<span class="kw">break</span>; 
-		} 
-	} 
-	<span class="kw">if</span> <span class="ident">DEBUG</span> { 
-		<span class="kw">match</span> <span class="ident">contexte</span>.<span class="ident">stream</span>.<span class="ident">peer_addr</span>() { 
-			<span class="prelude-val">Ok</span>( <span class="ident">adresse</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">println</span><span class="macro">!</span>( <span class="string">&quot;! fin de connexion: {:?}&quot;</span>, <span class="ident">adresse</span> ), 
-			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> () 
-		} 
-	} 
-} 
-
+<span class="doccomment">/// Fonction recevant un client et le traitant, par le biais d&#39;un objet &#39;Contexte&#39; déjà créé. Principalement une boucle qui reçoit sur texte dans un tampon, l&#39;examine rapidement avec les outils du module &quot;grammaire&quot;, et lancement la fonction de résolution de la requête.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">recevoir</span>(<span class="kw-2">mut</span> <span class="ident">contexte</span>: <span class="ident">Contexte</span>) {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iterateur</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">contexte</span>.<span class="ident">stream</span>.<span class="ident">try_clone</span>() {
+        <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>,
+        <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span>,
+    }
+    .<span class="ident">bytes</span>();
+    <span class="kw">if</span> <span class="op">!</span><span class="ident">contexte</span>.<span class="ident">message</span>(<span class="string">&quot;bonjour&quot;</span>) {
+        <span class="kw">return</span>;
+    }
+    <span class="kw">while</span> <span class="ident">contexte</span>.<span class="ident">poursuivre</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="kw-2">*</span><span class="ident">contexte</span>.<span class="ident">service_poursuite</span> {
+            <span class="ident">contexte</span>.<span class="ident">ecrire</span>(
+				<span class="string">&quot;[!] le service est en cours d&#39;extinction ; vous allez être déconnecté immédiatement\n&quot;</span>,
+				<span class="bool-val">true</span>
+			);
+            <span class="kw">break</span>;
+        }
+        <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">grammaire</span>::<span class="ident">extraire_ligne</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">iterateur</span>) {
+            <span class="ident">ExtractionLigne</span>::<span class="ident">Commande</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">appel</span> <span class="op">=</span> <span class="ident">grammaire</span>::<span class="ident">extraction_commande</span>(<span class="ident">s</span>.<span class="ident">trim</span>());
+                <span class="ident">resolution</span>::<span class="ident">resoudre</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">contexte</span>, <span class="ident">appel</span>.<span class="number">0</span>, <span class="ident">appel</span>.<span class="number">1</span>)
+            }
+            <span class="ident">ExtractionLigne</span>::<span class="ident">Erreur</span>(<span class="ident">m</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">m</span>,
+            <span class="ident">ExtractionLigne</span>::<span class="ident">Stop</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+        };
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">contexte</span>.<span class="ident">ecrire</span>(<span class="kw">if</span> <span class="ident">r</span>.<span class="ident">etat</span> { <span class="string">&quot;[+] &quot;</span> } <span class="kw">else</span> { <span class="string">&quot;[-] &quot;</span> }, <span class="bool-val">false</span>);
+        <span class="ident">e</span> <span class="kw-2">&amp;</span><span class="op">=</span> <span class="kw">match</span> <span class="ident">r</span>.<span class="ident">message</span> {
+            <span class="ident">RetourType</span>::<span class="ident">Statique</span>(<span class="ident">m</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">contexte</span>.<span class="ident">ecrire</span>(<span class="ident">m</span>, <span class="bool-val">false</span>),
+            <span class="ident">RetourType</span>::<span class="ident">Dynamique</span>(<span class="ident">m</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">contexte</span>.<span class="ident">ecrire</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>, <span class="bool-val">false</span>),
+        };
+        <span class="ident">e</span> <span class="kw-2">&amp;</span><span class="op">=</span> <span class="ident">contexte</span>.<span class="ident">ecrire</span>(<span class="string">&quot;\n&quot;</span>, <span class="bool-val">true</span>);
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">e</span> {
+            <span class="kw">break</span>;
+        }
+    }
+    <span class="kw">if</span> <span class="ident">DEBUG</span> {
+        <span class="kw">match</span> <span class="ident">contexte</span>.<span class="ident">stream</span>.<span class="ident">peer_addr</span>() {
+            <span class="prelude-val">Ok</span>(<span class="ident">adresse</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;! fin de connexion: {:?}&quot;</span>, <span class="ident">adresse</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
+        }
+    }
+}
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "projet_robert";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

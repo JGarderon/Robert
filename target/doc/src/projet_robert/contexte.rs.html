@@ -56,96 +56,64 @@
 <span id="56">56</span>
 <span id="57">57</span>
 <span id="58">58</span>
-<span id="59">59</span>
-<span id="60">60</span>
-<span id="61">61</span>
-<span id="62">62</span>
-<span id="63">63</span>
-<span id="64">64</span>
-<span id="65">65</span>
-<span id="66">66</span>
-<span id="67">67</span>
-<span id="68">68</span>
-<span id="69">69</span>
-<span id="70">70</span>
-<span id="71">71</span>
-<span id="72">72</span>
-<span id="73">73</span>
-<span id="74">74</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="doccomment">//! # Module de contexte client  </span>
-<span class="doccomment">//! </span>
+<span class="doccomment">//! # Module de contexte client</span>
+<span class="doccomment">//!</span>
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">TcpStream</span>; 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>; 
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">TcpStream</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">mpsc</span>::<span class="ident">Receiver</span>; 
 
-<span class="comment">// ---------------------------------------------------- </span>
+<span class="comment">// ----------------------------------------------------</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">canal</span>::{<span class="ident">CanalThread</span>, <span class="ident">CanauxThread</span>}; 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">profil</span>::<span class="ident">Profil</span>; 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">canal</span>::{<span class="ident">CanalThread</span>, <span class="ident">CanauxThread</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">client</span>::<span class="ident">Informer</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">profil</span>::<span class="ident">Profil</span>;
 
-<span class="comment">// ---------------------------------------------------- </span>
+<span class="comment">// ----------------------------------------------------</span>
 
-<span class="doccomment">/// La structure &#39;Contexte&#39; permet de rassembler dans un objet unique, l&#39;ensemble des éléments propres à un socket quelque soit la fonction de résolution qui sera appelée. Elle référence aussi le canal en cours d&#39;usage par le client, ainsi que l&#39;origine (Canaux). </span>
-<span class="doccomment">/// Dans une fonction de résolution, elle se présentera toujours dans la forme d&#39;une référence mutable. </span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Contexte</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> { 
-	
-	<span class="doccomment">/// Ce champ permet de récupérer un clone de l&#39;objet en écoute sur l&#39;interface réseau. </span>
-	<span class="kw">pub</span> <span class="ident">service_ecoute</span>: <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">TcpListener</span>, 
+<span class="doccomment">/// La structure &#39;Contexte&#39; permet de rassembler dans un objet unique, l&#39;ensemble des éléments propres à un socket quelque soit la fonction de résolution qui sera appelée. Elle référence aussi le canal en cours d&#39;usage par le client, ainsi que l&#39;origine (Canaux).</span>
+<span class="doccomment">/// Dans une fonction de résolution, elle se présentera toujours dans la forme d&#39;une référence mutable.</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Contexte</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
 
-	<span class="doccomment">/// Ce champ lorsqu&#39;il est à &quot;faux&quot;, permet d&#39;interrompre la boucle globale du service. </span>
-	<span class="kw">pub</span> <span class="ident">service_poursuite</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">bool</span>, 
+    <span class="doccomment">/// Ce champ permet de tester l&#39;activité d&#39;un enfant (thread), Rust n&#39;offrant pas de solution définitive pour l&#39;état d&#39;un thread </span>
+    <span class="kw">pub</span> <span class="ident">existence</span>: <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>, 
 
-	<span class="doccomment">/// Ce champ lorsqu&#39;il est à &quot;faux&quot;, permet d&#39;interrompre la boucle locale du thead gérant le socket, dès la fin de la fonction de résolution actuelle. </span>
-	<span class="kw">pub</span> <span class="ident">poursuivre</span>: <span class="ident">bool</span>, 
-	
-	<span class="doccomment">/// Ce champ contient le nécessaire pour accéder au dictionnaire représentant le canal actuel. </span>
-	<span class="doccomment">/// Il est d&#39;un type Arc&lt;Mutex&lt;Canal&gt;&gt; : un CanalThread est un Canal avec sa protection d&#39;usage pour les threads. </span>
-	<span class="kw">pub</span> <span class="ident">canalthread</span>: <span class="ident">CanalThread</span>, 
-	
-	<span class="doccomment">/// Ce champ contient le nécessaire pour accéder au dictionnaires des canaux. </span>
-	<span class="doccomment">/// Il est d&#39;un type Arc&lt;Mutex&lt;Canaux&gt;&gt; : un CanauxThread est l&#39;origine de tous les canaux, avec sa protection d&#39;usage pour les threads. </span>
-	<span class="kw">pub</span> <span class="ident">canauxthread</span>: <span class="ident">CanauxThread</span>, 
+    <span class="doccomment">/// Ce champ permet de récupérer un clone de l&#39;objet en écoute sur l&#39;interface réseau.</span>
+    <span class="kw">pub</span> <span class="ident">service_ecoute</span>: <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">TcpListener</span>,
 
-	<span class="doccomment">/// </span>
-	<span class="kw">pub</span> <span class="ident">profil</span>: <span class="ident">Profil</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,  
+    <span class="doccomment">/// Ce champ lorsqu&#39;il est à &quot;faux&quot;, permet d&#39;interrompre la boucle globale du service.</span>
+    <span class="kw">pub</span> <span class="ident">service_poursuite</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">bool</span>,
 
-	<span class="doccomment">/// Ce champ contient l&#39;objet socket, librement clonable. </span>
-	<span class="kw">pub</span> <span class="ident">stream</span>: <span class="ident">TcpStream</span> 
+    <span class="doccomment">/// Ce champ lorsqu&#39;il est à &quot;faux&quot;, permet d&#39;interrompre la boucle locale du thead gérant le socket, dès la fin de la fonction de résolution actuelle.</span>
+    <span class="kw">pub</span> <span class="ident">poursuivre</span>: <span class="ident">bool</span>,
 
-} 
+    <span class="doccomment">/// Ce champ contient le nécessaire pour accéder au dictionnaire représentant le canal actuel.</span>
+    <span class="doccomment">/// Il est d&#39;un type Arc&lt;Mutex&lt;Canal&gt;&gt; : un CanalThread est un Canal avec sa protection d&#39;usage pour les threads.</span>
+    <span class="kw">pub</span> <span class="ident">canalthread</span>: <span class="ident">CanalThread</span>,
 
-<span class="kw">impl</span> <span class="ident">Contexte</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> { 
+    <span class="doccomment">/// Ce champ contient le nécessaire pour accéder au dictionnaires des canaux.</span>
+    <span class="doccomment">/// Il est d&#39;un type Arc&lt;Mutex&lt;Canaux&gt;&gt; : un CanauxThread est l&#39;origine de tous les canaux, avec sa protection d&#39;usage pour les threads.</span>
+    <span class="kw">pub</span> <span class="ident">canauxthread</span>: <span class="ident">CanauxThread</span>,
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ecrire</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">texte</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">flush</span>: <span class="ident">bool</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> { 
-		<span class="kw">match</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">write</span>( <span class="ident">texte</span>.<span class="ident">as_bytes</span>() ) { 
-			<span class="prelude-val">Ok</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">if</span> <span class="ident">flush</span> { <span class="kw">match</span> <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">flush</span>() { 
-				<span class="prelude-val">Ok</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>, 
-				<span class="prelude-val">Err</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span> 
-			} } <span class="kw">else</span> { <span class="bool-val">true</span> } 
-			<span class="prelude-val">Err</span>( <span class="kw">_</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span> 
-		} 
-	} 
+    <span class="doccomment">/// Ce champ contient la structure &#39;Profil&#39;, contenant le nécessaire à l&#39;authenfication et aux droits du client.</span>
+    <span class="kw">pub</span> <span class="ident">profil</span>: <span class="ident">Profil</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">message</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> { 
-		<span class="self">self</span>.<span class="ident">ecrire</span>( 
-			<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>( <span class="string">&quot;[@] {}\n&quot;</span>, <span class="ident">message</span> ),  
-			<span class="bool-val">false</span> 
-		) 
-	} 
+    <span class="doccomment">/// Ce champ contient l&#39;objet socket, librement clonable.</span>
+    <span class="kw">pub</span> <span class="ident">stream</span>: <span class="ident">TcpStream</span>,
+}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">erreur</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> { 
-		<span class="self">self</span>.<span class="ident">ecrire</span>( 
-			<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>( <span class="string">&quot;[!] {}\n&quot;</span>, <span class="ident">message</span> ),  
-			<span class="bool-val">false</span> 
-		) 
-	} 
+<span class="kw">impl</span> <span class="ident">Informer</span> <span class="kw">for</span> <span class="ident">Contexte</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">ecrire</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">texte</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">flush</span>: <span class="ident">bool</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">ecrire</span>( <span class="ident">texte</span>, <span class="ident">flush</span> )
+    }
 
-} 
+    <span class="kw">fn</span> <span class="ident">message</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">message</span>( <span class="ident">message</span> )
+    }
 
-
-
-
-
+    <span class="kw">fn</span> <span class="ident">erreur</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">erreur</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">erreur</span>( <span class="ident">erreur</span> )
+    }
+}
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "projet_robert";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>

@@ -183,219 +183,191 @@
 <span id="183">183</span>
 <span id="184">184</span>
 <span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="doccomment">//! # Module grammatical </span>
-<span class="doccomment">//! </span>
-<span class="doccomment">//! Ce module permet la gestion de la partie grammaticale (syntaxique) et un partie sémantique des requêtes reçues. </span>
-<span class="doccomment">//! </span>
-<span class="doccomment">//! Ce module ne doit normalement dépendre d&#39;aucun autre, car il reçoit du texte, et renvoie du texte. Cependant une tolérance doit être faite sur les retours, autorisant par exemple la structure Retour du module de résolution, afin d&#39;optimiser le processus d&#39;analyse. </span>
-<span class="doccomment">//! </span>
-<span class="doccomment">//! ## Principe de fonctionnement </span>
-<span class="doccomment">//! </span>
-<span class="doccomment">//! Une requête est composée d&#39;une ligne (séparateur &#39;\n&#39;), dans laquelle on dispose d&#39;argument (séparateur &#39; &#39;). Ces arguments peuvent être de tous les ordres (clé, chemin, valeur quelconque) et dépendend d&#39;un contexte de résolution. </span>
-<span class="doccomment">//! </span>
+<span class="doccomment">//! # Module grammatical</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Ce module permet la gestion de la partie grammaticale (syntaxique) et un partie sémantique des requêtes reçues.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Ce module ne doit normalement dépendre d&#39;aucun autre, car il reçoit du texte, et renvoie du texte. Cependant une tolérance doit être faite sur les retours, autorisant par exemple la structure Retour du module de résolution, afin d&#39;optimiser le processus d&#39;analyse.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## Principe de fonctionnement</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Une requête est composée d&#39;une ligne (séparateur &#39;\n&#39;), dans laquelle on dispose d&#39;argument (séparateur &#39; &#39;). Ces arguments peuvent être de tous les ordres (clé, chemin, valeur quelconque) et dépendend d&#39;un contexte de résolution.</span>
+<span class="doccomment">//!</span>
 <span class="doccomment">//! __nb :__ _Attention, une requête a une taille limite, qui est la taille limite acceptée d&#39;une ligne lors de la reception par le socket (voir la configuration)._</span>
-<span class="doccomment">//! </span>
-<span class="doccomment">//! Ce contexte est retrouvé par le premier argument qui est toujours, dans l&#39;esprit des fonctions lambda, le chemin vers une fonction de résolution. Le format est le suivant : &quot;_fonction_&quot; ou &quot;_module:fonction_&quot;. </span>
-<span class="doccomment">//! </span>
-<span class="doccomment">//! Un &#39;chemin&#39; est une clé qui permet de résoudre la profondeur (un objet dans un objet). Une clé est un chemin qui n&#39;a seul niveau. Cette clé est toujours en seconde position. Les autres arguments n&#39;ont pas de signifcation propre. </span>
-<span class="doccomment">//! </span>
-<span class="doccomment">//! Certaines fonctions n&#39;autorisent qu&#39;un nombre limité d&#39;arguments. </span>
-<span class="doccomment">//! </span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Ce contexte est retrouvé par le premier argument qui est toujours, dans l&#39;esprit des fonctions lambda, le chemin vers une fonction de résolution. Le format est le suivant : &quot;_fonction_&quot; ou &quot;_module:fonction_&quot;.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Un &#39;chemin&#39; est une clé qui permet de résoudre la profondeur (un objet dans un objet). Une clé est un chemin qui n&#39;a seul niveau. Cette clé est toujours en seconde position. Les autres arguments n&#39;ont pas de signifcation propre.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Certaines fonctions n&#39;autorisent qu&#39;un nombre limité d&#39;arguments.</span>
+<span class="doccomment">//!</span>
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">TcpStream</span>; 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">iter</span>::<span class="ident">FromIterator</span>; 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Bytes</span>; 
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Bytes</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">iter</span>::<span class="ident">FromIterator</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">net</span>::<span class="ident">TcpStream</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">configuration</span>::<span class="ident">TAILLE_LIGNE_MAX</span>; 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">configuration</span>::<span class="ident">TAILLE_LIGNE_MAX</span>;
 
-<span class="comment">// ---------------------------------------------------- </span>
+<span class="comment">// ----------------------------------------------------</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::<span class="ident">Retour</span>; 
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::<span class="ident">Retour</span>;
 
-<span class="comment">// ---------------------------------------------------- </span>
+<span class="comment">// ----------------------------------------------------</span>
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span> 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ArgumentsLocauxEtat</span> { 
-    <span class="ident">Suivant</span>(<span class="ident">usize</span>, <span class="ident">usize</span>), 
-    <span class="ident">Stop</span>, 
-    <span class="ident">Erreur</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) 
-} 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ArgumentsLocauxEtat</span> {
+    <span class="ident">Suivant</span>(<span class="ident">usize</span>, <span class="ident">usize</span>),
+    <span class="ident">Stop</span>,
+    <span class="ident">Erreur</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>),
+}
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span> 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ArgumentsLocaux</span> { 
-    <span class="kw">pub</span> <span class="ident">source</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span>, 
-    <span class="kw">pub</span> <span class="ident">position</span>: <span class="ident">usize</span> 
-} 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ArgumentsLocaux</span> {
+    <span class="kw">pub</span> <span class="ident">source</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">position</span>: <span class="ident">usize</span>,
+}
 
-<span class="kw">impl</span> <span class="ident">ArgumentsLocaux</span> { 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trim</span>( <span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">texte</span>: <span class="kw-2">&amp;</span>[<span class="ident">char</span>] ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> { 
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">signe</span>) <span class="kw">in</span> <span class="ident">texte</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() { 
-            <span class="kw">match</span> <span class="ident">signe</span> { 
-                <span class="string">&#39; &#39;</span> <span class="op">|</span> <span class="string">&#39;\t&#39;</span><span class="op">|</span> <span class="string">&#39;\r&#39;</span> <span class="op">|</span> <span class="string">&#39;\n&#39;</span>  <span class="op">=</span><span class="op">&gt;</span> (), 
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>( <span class="ident">i</span> ) 
-            } 
-        } 
-        <span class="prelude-val">None</span> 
-    } 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">suivant</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ArgumentsLocauxEtat</span> { 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">position</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">len</span>() { 
-            <span class="kw">return</span> <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Stop</span>; 
-        } 
-        <span class="kw">let</span> <span class="ident">texte</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">source</span>[<span class="self">self</span>.<span class="ident">position</span>..]; 
-        <span class="kw">if</span> <span class="ident">texte</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> { 
-            <span class="kw">return</span> <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Stop</span>; 
-        } 
-        <span class="kw">let</span> <span class="ident">debut</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">trim</span>( <span class="ident">texte</span> ) { 
-            <span class="prelude-val">Some</span>( <span class="ident">i</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>, 
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Stop</span> 
-        }; 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">guillemet_ouvert</span> <span class="op">=</span> <span class="bool-val">false</span>; 
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">signe</span>) <span class="kw">in</span> <span class="ident">texte</span>[<span class="ident">debut</span>..].<span class="ident">iter</span>().<span class="ident">enumerate</span>() { 
-            <span class="kw">match</span> <span class="ident">signe</span> { 
-                <span class="string">&#39; &#39;</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">guillemet_ouvert</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Suivant</span>( <span class="ident">debut</span>, <span class="ident">debut</span><span class="op">+</span><span class="ident">i</span> ), 
-                <span class="string">&#39;&quot;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> { 
-                    <span class="ident">guillemet_ouvert</span> <span class="op">=</span> <span class="op">!</span><span class="ident">guillemet_ouvert</span>; 
-                    <span class="kw">if</span> <span class="op">!</span><span class="ident">guillemet_ouvert</span> { 
-                        <span class="kw">return</span> <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Suivant</span>( <span class="ident">debut</span><span class="op">+</span><span class="number">1</span>, <span class="ident">debut</span><span class="op">+</span><span class="ident">i</span> ); 
-                    } 
-                } 
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> () 
-            } 
-        } 
-        <span class="kw">if</span> <span class="ident">guillemet_ouvert</span> { 
-            <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Erreur</span>( <span class="string">&quot;guillemet non-fermé&quot;</span> ) 
-        } <span class="kw">else</span> { 
-            <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Suivant</span>( <span class="ident">debut</span>, <span class="ident">texte</span>.<span class="ident">len</span>() ) 
-        } 
-    } 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extraire</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> { 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Suivant</span>( <span class="ident">depart</span>, <span class="ident">stop</span> ) <span class="op">=</span> <span class="self">self</span>.<span class="ident">suivant</span>() { 
-            <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">source</span>[<span class="self">self</span>.<span class="ident">position</span><span class="op">+</span><span class="ident">depart</span>..<span class="self">self</span>.<span class="ident">position</span><span class="op">+</span><span class="ident">stop</span>]; 
-            <span class="self">self</span>.<span class="ident">position</span> <span class="op">+</span><span class="op">=</span> <span class="ident">stop</span><span class="op">+</span><span class="number">1</span>; 
-            <span class="prelude-val">Some</span>( <span class="ident">String</span>::<span class="ident">from_iter</span>( <span class="ident">r</span> ) ) 
-        } <span class="kw">else</span> { 
-            <span class="prelude-val">None</span> 
-        } 
-    } 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">est_stop</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> { 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">None</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">extraire</span>() { 
-            <span class="bool-val">true</span> 
-        } <span class="kw">else</span> { 
-            <span class="bool-val">false</span> 
-        } 
-    } 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tous</span>( <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> { 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>(); 
-        <span class="kw">loop</span> { 
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">suivant</span>() { 
-                <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Suivant</span>( <span class="ident">depart</span>, <span class="ident">stop</span> ) <span class="op">=</span><span class="op">&gt;</span> { 
-                    <span class="ident">r</span>.<span class="ident">push</span>( 
-                        <span class="ident">String</span>::<span class="ident">from_iter</span>( 
-                            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">source</span>[<span class="self">self</span>.<span class="ident">position</span><span class="op">+</span><span class="ident">depart</span>..<span class="self">self</span>.<span class="ident">position</span><span class="op">+</span><span class="ident">stop</span>] 
-                        ) 
-                    ); 
-                    <span class="self">self</span>.<span class="ident">position</span> <span class="op">+</span><span class="op">=</span> <span class="ident">stop</span><span class="op">+</span><span class="number">1</span>; 
-                } 
-                <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Stop</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>, 
-                <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Erreur</span>( <span class="ident">e</span> ) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>( <span class="ident">e</span> ) 
-            } 
-        } 
-        <span class="prelude-val">Ok</span>( <span class="ident">r</span> ) 
-    } 
-} 
+<span class="kw">impl</span> <span class="ident">ArgumentsLocaux</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trim</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">texte</span>: <span class="kw-2">&amp;</span>[<span class="ident">char</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">signe</span>) <span class="kw">in</span> <span class="ident">texte</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
+            <span class="kw">match</span> <span class="ident">signe</span> {
+                <span class="string">&#39; &#39;</span> <span class="op">|</span> <span class="string">&#39;\t&#39;</span> <span class="op">|</span> <span class="string">&#39;\r&#39;</span> <span class="op">|</span> <span class="string">&#39;\n&#39;</span> <span class="op">=</span><span class="op">&gt;</span> (),
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">i</span>),
+            }
+        }
+        <span class="prelude-val">None</span>
+    }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">suivant</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ArgumentsLocauxEtat</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">position</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">source</span>.<span class="ident">len</span>() {
+            <span class="kw">return</span> <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Stop</span>;
+        }
+        <span class="kw">let</span> <span class="ident">texte</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">source</span>[<span class="self">self</span>.<span class="ident">position</span>..];
+        <span class="kw">if</span> <span class="ident">texte</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="kw">return</span> <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Stop</span>;
+        }
+        <span class="kw">let</span> <span class="ident">debut</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">trim</span>(<span class="ident">texte</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>,
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Stop</span>,
+        };
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">guillemet_ouvert</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">signe</span>) <span class="kw">in</span> <span class="ident">texte</span>[<span class="ident">debut</span>..].<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
+            <span class="kw">match</span> <span class="ident">signe</span> {
+                <span class="string">&#39; &#39;</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">guillemet_ouvert</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Suivant</span>(<span class="ident">debut</span>, <span class="ident">debut</span> <span class="op">+</span> <span class="ident">i</span>),
+                <span class="string">&#39;&quot;&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">guillemet_ouvert</span> <span class="op">=</span> <span class="op">!</span><span class="ident">guillemet_ouvert</span>;
+                    <span class="kw">if</span> <span class="op">!</span><span class="ident">guillemet_ouvert</span> {
+                        <span class="kw">return</span> <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Suivant</span>(<span class="ident">debut</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">debut</span> <span class="op">+</span> <span class="ident">i</span>);
+                    }
+                }
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
+            }
+        }
+        <span class="kw">if</span> <span class="ident">guillemet_ouvert</span> {
+            <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Erreur</span>(<span class="string">&quot;guillemet non-fermé&quot;</span>)
+        } <span class="kw">else</span> {
+            <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Suivant</span>(<span class="ident">debut</span>, <span class="ident">texte</span>.<span class="ident">len</span>())
+        }
+    }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extraire</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Suivant</span>(<span class="ident">depart</span>, <span class="ident">stop</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">suivant</span>() {
+            <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">source</span>[<span class="self">self</span>.<span class="ident">position</span> <span class="op">+</span> <span class="ident">depart</span>..<span class="self">self</span>.<span class="ident">position</span> <span class="op">+</span> <span class="ident">stop</span>];
+            <span class="self">self</span>.<span class="ident">position</span> <span class="op">+</span><span class="op">=</span> <span class="ident">stop</span> <span class="op">+</span> <span class="number">1</span>;
+            <span class="prelude-val">Some</span>(<span class="ident">String</span>::<span class="ident">from_iter</span>(<span class="ident">r</span>))
+        } <span class="kw">else</span> {
+            <span class="prelude-val">None</span>
+        }
+    }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">est_stop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">None</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">extraire</span>() {
+            <span class="bool-val">true</span>
+        } <span class="kw">else</span> {
+            <span class="bool-val">false</span>
+        }
+    }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tous</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+        <span class="kw">loop</span> {
+            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">suivant</span>() {
+                <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Suivant</span>(<span class="ident">depart</span>, <span class="ident">stop</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">r</span>.<span class="ident">push</span>(<span class="ident">String</span>::<span class="ident">from_iter</span>(
+                        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">source</span>[<span class="self">self</span>.<span class="ident">position</span> <span class="op">+</span> <span class="ident">depart</span>..<span class="self">self</span>.<span class="ident">position</span> <span class="op">+</span> <span class="ident">stop</span>],
+                    ));
+                    <span class="self">self</span>.<span class="ident">position</span> <span class="op">+</span><span class="op">=</span> <span class="ident">stop</span> <span class="op">+</span> <span class="number">1</span>;
+                }
+                <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Stop</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                <span class="ident">ArgumentsLocauxEtat</span>::<span class="ident">Erreur</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
+            }
+        }
+        <span class="prelude-val">Ok</span>(<span class="ident">r</span>)
+    }
+}
 
-<span class="comment">// ---------------------------------------------------- </span>
+<span class="comment">// ----------------------------------------------------</span>
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ExtractionLigne</span> { 
-	<span class="ident">Commande</span>(<span class="ident">String</span>), 
-	<span class="ident">Erreur</span>(<span class="ident">Retour</span>), 
-	<span class="ident">Stop</span> 
-} 
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ExtractionLigne</span> {
+    <span class="ident">Commande</span>(<span class="ident">String</span>),
+    <span class="ident">Erreur</span>(<span class="ident">Retour</span>),
+    <span class="ident">Stop</span>,
+}
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extraire_ligne</span>( <span class="ident">iterateur</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Bytes</span><span class="op">&lt;</span><span class="ident">TcpStream</span><span class="op">&gt;</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ExtractionLigne</span> { 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span>: [<span class="ident">u8</span>; <span class="ident">TAILLE_LIGNE_MAX</span>] <span class="op">=</span> [<span class="number">0</span>; <span class="ident">TAILLE_LIGNE_MAX</span>]; 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">position</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>; 
-	<span class="kw">loop</span> { 
-		<span class="kw">match</span> <span class="ident">iterateur</span>.<span class="ident">next</span>() { 
-			<span class="prelude-val">Some</span>( <span class="prelude-val">Ok</span>( <span class="number">13u8</span> ) ) <span class="kw">if</span> <span class="ident">position</span> <span class="op">&lt;</span> <span class="ident">TAILLE_LIGNE_MAX</span> <span class="op">=</span><span class="op">&gt;</span> { 
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>( <span class="ident">s</span> ) <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from_utf8</span>( <span class="ident">a</span>[..<span class="ident">position</span>].<span class="ident">to_vec</span>() ) { 
-					<span class="kw">return</span> <span class="ident">ExtractionLigne</span>::<span class="ident">Commande</span>( <span class="ident">s</span> ); 
-				} <span class="kw">else</span> { 
-					<span class="kw">return</span> <span class="ident">ExtractionLigne</span>::<span class="ident">Erreur</span>( 
-						<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;chaîne invalide&quot;</span> ) 
-					); 
-				} 
-			} 
-			<span class="prelude-val">Some</span>( <span class="prelude-val">Ok</span>( <span class="ident">n</span> ) ) <span class="kw">if</span> <span class="ident">position</span> <span class="op">&lt;</span> <span class="ident">TAILLE_LIGNE_MAX</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>[<span class="ident">position</span>] <span class="op">=</span> <span class="ident">n</span>, 
-			<span class="prelude-val">Some</span>( <span class="prelude-val">Ok</span>( <span class="kw">_</span> ) ) <span class="kw">if</span> <span class="ident">position</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">TAILLE_LIGNE_MAX</span> <span class="op">=</span><span class="op">&gt;</span> { 
-				<span class="kw">loop</span> { 
-					<span class="kw">match</span> <span class="ident">iterateur</span>.<span class="ident">next</span>() { 
-						<span class="prelude-val">Some</span>( <span class="prelude-val">Ok</span>( <span class="number">13u8</span> ) ) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>, 
-						<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> () 
-					} 
-				} 
-				<span class="kw">return</span> <span class="ident">ExtractionLigne</span>::<span class="ident">Erreur</span>( 
-					<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;ligne trop longue&quot;</span> ) 
-				); 
-			} 
-			<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span> 
-		} 
-		<span class="ident">position</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>; 
-	} 
-	<span class="kw">if</span> <span class="ident">position</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> { 
-		<span class="kw">return</span> <span class="ident">ExtractionLigne</span>::<span class="ident">Stop</span>; 
-	} 
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>( <span class="ident">s</span> ) <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from_utf8</span>( <span class="ident">a</span>[..<span class="ident">position</span>].<span class="ident">to_vec</span>() ) { 
-		<span class="kw">return</span> <span class="ident">ExtractionLigne</span>::<span class="ident">Commande</span>( <span class="ident">s</span> ); 
-	} <span class="kw">else</span> { 
-		<span class="kw">return</span> <span class="ident">ExtractionLigne</span>::<span class="ident">Erreur</span>( 
-			<span class="ident">Retour</span>::<span class="ident">creer_str</span>( <span class="bool-val">false</span>, <span class="string">&quot;caractère(s) invalide(s)&quot;</span> ) 
-		); 
-	} 
-} 
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extraire_ligne</span>(<span class="ident">iterateur</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Bytes</span><span class="op">&lt;</span><span class="ident">TcpStream</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ExtractionLigne</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span>: [<span class="ident">u8</span>; <span class="ident">TAILLE_LIGNE_MAX</span>] <span class="op">=</span> [<span class="number">0</span>; <span class="ident">TAILLE_LIGNE_MAX</span>];
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">position</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
+    <span class="kw">loop</span> {
+        <span class="kw">match</span> <span class="ident">iterateur</span>.<span class="ident">next</span>() {
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="number">13u8</span>)) <span class="kw">if</span> <span class="ident">position</span> <span class="op">&lt;</span> <span class="ident">TAILLE_LIGNE_MAX</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from_utf8</span>(<span class="ident">a</span>[..<span class="ident">position</span>].<span class="ident">to_vec</span>()) {
+                    <span class="kw">return</span> <span class="ident">ExtractionLigne</span>::<span class="ident">Commande</span>(<span class="ident">s</span>);
+                } <span class="kw">else</span> {
+                    <span class="kw">return</span> <span class="ident">ExtractionLigne</span>::<span class="ident">Erreur</span>(<span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;chaîne invalide&quot;</span>));
+                }
+            }
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">n</span>)) <span class="kw">if</span> <span class="ident">position</span> <span class="op">&lt;</span> <span class="ident">TAILLE_LIGNE_MAX</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>[<span class="ident">position</span>] <span class="op">=</span> <span class="ident">n</span>,
+            <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="kw">_</span>)) <span class="kw">if</span> <span class="ident">position</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">TAILLE_LIGNE_MAX</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">loop</span> {
+                    <span class="kw">match</span> <span class="ident">iterateur</span>.<span class="ident">next</span>() {
+                        <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="number">13u8</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
+                    }
+                }
+                <span class="kw">return</span> <span class="ident">ExtractionLigne</span>::<span class="ident">Erreur</span>(<span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;ligne trop longue&quot;</span>));
+            }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
+        }
+        <span class="ident">position</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+    }
+    <span class="kw">if</span> <span class="ident">position</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">return</span> <span class="ident">ExtractionLigne</span>::<span class="ident">Stop</span>;
+    }
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from_utf8</span>(<span class="ident">a</span>[..<span class="ident">position</span>].<span class="ident">to_vec</span>()) {
+        <span class="kw">return</span> <span class="ident">ExtractionLigne</span>::<span class="ident">Commande</span>(<span class="ident">s</span>);
+    } <span class="kw">else</span> {
+        <span class="kw">return</span> <span class="ident">ExtractionLigne</span>::<span class="ident">Erreur</span>(<span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;caractère(s) invalide(s)&quot;</span>));
+    }
+}
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extraction_commande</span>( <span class="ident">commande</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> ) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>) { 
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>( <span class="ident">position</span> ) <span class="op">=</span> <span class="ident">commande</span>.<span class="ident">find</span>( <span class="string">&#39; &#39;</span> ) { 
-		( <span class="kw-2">&amp;</span><span class="ident">commande</span>[<span class="number">0</span>..<span class="ident">position</span>], <span class="kw-2">&amp;</span><span class="ident">commande</span>[<span class="ident">position</span><span class="op">+</span><span class="number">1</span>..] ) 
-	} <span class="kw">else</span> { 
-		( <span class="kw-2">&amp;</span><span class="ident">commande</span>, <span class="string">&quot;&quot;</span> ) 
-	} 
-} 
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">extraction_commande</span>(<span class="ident">commande</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>) {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">position</span>) <span class="op">=</span> <span class="ident">commande</span>.<span class="ident">find</span>(<span class="string">&#39; &#39;</span>) {
+        (<span class="kw-2">&amp;</span><span class="ident">commande</span>[<span class="number">0</span>..<span class="ident">position</span>], <span class="kw-2">&amp;</span><span class="ident">commande</span>[<span class="ident">position</span> <span class="op">+</span> <span class="number">1</span>..])
+    } <span class="kw">else</span> {
+        (<span class="kw-2">&amp;</span><span class="ident">commande</span>, <span class="string">&quot;&quot;</span>)
+    }
+}
 
-<span class="comment">// ---------------------------------------------------- </span>
+<span class="comment">// ----------------------------------------------------</span>
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">chemin_extraire</span>( <span class="ident">chemin</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> { 
-    <span class="kw">let</span> <span class="ident">iterateur</span> <span class="op">=</span> <span class="ident">chemin</span>.<span class="ident">split</span>( <span class="string">&#39;/&#39;</span> ); 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">motifs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>(); 
-    <span class="kw">for</span> <span class="ident">motif</span> <span class="kw">in</span> <span class="ident">iterateur</span> { 
-        <span class="ident">motifs</span>.<span class="ident">push</span>( <span class="ident">motif</span> ); 
-    } 
-    <span class="kw">if</span> <span class="ident">motifs</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">1</span> { 
-        <span class="prelude-val">Err</span>( <span class="string">&quot;le chemin est vide&quot;</span> ) 
-    } <span class="kw">else</span> { 
-        <span class="prelude-val">Ok</span>( <span class="ident">motifs</span> ) 
-    } 
-} 
-
-
-
-
-
-
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">chemin_extraire</span>(<span class="ident">chemin</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">iterateur</span> <span class="op">=</span> <span class="ident">chemin</span>.<span class="ident">split</span>(<span class="string">&#39;/&#39;</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">motifs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+    <span class="kw">for</span> <span class="ident">motif</span> <span class="kw">in</span> <span class="ident">iterateur</span> {
+        <span class="ident">motifs</span>.<span class="ident">push</span>(<span class="ident">motif</span>);
+    }
+    <span class="kw">if</span> <span class="ident">motifs</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">1</span> {
+        <span class="prelude-val">Err</span>(<span class="string">&quot;le chemin est vide&quot;</span>)
+    } <span class="kw">else</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">motifs</span>)
+    }
+}
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "projet_robert";</script><script src="../../aliases.js"></script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
