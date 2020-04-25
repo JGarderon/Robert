@@ -327,6 +327,12 @@
 <span id="327">327</span>
 <span id="328">328</span>
 <span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Module de résolution des requêtes de clients</span>
 <span class="doccomment">//!</span>
@@ -355,6 +361,7 @@
 <span class="kw">mod</span> <span class="ident">resoudre_texte</span>;
 
 <span class="kw">mod</span> <span class="ident">resoudre_script</span>; <span class="comment">// en travaux</span>
+<span class="kw">mod</span> <span class="ident">resoudre_rss</span>; <span class="comment">// en travaux</span>
 
 <span class="comment">// --- --- --- --- --- --- --- --- ---</span>
 <span class="comment">// (3) Constantes du projet</span>
@@ -492,7 +499,8 @@
             <span class="ident">Valeurs</span>::<span class="ident">Texte</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer</span>(<span class="bool-val">true</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;(texte) \&quot;{}\&quot;&quot;</span>, <span class="ident">t</span>)),
             <span class="ident">Valeurs</span>::<span class="ident">Relatif</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer</span>(<span class="bool-val">true</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;(réel) {}&quot;</span>, <span class="ident">n</span>)),
             <span class="ident">Valeurs</span>::<span class="ident">Flottant</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer</span>(<span class="bool-val">true</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;(flottant) {}&quot;</span>, <span class="ident">n</span>)),
-            <span class="ident">Valeurs</span>::<span class="ident">Objet</span>(<span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer</span>(<span class="bool-val">true</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;(objet) {:?}&quot;</span>, <span class="ident">o</span>)),
+            <span class="ident">Valeurs</span>::<span class="ident">Objet</span>(<span class="ident">o</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer</span>(<span class="bool-val">true</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;(objet) {:?}&quot;</span>, <span class="ident">o</span>)), 
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer</span>(<span class="bool-val">true</span>, <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;(?) {:?}&quot;</span>, <span class="ident">valeur</span>)), 
         }),
         <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="ident">e</span>),
     }
@@ -634,7 +642,11 @@
             <span class="string">&quot;script&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">resoudre_script</span>::<span class="ident">resoudre</span>(<span class="kw-2">&amp;</span><span class="ident">appel</span>[<span class="ident">n</span> <span class="op">+</span> <span class="number">1</span>..]) {
                 <span class="prelude-val">Ok</span>(<span class="ident">fct</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fct</span>,
                 <span class="prelude-val">Err</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">r</span>,
-            },
+            }, <span class="comment">// en travaux </span>
+            <span class="string">&quot;rss&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">resoudre_rss</span>::<span class="ident">resoudre</span>(<span class="kw-2">&amp;</span><span class="ident">appel</span>[<span class="ident">n</span> <span class="op">+</span> <span class="number">1</span>..]) {
+                <span class="prelude-val">Ok</span>(<span class="ident">fct</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">fct</span>,
+                <span class="prelude-val">Err</span>(<span class="ident">r</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">r</span>,
+            }, <span class="comment">// en travaux </span>
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Retour</span>::<span class="ident">creer_str</span>(<span class="bool-val">false</span>, <span class="string">&quot;module inconnu&quot;</span>),
         }
     } <span class="kw">else</span> {

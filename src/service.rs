@@ -8,8 +8,8 @@
 // --- --- --- --- --- --- --- --- ---
 
 use std::net::TcpListener;
+use std::sync::mpsc::{channel, Sender};
 use std::thread::{self, JoinHandle};
-use std::sync::mpsc::{channel, Sender}; 
 
 // --- --- --- --- --- --- --- --- ---
 // (2) Importation des modules du projet
@@ -30,77 +30,65 @@ use crate::profil::Profil;
 // (4) Définition des structures, énumérations et leurs implémentations
 // --- --- --- --- --- --- --- --- ---
 
-/// Cette structure privée supporte l'ensemble des threads qui gèrent les clients connectés. A chaque passage de la boucle principale du service, un booléen est tenté d'être envoyé. 
+/// Cette structure privée supporte l'ensemble des threads qui gèrent les clients connectés. A chaque passage de la boucle principale du service, un booléen est tenté d'être envoyé.
 ///
-/// Si l'émission aboutit, c'est que le destinaire existe : le thread est donc considéré actif. Sinon, il est retiré de la liste des enfants. 
+/// Si l'émission aboutit, c'est que le destinaire existe : le thread est donc considéré actif. Sinon, il est retiré de la liste des enfants.
 ///
-/// A ce jour, il n'y a pas un moyen plus sûr en Rust pour ce type d'opération. 
-struct Enfants { 
+/// A ce jour, il n'y a pas un moyen plus sûr en Rust pour ce type d'opération.
+struct Enfants {
+    /// Non-public, la liste de l'ensemble des threads pour les clients TCP
+    liste: Vec<Enfant>,
+}
 
-    /// Non-public, la liste de l'ensemble des threads pour les clients TCP 
-    liste: Vec<Enfant> 
-
-} 
-
-/// Cette implémentation n'est pas publique et est réservée aux seuls services gérés par ce module. 
-impl Enfants { 
-    /// Créée une nouvelle liste d'enfants 
-    fn creer() -> Self { 
-        Enfants { 
-            liste: Vec::new() 
-        } 
-    } 
-    /// Assemble un test et sa cible à la liste 
-    fn ajouter( &mut self, test: Sender<bool>, cible: JoinHandle<()> ) {
-        self.liste.push( 
-            Enfant { 
-                test: test, 
-                cible: cible 
-            } 
-        ); 
-    } 
-    /// Tente d'envoyer un booléen à la cible ; en cas de défaut l'enfant est retiré 
-    fn nettoyer_enfants( &mut self ) { 
-        self.liste.retain( 
-            | enfant | { 
-                enfant.tester() 
-            } 
-        ); 
-    } 
-    /// Lorsque le service s'arrête, les enfants doivent être correctement arrêtés 
-    fn finaliser( self ) { 
+/// Cette implémentation n'est pas publique et est réservée aux seuls services gérés par ce module.
+impl Enfants {
+    /// Créée une nouvelle liste d'enfants
+    fn creer() -> Self {
+        Enfants { liste: Vec::new() }
+    }
+    /// Assemble un test et sa cible à la liste
+    fn ajouter(&mut self, test: Sender<bool>, cible: JoinHandle<()>) {
+        self.liste.push(Enfant {
+            test: test,
+            cible: cible,
+        });
+    }
+    /// Tente d'envoyer un booléen à la cible ; en cas de défaut l'enfant est retiré
+    fn nettoyer_enfants(&mut self) {
+        self.liste.retain(|enfant| enfant.tester());
+    }
+    /// Lorsque le service s'arrête, les enfants doivent être correctement arrêtés
+    fn finaliser(self) {
         for enfant in self.liste {
             enfant.cible.join().unwrap();
-        } 
-    } 
-} 
+        }
+    }
+}
 
-/// Cette structure privée porte le test (un expéditeur de booléen sur un channel) et sa cible (l'objet porteur d'un thread) 
-struct Enfant { 
+/// Cette structure privée porte le test (un expéditeur de booléen sur un channel) et sa cible (l'objet porteur d'un thread)
+struct Enfant {
+    /// l'expéditeur, permettant de tester l'activité d'un thread
+    test: Sender<bool>,
 
-    /// l'expéditeur, permettant de tester l'activité d'un thread 
-    test: Sender<bool>, 
+    /// l'objet porteur du thread
+    cible: JoinHandle<()>,
+}
 
-    /// l'objet porteur du thread 
-    cible: JoinHandle<()> 
-
-} 
-
-/// Cette implémentation n'est pas publique et est réservée aux seuls services gérés par ce module. 
-impl Enfant { 
-    /// Teste si la cible est accessible par l'envoi d'un booléen 
-    fn tester( &self ) -> bool { 
-        match self.test.send( true ) { 
-            Ok( _ ) => true, 
-            Err( _ ) => { 
-                if DEBUG { 
-                    println!("! un enfant (thread) n'est pas accessible"); 
-                } 
-                false 
-            } 
-        } 
-    } 
-} 
+/// Cette implémentation n'est pas publique et est réservée aux seuls services gérés par ce module.
+impl Enfant {
+    /// Teste si la cible est accessible par l'envoi d'un booléen
+    fn tester(&self) -> bool {
+        match self.test.send(true) {
+            Ok(_) => true,
+            Err(_) => {
+                if DEBUG {
+                    println!("! un enfant (thread) n'est pas accessible");
+                }
+                false
+            }
+        }
+    }
+}
 
 // --- --- --- --- --- --- --- --- ---
 // (5) Définition des fonctions
@@ -117,11 +105,12 @@ pub fn lancement_service(ipport: &str) -> Result<(), &'static str> {
     if let Ok(listener) = TcpListener::bind(ipport) {
         let mut enfants = Enfants::creer();
         let mut iterateur_connexion = listener.incoming();
-        
-        while unsafe { ETAT_GENERAL } { // /!\ UNSAFE / à retirer urgemment
-            
-            enfants.nettoyer_enfants(); 
-            
+
+        while unsafe { ETAT_GENERAL } {
+            // /!\ UNSAFE / à retirer urgemment
+
+            enfants.nettoyer_enfants();
+
             let stream = match iterateur_connexion.next() {
                 Some(Ok(s)) => s,
                 Some(Err(_)) => continue,
@@ -135,10 +124,10 @@ pub fn lancement_service(ipport: &str) -> Result<(), &'static str> {
                     Ok(adresse) => println!("! nouvelle connexion: {:?}", adresse),
                     _ => continue,
                 }
-            } 
+            }
             let (test_etat_expediteur, test_etat_destinataire) = channel();
-            let contexte = Contexte { 
-                existence: test_etat_destinataire, 
+            let contexte = Contexte {
+                existence: test_etat_destinataire,
                 service_ecoute: listener.try_clone().unwrap(),
                 service_poursuite: unsafe { &mut ETAT_GENERAL }, // /!\ UNSAFE / à retirer urgemment
                 poursuivre: true,
@@ -146,19 +135,14 @@ pub fn lancement_service(ipport: &str) -> Result<(), &'static str> {
                 canauxthread: canaux_thread.clone(),
                 profil: Profil::creer(),
                 stream: stream,
-            }; 
-            let cible_enfant = thread::spawn( 
-                move || {
-                    client::recevoir(contexte);
-                }
-            ); 
-            enfants.ajouter( 
-                test_etat_expediteur, 
-                cible_enfant 
-            );
-        } 
-        enfants.finaliser(); 
-        Ok(()) 
+            };
+            let cible_enfant = thread::spawn(move || {
+                client::recevoir(contexte);
+            });
+            enfants.ajouter(test_etat_expediteur, cible_enfant);
+        }
+        enfants.finaliser();
+        Ok(())
     } else {
         Err("impossible d'ouvrir le port désiré sur l'interface voulue")
     }

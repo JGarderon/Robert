@@ -282,6 +282,24 @@
 <span id="282">282</span>
 <span id="283">283</span>
 <span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Module de définition des types de valeurs</span>
 <span class="doccomment">//!</span>
@@ -321,7 +339,15 @@
 <span class="comment">// --- --- --- --- --- --- --- --- ---</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">resolution</span>::<span class="ident">Retour</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serie</span>::{<span class="ident">Serie</span>, <span class="ident">Source</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">serie</span>::{<span class="ident">Serie</span>, <span class="ident">Source</span>}; 
+
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
+<span class="comment">// (2 bis) Importation des sous-modules dédiés</span>
+<span class="comment">// --- --- --- --- --- --- --- --- ---</span>
+
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">soustype_rss</span>; 
+
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">valeur</span>::<span class="ident">soustype_rss</span>::{<span class="ident">RSSFlux</span>, <span class="ident">RSSItems</span>}; 
 
 <span class="comment">// --- --- --- --- --- --- --- --- ---</span>
 <span class="comment">// (3) Constantes du projet</span>
@@ -335,7 +361,8 @@
 <span class="comment">// --- --- --- --- --- --- --- --- ---</span>
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Valeurs</span> {
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Valeurs</span> { 
+
     <span class="doccomment">/// Stocke un bit</span>
     <span class="ident">Booleen</span>(<span class="ident">bool</span>),
 
@@ -350,6 +377,10 @@
 
     <span class="doccomment">/// Stocke un dictionnaire de paires clé/valeur (récurcivité)</span>
     <span class="ident">Objet</span>(<span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Valeurs</span><span class="op">&gt;</span>),
+
+    <span class="doccomment">/// Début d&#39;intégration de type de valeurs complexes (sous-types) </span>
+    <span class="ident">Rss</span>( <span class="ident">RSSFlux</span>, <span class="ident">RSSItems</span> ), 
+
 }
 
 <span class="doccomment">/// Implémentation du trait &#39;Série&#39;, qui convertit la valeur vers une chaîne binaire standardisée (ex. vers un fichier de sauvegarde ou en masse vers le client)</span>
@@ -396,6 +427,7 @@
                     <span class="prelude-val">None</span>
                 }
             }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span> 
         }
     }
 }
@@ -498,6 +530,7 @@
                     }
                     <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
                 },
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>, 
             },
             <span class="string">&quot;relatif&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="self">self</span> {
                 <span class="ident">Valeurs</span>::<span class="ident">Objet</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
@@ -517,7 +550,8 @@
                     } <span class="kw">else</span> {
                         <span class="bool-val">false</span>
                     }
-                }
+                } 
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>, 
             },
             <span class="string">&quot;flottant&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="self">self</span> {
                 <span class="ident">Valeurs</span>::<span class="ident">Objet</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
@@ -538,6 +572,7 @@
                         <span class="bool-val">false</span>
                     }
                 }
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>, 
             },
             <span class="string">&quot;texte&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="self">self</span> {
                 <span class="ident">Valeurs</span>::<span class="ident">Objet</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
@@ -558,6 +593,7 @@
                     <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">Valeurs</span>::<span class="ident">Texte</span>(<span class="ident">n</span>.<span class="ident">to_string</span>());
                     <span class="bool-val">true</span>
                 }
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>, 
             },
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
         }

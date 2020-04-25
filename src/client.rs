@@ -66,12 +66,12 @@ impl Informer for std::net::TcpStream {
 // (5) Définition des fonctions
 // --- --- --- --- --- --- --- --- ---
 
-pub fn nettoyer( contexte: &mut Contexte ) { 
-    match contexte.existence.try_recv() { 
-        Ok( _ ) => (), 
-        Err( _ ) => () 
-    }; 
-} 
+pub fn nettoyer(contexte: &mut Contexte) {
+    match contexte.existence.try_recv() {
+        Ok(_) => (),
+        Err(_) => (),
+    };
+}
 
 /// Fonction recevant un client et le traitant, par le biais d'un objet 'Contexte' déjà créé. Principalement une boucle qui reçoit sur texte dans un tampon, l'examine rapidement avec les outils du module "grammaire", et lancement la fonction de résolution de la requête.
 pub fn recevoir(mut contexte: Contexte) {
@@ -83,8 +83,8 @@ pub fn recevoir(mut contexte: Contexte) {
     if !contexte.message("bonjour") {
         return;
     }
-    while contexte.poursuivre { 
-        nettoyer( &mut contexte ); 
+    while contexte.poursuivre {
+        nettoyer(&mut contexte);
         if !*contexte.service_poursuite {
             contexte.ecrire(
 				"[!] le service est en cours d'extinction ; vous allez être déconnecté immédiatement\n",

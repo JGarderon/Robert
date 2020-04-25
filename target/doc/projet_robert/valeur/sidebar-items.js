@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Valeurs",""]]});
+initSidebarItems({"enum":[["Valeurs",""]],"mod":[["soustype_rss",""]]});

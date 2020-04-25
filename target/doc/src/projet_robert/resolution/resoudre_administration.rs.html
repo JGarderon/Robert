@@ -366,6 +366,7 @@
 <span id="366">366</span>
 <span id="367">367</span>
 <span id="368">368</span>
+<span id="369">369</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Sous-module de résolution &quot;administration&quot;</span>
 <span class="doccomment">//!</span>
@@ -424,7 +425,8 @@
                 <span class="ident">Valeurs</span>::<span class="ident">Flottant</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>(<span class="ident">f</span>),
                 <span class="ident">Valeurs</span>::<span class="ident">Texte</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>(<span class="ident">t</span>) <span class="op">+</span> <span class="ident">t</span>.<span class="ident">as_bytes</span>().<span class="ident">len</span>(),
                 <span class="ident">Valeurs</span>::<span class="ident">Objet</span>(<span class="ident">h</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">mem</span>::<span class="ident">size_of_val</span>(<span class="ident">h</span>) <span class="op">+</span> <span class="ident">h</span>.<span class="ident">mesurer</span>(),
-            }
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span> 
+            } 
     }
 }
 

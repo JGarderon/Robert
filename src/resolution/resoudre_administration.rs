@@ -55,6 +55,7 @@ impl Mesure for Valeurs {
                 Valeurs::Flottant(f) => mem::size_of_val(f),
                 Valeurs::Texte(t) => mem::size_of_val(t) + t.as_bytes().len(),
                 Valeurs::Objet(h) => mem::size_of_val(h) + h.mesurer(),
+                _ => 0,
             }
     }
 }

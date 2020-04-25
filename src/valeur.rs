@@ -39,6 +39,14 @@ use crate::resolution::Retour;
 use crate::serie::{Serie, Source};
 
 // --- --- --- --- --- --- --- --- ---
+// (2 bis) Importation des sous-modules dédiés
+// --- --- --- --- --- --- --- --- ---
+
+pub mod soustype_rss;
+
+use crate::valeur::soustype_rss::{RSSFlux, RSSItems};
+
+// --- --- --- --- --- --- --- --- ---
 // (3) Constantes du projet
 // --- --- --- --- --- --- --- --- ---
 
@@ -65,6 +73,9 @@ pub enum Valeurs {
 
     /// Stocke un dictionnaire de paires clé/valeur (récurcivité)
     Objet(HashMap<String, Valeurs>),
+
+    /// Début d'intégration de type de valeurs complexes (sous-types)
+    Rss(RSSFlux, RSSItems),
 }
 
 /// Implémentation du trait 'Série', qui convertit la valeur vers une chaîne binaire standardisée (ex. vers un fichier de sauvegarde ou en masse vers le client)
@@ -111,6 +122,7 @@ impl Serie for Valeurs {
                     None
                 }
             }
+            _ => None,
         }
     }
 }
@@ -213,6 +225,7 @@ impl Valeurs {
                     }
                     _ => false,
                 },
+                _ => false,
             },
             "relatif" => match self {
                 Valeurs::Objet(_) => false,
@@ -233,6 +246,7 @@ impl Valeurs {
                         false
                     }
                 }
+                _ => false,
             },
             "flottant" => match self {
                 Valeurs::Objet(_) => false,
@@ -253,6 +267,7 @@ impl Valeurs {
                         false
                     }
                 }
+                _ => false,
             },
             "texte" => match self {
                 Valeurs::Objet(_) => false,
@@ -273,6 +288,7 @@ impl Valeurs {
                     *self = Valeurs::Texte(n.to_string());
                     true
                 }
+                _ => false,
             },
             _ => false,
         }

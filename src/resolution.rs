@@ -24,7 +24,8 @@ mod resoudre_canal;
 mod resoudre_numerique;
 mod resoudre_texte;
 
-mod resoudre_script; // en travaux
+mod resoudre_rss;
+mod resoudre_script; // en travaux // en travaux
 
 // --- --- --- --- --- --- --- --- ---
 // (3) Constantes du projet
@@ -163,6 +164,7 @@ fn resoudre_obtenir(contexte: &mut Contexte, mut arguments: ArgumentsLocaux) -> 
             Valeurs::Relatif(n) => Retour::creer(true, format!("(réel) {}", n)),
             Valeurs::Flottant(n) => Retour::creer(true, format!("(flottant) {}", n)),
             Valeurs::Objet(o) => Retour::creer(true, format!("(objet) {:?}", o)),
+            _ => Retour::creer(true, format!("(?) {:?}", valeur)),
         }),
         Err(e) => Retour::creer_str(false, e),
     }
@@ -304,7 +306,11 @@ pub fn resoudre(contexte: &mut Contexte, appel: &str, arguments: &str) -> Retour
             "script" => match resoudre_script::resoudre(&appel[n + 1..]) {
                 Ok(fct) => fct,
                 Err(r) => return r,
-            },
+            }, // en travaux
+            "rss" => match resoudre_rss::resoudre(&appel[n + 1..]) {
+                Ok(fct) => fct,
+                Err(r) => return r,
+            }, // en travaux
             _ => return Retour::creer_str(false, "module inconnu"),
         }
     } else {

@@ -2,7 +2,7 @@
 //!
 
 use std::net::TcpStream;
-use std::sync::mpsc::Receiver; 
+use std::sync::mpsc::Receiver;
 
 // ----------------------------------------------------
 
@@ -15,9 +15,8 @@ use crate::profil::Profil;
 /// La structure 'Contexte' permet de rassembler dans un objet unique, l'ensemble des éléments propres à un socket quelque soit la fonction de résolution qui sera appelée. Elle référence aussi le canal en cours d'usage par le client, ainsi que l'origine (Canaux).
 /// Dans une fonction de résolution, elle se présentera toujours dans la forme d'une référence mutable.
 pub struct Contexte<'a> {
-
-    /// Ce champ permet de tester l'activité d'un enfant (thread), Rust n'offrant pas de solution définitive pour l'état d'un thread 
-    pub existence: Receiver<bool>, 
+    /// Ce champ permet de tester l'activité d'un enfant (thread), Rust n'offrant pas de solution définitive pour l'état d'un thread
+    pub existence: Receiver<bool>,
 
     /// Ce champ permet de récupérer un clone de l'objet en écoute sur l'interface réseau.
     pub service_ecoute: std::net::TcpListener,
@@ -44,15 +43,15 @@ pub struct Contexte<'a> {
 }
 
 impl Informer for Contexte<'_> {
-    fn ecrire( &mut self, texte: &str, flush: bool ) -> bool {
-        self.stream.ecrire( texte, flush )
+    fn ecrire(&mut self, texte: &str, flush: bool) -> bool {
+        self.stream.ecrire(texte, flush)
     }
 
-    fn message( &mut self, message: &str ) -> bool {
-        self.stream.message( message )
+    fn message(&mut self, message: &str) -> bool {
+        self.stream.message(message)
     }
 
-    fn erreur( &mut self, erreur: &str ) -> bool {
-        self.stream.erreur( erreur )
+    fn erreur(&mut self, erreur: &str) -> bool {
+        self.stream.erreur(erreur)
     }
 }
