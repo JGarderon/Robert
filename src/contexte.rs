@@ -2,7 +2,9 @@
 //!
 
 use std::net::TcpStream;
+use std::sync::atomic::AtomicBool;
 use std::sync::mpsc::Receiver;
+use std::sync::Arc;
 
 // ----------------------------------------------------
 
@@ -22,7 +24,7 @@ pub struct Contexte<'a> {
     pub service_ecoute: std::net::TcpListener,
 
     /// Ce champ lorsqu'il est à "faux", permet d'interrompre la boucle globale du service.
-    pub service_poursuite: &'a mut bool,
+    pub service_poursuite: Arc<AtomicBool>,
 
     /// Ce champ lorsqu'il est à "faux", permet d'interrompre la boucle locale du thead gérant le socket, dès la fin de la fonction de résolution actuelle.
     pub poursuivre: bool,

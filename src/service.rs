@@ -8,7 +8,9 @@
 // --- --- --- --- --- --- --- --- ---
 
 use std::net::TcpListener;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{channel, Sender};
+use std::sync::Arc;
 use std::thread::{self, JoinHandle};
 
 // --- --- --- --- --- --- --- --- ---
@@ -99,16 +101,14 @@ impl Enfant {
 ///
 /// A l'avenir, cette fonction devrait retourner un objet JoinHandle permettant au service d'agir dans un thread dédié et ne pas bloquer la fonction 'main'. Cependant tant qu'il n'y a pas d'autres besoins à couvrir, cette fonction reste en l'état.
 ///
-pub fn lancement_service(ipport: &str) -> Result<(), &'static str> {
-    static mut ETAT_GENERAL: bool = true; // /!\ UNSAFE / à retirer urgemment
+pub fn lancement_service<'max>(ipport: &str) -> Result<(), &'static str> {
+    let etat_general: Arc<AtomicBool> = Arc::new(AtomicBool::new(true));
     let (canal_thread, canaux_thread) = creer_racine(CANAL_NOM_DEFAUT);
     if let Ok(listener) = TcpListener::bind(ipport) {
         let mut enfants = Enfants::creer();
         let mut iterateur_connexion = listener.incoming();
 
-        while unsafe { ETAT_GENERAL } {
-            // /!\ UNSAFE / à retirer urgemment
-
+        while etat_general.load(Ordering::Relaxed) {
             enfants.nettoyer_enfants();
 
             let stream = match iterateur_connexion.next() {
@@ -129,7 +129,7 @@ pub fn lancement_service(ipport: &str) -> Result<(), &'static str> {
             let contexte = Contexte {
                 existence: test_etat_destinataire,
                 service_ecoute: listener.try_clone().unwrap(),
-                service_poursuite: unsafe { &mut ETAT_GENERAL }, // /!\ UNSAFE / à retirer urgemment
+                service_poursuite: etat_general.clone(),
                 poursuivre: true,
                 canalthread: canal_thread.clone(),
                 canauxthread: canaux_thread.clone(),

@@ -9,6 +9,7 @@
 
 use std::io::Read;
 use std::io::Write;
+use std::sync::atomic::Ordering;
 
 // --- --- --- --- --- --- --- --- ---
 // (2) Importation des modules du projet
@@ -85,7 +86,7 @@ pub fn recevoir(mut contexte: Contexte) {
     }
     while contexte.poursuivre {
         nettoyer(&mut contexte);
-        if !*contexte.service_poursuite {
+        if !contexte.service_poursuite.load(Ordering::Relaxed) {
             contexte.ecrire(
 				"[!] le service est en cours d'extinction ; vous allez être déconnecté immédiatement\n",
 				true

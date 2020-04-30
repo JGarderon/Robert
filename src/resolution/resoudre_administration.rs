@@ -11,6 +11,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufWriter;
 use std::mem;
+use std::sync::atomic::Ordering;
 
 // --- --- --- --- --- --- --- --- ---
 // (2) Importation des modules du projet
@@ -153,7 +154,7 @@ fn resoudre_eteindre(contexte: &mut Contexte, mut arguments: ArgumentsLocaux) ->
     if !arguments.est_stop() {
         return Retour::creer_str(false, "aucun argument autorisé");
     }
-    *contexte.service_poursuite = false; // /!\ UNSAFE / à retirer urgemment
+    contexte.service_poursuite.store(false, Ordering::Relaxed);
     match std::net::TcpStream::connect( contexte.service_ecoute.local_addr().unwrap() ) {
 		Ok( _ ) => Retour::creer_str( true, "extinction enclenchée ; les fils vont être progressivement arrêtés" ),
 		Err( _ ) => Retour::creer_str( false, "extinction enclenchée ; attention, la nouvelle connexion nécessaire n'a pas pu être enclenchée (l'écoute d'un nouveau client est bloquante)" )
